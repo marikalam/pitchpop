@@ -27,54 +27,33 @@ export default function App() {
     if (navigator.vibrate) navigator.vibrate(25);
   }
 
-  function replay() {
-    if (current) play(current);
-  }
+  const pageStyle = current ? { background: current.hex, color: current.text } : undefined;
 
   return (
-    <div className="app">
-      <header>
-        <div>
-          <h1>Chord Colors</h1>
-          <p className="subtitle">Tap a pad to play its chord</p>
-        </div>
-      </header>
+    <div className="page" style={pageStyle}>
+      <div className="app">
+        <header>
+          <div>
+            <h1>Chord Colors</h1>
+            <p className="subtitle">Tap a pad to play its chord</p>
+          </div>
+        </header>
 
-      <div
-        className={`display${current ? '' : ' idle'}`}
-        style={current ? { background: current.hex, borderColor: current.hex } : undefined}
-      >
-        <div className="display-name" style={current ? { color: current.text } : undefined}>
-          {current ? current.name : 'Ready'}
-        </div>
-        <div
-          className="display-hint"
-          style={current ? { color: current.text, opacity: 0.75 } : undefined}
-        >
-          {current ? current.notes.join(' · ') : 'tap a color below'}
+        <div className="grid">
+          {COLORS.map((color) => (
+            <button
+              key={color.name}
+              className="pad"
+              style={{ background: color.hex, color: color.text }}
+              aria-label={`Play ${color.name} chord`}
+              onClick={() => play(color)}
+            >
+              <div className="pad-name">{color.name}</div>
+              <div className="pad-notes">{color.notes.join(' ')}</div>
+            </button>
+          ))}
         </div>
       </div>
-
-      <div className="grid">
-        {COLORS.map((color) => (
-          <button
-            key={color.name}
-            className="pad"
-            style={{ background: color.hex, color: color.text }}
-            aria-label={`Play ${color.name} chord`}
-            onClick={() => play(color)}
-          >
-            <div className="pad-name">{color.name}</div>
-            <div className="pad-notes">{color.notes.join(' ')}</div>
-          </button>
-        ))}
-      </div>
-
-      <button className="replay" disabled={!current} onClick={replay}>
-        &#8635; Replay last chord
-      </button>
-
-      <footer>Turn up the volume &mdash; built for the car</footer>
     </div>
   );
 }
