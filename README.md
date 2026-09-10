@@ -8,7 +8,7 @@ Nine buttons, one per color, each one plays the right chord. Tap red, it plays C
 
 <img src="screenshots/01-idle.png" width="360" alt="App at rest, waiting for a tap"> <img src="screenshots/02-red.png" width="360" alt="After tapping red — panel turns red and plays C E G">
 
-Tap a pad and the panel up top fills with that color and shows what's playing, mostly so I can double check myself, not so the kids can see it — they're supposed to be listening, not looking.
+Tap a pad and the panel up top fills with that color and shows what's playing.
 
 ## Running it
 
