@@ -10,7 +10,11 @@ Live at **[marikalam.github.io/pitchpop](https://marikalam.github.io/pitchpop/)*
 
 <img src="screenshots/01-idle.png" width="360" alt="PitchPop at rest, waiting for a tap"> <img src="screenshots/02-red.png" width="360" alt="After tapping red — a quiet ring confirms the tap, nothing reveals the color">
 
-Tapping a pad plays the chord and puts a quick ring around that one button so you know it registered — nothing else on screen changes. That's on purpose: the kids are guessing by ear, so the screen shouldn't give the answer away if they happen to be looking at it.
+Tapping a pad plays the chord and puts a quick ring around that one button so you know it registered. In Practice mode a little rainbow also arcs up and glows on the color you just played, just for fun.
+
+## Test mode
+
+The gear icon opens Mode settings. Switch to Test and pick who's being tested — Maddie gets all nine colors, Marcus gets the six he's working on (black, blue, red, yellow, green, orange). In Test mode every pad turns into the same rainbow gradient with no color name, and the pads shuffle into a new random order each time you enter — so nothing on screen, not even button position, gives the answer away. The note letters stay visible, since that's just your own reference for which pad to press; the kids can't read chord spelling.
 
 ## Running it
 
