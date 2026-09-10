@@ -1,5 +1,7 @@
 const SPECTRUM_ORDER = ['red', 'orange', 'yellow', 'green', 'blue', 'purple', 'pink', 'brown', 'black'];
 
+const REAL_RAINBOW = ['#E5473C', '#EF8B3D', '#F0C93D', '#4FAE5C', '#3B7FD9', '#5B4FCF', '#9A4FCF'];
+
 function arcPath(cx, cy, r) {
   return `M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`;
 }
@@ -16,14 +18,16 @@ function Cloud({ cx, cy }) {
 }
 
 export default function Rainbow({ colors, activeName, visible, pretty = false }) {
-  const ordered = SPECTRUM_ORDER.map((name) => colors.find((c) => c.name === name)).filter(Boolean);
+  const bands = pretty
+    ? REAL_RAINBOW.map((hex) => ({ name: hex, hex }))
+    : SPECTRUM_ORDER.map((name) => colors.find((c) => c.name === name)).filter(Boolean);
 
   const cx = 130;
   const cy = 142;
-  const bandWidth = 9;
-  const spacing = 10;
+  const bandWidth = pretty ? 11 : 9;
+  const spacing = pretty ? 12 : 10;
   const startRadius = 24;
-  const maxIndex = ordered.length - 1;
+  const maxIndex = bands.length - 1;
   const outerRadius = startRadius + maxIndex * spacing;
 
   return (
@@ -39,7 +43,7 @@ export default function Rainbow({ colors, activeName, visible, pretty = false })
           <Cloud cx={cx + outerRadius} cy={cy} />
         </>
       )}
-      {ordered.map((color, i) => {
+      {bands.map((color, i) => {
         const r = startRadius + (maxIndex - i) * spacing;
         return (
           <path

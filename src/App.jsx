@@ -21,7 +21,6 @@ const PROFILE_NAMES = {
 };
 
 const SESSION_ROUNDS = 20;
-const REVEAL_DELAY = 1000;
 
 function shuffle(list) {
   const copy = [...list];
@@ -73,12 +72,6 @@ export default function App() {
     return () => clearTimeout(id);
   }, [celebrate]);
 
-  useEffect(() => {
-    if (phase !== 'waiting') return;
-    const id = setTimeout(() => setPhase('revealed'), REVEAL_DELAY);
-    return () => clearTimeout(id);
-  }, [phase]);
-
   function play(color) {
     engineRef.current.playChord(color.notes);
     if (navigator.vibrate) navigator.vibrate(25);
@@ -87,7 +80,10 @@ export default function App() {
   }
 
   function tapStage() {
-    if (phase === 'waiting') return;
+    if (phase === 'waiting') {
+      setPhase('revealed');
+      return;
+    }
 
     if (phase === 'revealed' && sessionRound >= SESSION_ROUNDS) {
       setSessionQueue(buildQueue(PROFILE_NAMES[profile], SESSION_ROUNDS));
@@ -105,6 +101,12 @@ export default function App() {
 
   const revealedColor = sessionRound > 0 ? COLORS.find((c) => c.name === sessionQueue[sessionRound - 1]) : null;
   const finished = sessionRound >= SESSION_ROUNDS;
+
+  function replayCurrent() {
+    if (!revealedColor) return;
+    engineRef.current.playChord(revealedColor.notes);
+    if (navigator.vibrate) navigator.vibrate(15);
+  }
 
   return (
     <div className="page">
@@ -150,14 +152,16 @@ export default function App() {
               onClick={tapStage}
             >
               {phase === 'revealed' ? (
-                <div className="reveal" style={{ color: revealedColor.text }}>
+                <div className="reveal" style={{ color: revealedColor.text }} key={sessionRound}>
                   <div className="confetti" aria-hidden="true">
-                    <span />
-                    <span />
-                    <span />
-                    <span />
-                    <span />
-                    <span />
+                    <span style={{ background: revealedColor.hex, color: revealedColor.hex }} />
+                    <span style={{ background: '#fff', color: '#fff' }} />
+                    <span style={{ background: revealedColor.hex, color: revealedColor.hex }} />
+                    <span style={{ background: '#fff', color: '#fff' }} />
+                    <span style={{ background: revealedColor.hex, color: revealedColor.hex }} />
+                    <span style={{ background: '#fff', color: '#fff' }} />
+                    <span style={{ background: revealedColor.hex, color: revealedColor.hex }} />
+                    <span style={{ background: '#fff', color: '#fff' }} />
                   </div>
                   <div className="reveal-name">{revealedColor.name}</div>
                   <div className="reveal-notes">{revealedColor.notes.join(' ')}</div>
@@ -165,10 +169,17 @@ export default function App() {
               ) : (
                 <>
                   <Rainbow colors={COLORS} activeName={null} visible pretty />
-                  <p className="stage-hint">{phase === 'waiting' ? 'Listening…' : 'Tap the rainbow for a chord'}</p>
+                  <p className="stage-hint">
+                    {phase === 'waiting' ? 'Tap again to see the answer' : 'Tap the rainbow for a chord'}
+                  </p>
                 </>
               )}
             </button>
+            {phase === 'waiting' && (
+              <button className="replay-link" onClick={replayCurrent}>
+                🔁 Hear it again
+              </button>
+            )}
             <p className="round-count">
               {finished && phase === 'revealed'
                 ? `All ${SESSION_ROUNDS} done — tap to start over`
