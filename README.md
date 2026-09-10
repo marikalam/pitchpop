@@ -1,14 +1,16 @@
-# Chord Colors
+# PitchPop
 
 We have a game we play: I play a chord on the piano, and my kids have to grab the matching color flag and shout it out. C-E-G is red, A-C-F is black, B-D-G is blue, and so on through nine chords.
 
 Nine buttons, one per color, each one plays the right chord. Tap red, it plays C-E-G. That's the whole app.
 
+Live at **[marikalam.github.io/pitchpop](https://marikalam.github.io/pitchpop/)**.
+
 ## What it looks like
 
-<img src="screenshots/01-idle.png" width="360" alt="App at rest, waiting for a tap"> <img src="screenshots/02-red.png" width="360" alt="After tapping red — panel turns red and plays C E G">
+<img src="screenshots/01-idle.png" width="360" alt="PitchPop at rest, waiting for a tap"> <img src="screenshots/02-red.png" width="360" alt="After tapping red — a quiet ring confirms the tap, nothing reveals the color">
 
-Tap a pad and the panel up top fills with that color and shows what's playing.
+Tapping a pad plays the chord and puts a quick ring around that one button so you know it registered — nothing else on screen changes. That's on purpose: the kids are guessing by ear, so the screen shouldn't give the answer away if they happen to be looking at it.
 
 ## Running it
 

@@ -38,7 +38,9 @@ export default function App() {
       <div className="app">
         <header>
           <div>
-            <h1>Chord Colors</h1>
+            <h1>
+              Pitch<span className="pop">Pop</span>
+            </h1>
             <p className="subtitle">Tap a pad to play its chord</p>
           </div>
         </header>
