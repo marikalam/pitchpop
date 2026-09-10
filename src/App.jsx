@@ -20,7 +20,7 @@ const PROFILE_NAMES = {
   marcus: ['black', 'blue', 'red', 'yellow', 'green', 'orange'],
 };
 
-const TEST_ROUNDS = 20;
+const SESSION_ROUNDS = 20;
 const REVEAL_DELAY = 2000;
 
 function shuffle(list) {
@@ -42,12 +42,11 @@ function buildQueue(names, total) {
 
 export default function App() {
   const engineRef = useRef(null);
-  const [mode, setMode] = useState('practice');
+  const [mode, setMode] = useState('explore');
   const [profile, setProfile] = useState('maddie');
-  const [testQueue, setTestQueue] = useState(() => buildQueue(PROFILE_NAMES.maddie, TEST_ROUNDS));
-  const [testRound, setTestRound] = useState(0);
+  const [sessionQueue, setSessionQueue] = useState(() => buildQueue(PROFILE_NAMES.maddie, SESSION_ROUNDS));
+  const [sessionRound, setSessionRound] = useState(0);
   const [phase, setPhase] = useState('ready');
-  const [settingsOpen, setSettingsOpen] = useState(false);
   const [justPlayed, setJustPlayed] = useState(null);
   const [celebrate, setCelebrate] = useState(null);
 
@@ -56,9 +55,9 @@ export default function App() {
   }
 
   useEffect(() => {
-    if (mode !== 'test') return;
-    setTestQueue(buildQueue(PROFILE_NAMES[profile], TEST_ROUNDS));
-    setTestRound(0);
+    if (mode !== 'practice') return;
+    setSessionQueue(buildQueue(PROFILE_NAMES[profile], SESSION_ROUNDS));
+    setSessionRound(0);
     setPhase('ready');
   }, [mode, profile]);
 
@@ -83,31 +82,34 @@ export default function App() {
   function play(color) {
     engineRef.current.playChord(color.notes);
     if (navigator.vibrate) navigator.vibrate(25);
-    if (mode === 'practice') {
-      setJustPlayed(color.name);
-      setCelebrate(color.name);
-    }
+    setJustPlayed(color.name);
+    setCelebrate(color.name);
   }
 
   function tapStage() {
     if (phase === 'waiting') return;
 
-    if (phase === 'revealed' && testRound >= TEST_ROUNDS) {
-      setTestQueue(buildQueue(PROFILE_NAMES[profile], TEST_ROUNDS));
-      setTestRound(0);
+    if (phase === 'revealed' && sessionRound >= SESSION_ROUNDS) {
+      setSessionQueue(buildQueue(PROFILE_NAMES[profile], SESSION_ROUNDS));
+      setSessionRound(0);
       setPhase('ready');
       return;
     }
 
-    const color = COLORS.find((c) => c.name === testQueue[testRound]);
+    const color = COLORS.find((c) => c.name === sessionQueue[sessionRound]);
     engineRef.current.playChord(color.notes);
     if (navigator.vibrate) navigator.vibrate(25);
-    setTestRound((r) => r + 1);
+    setSessionRound((r) => r + 1);
     setPhase('waiting');
   }
 
-  const revealedColor = testRound > 0 ? COLORS.find((c) => c.name === testQueue[testRound - 1]) : null;
-  const finished = testRound >= TEST_ROUNDS;
+  const revealedColor = sessionRound > 0 ? COLORS.find((c) => c.name === sessionQueue[sessionRound - 1]) : null;
+  const finished = sessionRound >= SESSION_ROUNDS;
+  const playedSoFar = sessionQueue.slice(0, sessionRound);
+  const sessionCounts = {};
+  playedSoFar.forEach((name) => {
+    sessionCounts[name] = (sessionCounts[name] || 0) + 1;
+  });
 
   return (
     <div className="page">
@@ -122,63 +124,31 @@ export default function App() {
               <span className="pop-green">p</span>
             </h1>
             <p className="subtitle">
-              {mode === 'test'
-                ? `Testing ${profile === 'maddie' ? 'Maddie' : 'Marcus'} — no peeking!`
-                : 'Tap a pad to play its chord'}
+              {mode === 'practice' ? 'Practice time — listen carefully! 🎵' : 'Tap a pad to play its chord'}
             </p>
           </div>
-          <div className="settings-wrap">
-            <button
-              className="settings-dot"
-              aria-label="Settings"
-              aria-expanded={settingsOpen}
-              onClick={() => setSettingsOpen((open) => !open)}
-            >
-              &#9881;
-            </button>
-            {settingsOpen && (
-              <div className="settings-panel">
-                <div className="settings-label">Mode</div>
-                <div className="settings-row">
-                  <button
-                    className={`seg${mode === 'practice' ? ' seg-active' : ''}`}
-                    onClick={() => setMode('practice')}
-                  >
-                    Practice
-                  </button>
-                  <button
-                    className={`seg${mode === 'test' ? ' seg-active' : ''}`}
-                    onClick={() => setMode('test')}
-                  >
-                    Test
-                  </button>
-                </div>
-                {mode === 'test' && (
-                  <>
-                    <div className="settings-label">Who's testing?</div>
-                    <div className="settings-row">
-                      <button
-                        className={`seg${profile === 'maddie' ? ' seg-active' : ''}`}
-                        onClick={() => setProfile('maddie')}
-                      >
-                        Maddie
-                      </button>
-                      <button
-                        className={`seg${profile === 'marcus' ? ' seg-active' : ''}`}
-                        onClick={() => setProfile('marcus')}
-                      >
-                        Marcus
-                      </button>
-                    </div>
-                  </>
-                )}
-              </div>
-            )}
-          </div>
+          <button className="mode-pill" onClick={() => setMode(mode === 'explore' ? 'practice' : 'explore')}>
+            {mode === 'explore' ? '🎯 Practice' : '← Explore'}
+          </button>
         </header>
 
-        {mode === 'test' ? (
+        {mode === 'practice' ? (
           <>
+            <div className="profile-row">
+              <button
+                className={`seg${profile === 'maddie' ? ' seg-active' : ''}`}
+                onClick={() => setProfile('maddie')}
+              >
+                Maddie
+              </button>
+              <button
+                className={`seg${profile === 'marcus' ? ' seg-active' : ''}`}
+                onClick={() => setProfile('marcus')}
+              >
+                Marcus
+              </button>
+            </div>
+
             <button
               className={`test-stage${phase === 'revealed' ? ' test-stage-revealed' : ''}`}
               style={phase === 'revealed' ? { background: revealedColor.hex } : undefined}
@@ -205,8 +175,26 @@ export default function App() {
               )}
             </button>
             <p className="round-count">
-              {finished && phase === 'revealed' ? 'All 20 done — tap to start over' : `${testRound} / ${TEST_ROUNDS} played`}
+              {finished && phase === 'revealed'
+                ? `All ${SESSION_ROUNDS} done — tap to start over`
+                : `${sessionRound} / ${SESSION_ROUNDS} played`}
             </p>
+
+            <div className="stats-row">
+              {PROFILE_NAMES[profile].map((name) => {
+                const color = COLORS.find((c) => c.name === name);
+                return (
+                  <div
+                    key={name}
+                    className="stat-chip"
+                    style={{ background: color.hex, color: color.text }}
+                    aria-label={`${name}: ${sessionCounts[name] || 0} played`}
+                  >
+                    {sessionCounts[name] || 0}
+                  </div>
+                );
+              })}
+            </div>
           </>
         ) : (
           <>
