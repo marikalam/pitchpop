@@ -41,11 +41,13 @@ function buildQueue(names, total) {
 
 export default function App() {
   const engineRef = useRef(null);
-  const [mode, setMode] = useState('explore');
+  const [mode, setMode] = useState('practice');
   const [profile, setProfile] = useState('maddie');
   const [sessionQueue, setSessionQueue] = useState(() => buildQueue(PROFILE_NAMES.maddie, SESSION_ROUNDS));
   const [sessionRound, setSessionRound] = useState(0);
   const [phase, setPhase] = useState('ready');
+  const [correctCount, setCorrectCount] = useState(0);
+  const [scoredCount, setScoredCount] = useState(0);
   const [justPlayed, setJustPlayed] = useState(null);
   const [celebrate, setCelebrate] = useState(null);
 
@@ -58,6 +60,8 @@ export default function App() {
     setSessionQueue(buildQueue(PROFILE_NAMES[profile], SESSION_ROUNDS));
     setSessionRound(0);
     setPhase('ready');
+    setCorrectCount(0);
+    setScoredCount(0);
   }, [mode, profile]);
 
   useEffect(() => {
@@ -79,15 +83,12 @@ export default function App() {
     setCelebrate(color.name);
   }
 
-  function tapStage() {
-    if (phase === 'waiting') {
-      setPhase('revealed');
-      return;
-    }
-
-    if (phase === 'revealed' && sessionRound >= SESSION_ROUNDS) {
+  function advanceRound() {
+    if (sessionRound >= SESSION_ROUNDS) {
       setSessionQueue(buildQueue(PROFILE_NAMES[profile], SESSION_ROUNDS));
       setSessionRound(0);
+      setCorrectCount(0);
+      setScoredCount(0);
       setPhase('ready');
       return;
     }
@@ -97,6 +98,20 @@ export default function App() {
     if (navigator.vibrate) navigator.vibrate(25);
     setSessionRound((r) => r + 1);
     setPhase('waiting');
+  }
+
+  function tapStage() {
+    if (phase === 'waiting') {
+      setPhase('revealed');
+      return;
+    }
+    advanceRound();
+  }
+
+  function markScore(isCorrect) {
+    setScoredCount((s) => s + 1);
+    if (isCorrect) setCorrectCount((c) => c + 1);
+    advanceRound();
   }
 
   const revealedColor = sessionRound > 0 ? COLORS.find((c) => c.name === sessionQueue[sessionRound - 1]) : null;
@@ -180,10 +195,19 @@ export default function App() {
                 🔁 Hear it again
               </button>
             )}
+            {phase === 'revealed' && (
+              <div className="score-row">
+                <button className="score-btn score-yes" onClick={() => markScore(true)}>
+                  ✓ Got it
+                </button>
+                <button className="score-btn score-no" onClick={() => markScore(false)}>
+                  ✗ Missed it
+                </button>
+              </div>
+            )}
             <p className="round-count">
-              {finished && phase === 'revealed'
-                ? `All ${SESSION_ROUNDS} done — tap to start over`
-                : `${sessionRound} / ${SESSION_ROUNDS} played`}
+              {finished && phase === 'revealed' ? `${SESSION_ROUNDS} done — tap to start over` : `${sessionRound} done`}
+              {scoredCount > 0 ? ` · ${correctCount}/${scoredCount} correct` : ''}
             </p>
           </>
         ) : (
