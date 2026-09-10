@@ -21,6 +21,7 @@ const PROFILE_NAMES = {
 };
 
 const TEST_ROUNDS = 20;
+const REVEAL_DELAY = 2000;
 
 function shuffle(list) {
   const copy = [...list];
@@ -45,6 +46,7 @@ export default function App() {
   const [profile, setProfile] = useState('maddie');
   const [testQueue, setTestQueue] = useState(() => buildQueue(PROFILE_NAMES.maddie, TEST_ROUNDS));
   const [testRound, setTestRound] = useState(0);
+  const [phase, setPhase] = useState('ready');
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [justPlayed, setJustPlayed] = useState(null);
   const [celebrate, setCelebrate] = useState(null);
@@ -57,6 +59,7 @@ export default function App() {
     if (mode !== 'test') return;
     setTestQueue(buildQueue(PROFILE_NAMES[profile], TEST_ROUNDS));
     setTestRound(0);
+    setPhase('ready');
   }, [mode, profile]);
 
   useEffect(() => {
@@ -71,6 +74,12 @@ export default function App() {
     return () => clearTimeout(id);
   }, [celebrate]);
 
+  useEffect(() => {
+    if (phase !== 'waiting') return;
+    const id = setTimeout(() => setPhase('revealed'), REVEAL_DELAY);
+    return () => clearTimeout(id);
+  }, [phase]);
+
   function play(color) {
     engineRef.current.playChord(color.notes);
     if (navigator.vibrate) navigator.vibrate(25);
@@ -80,18 +89,25 @@ export default function App() {
     }
   }
 
-  function playNext() {
-    if (testRound >= TEST_ROUNDS) return;
+  function tapStage() {
+    if (phase === 'waiting') return;
+
+    if (phase === 'revealed' && testRound >= TEST_ROUNDS) {
+      setTestQueue(buildQueue(PROFILE_NAMES[profile], TEST_ROUNDS));
+      setTestRound(0);
+      setPhase('ready');
+      return;
+    }
+
     const color = COLORS.find((c) => c.name === testQueue[testRound]);
     engineRef.current.playChord(color.notes);
     if (navigator.vibrate) navigator.vibrate(25);
     setTestRound((r) => r + 1);
+    setPhase('waiting');
   }
 
-  function restartTest() {
-    setTestQueue(buildQueue(PROFILE_NAMES[profile], TEST_ROUNDS));
-    setTestRound(0);
-  }
+  const revealedColor = testRound > 0 ? COLORS.find((c) => c.name === testQueue[testRound - 1]) : null;
+  const finished = testRound >= TEST_ROUNDS;
 
   return (
     <div className="page">
@@ -154,16 +170,6 @@ export default function App() {
                         Marcus
                       </button>
                     </div>
-                    <div className="settings-label">Random test</div>
-                    <div className="round-count">
-                      {testRound < TEST_ROUNDS ? `${testRound} / ${TEST_ROUNDS} played` : 'All 20 done!'}
-                    </div>
-                    <button className="next-btn" onClick={playNext} disabled={testRound >= TEST_ROUNDS}>
-                      Next chord ▸
-                    </button>
-                    <button className="restart-link" onClick={restartTest}>
-                      Start over
-                    </button>
                   </>
                 )}
               </div>
@@ -171,24 +177,59 @@ export default function App() {
           </div>
         </header>
 
-        <div className="rainbow-slot">
-          <Rainbow colors={COLORS} activeName={celebrate} visible={!!celebrate} />
-        </div>
-
-        <div className="grid">
-          {COLORS.map((color) => (
+        {mode === 'test' ? (
+          <>
             <button
-              key={color.name}
-              className={`pad${justPlayed === color.name ? ' pad-played' : ''}`}
-              style={{ background: color.hex, color: color.text }}
-              aria-label={`Play ${color.name} chord`}
-              onClick={() => play(color)}
+              className={`test-stage${phase === 'revealed' ? ' test-stage-revealed' : ''}`}
+              style={phase === 'revealed' ? { background: revealedColor.hex } : undefined}
+              onClick={tapStage}
             >
-              <div className="pad-name">{color.name}</div>
-              <div className="pad-notes">{color.notes.join(' ')}</div>
+              {phase === 'revealed' ? (
+                <div className="reveal" style={{ color: revealedColor.text }}>
+                  <div className="confetti" aria-hidden="true">
+                    <span />
+                    <span />
+                    <span />
+                    <span />
+                    <span />
+                    <span />
+                  </div>
+                  <div className="reveal-name">{revealedColor.name}</div>
+                  <div className="reveal-notes">{revealedColor.notes.join(' ')}</div>
+                </div>
+              ) : (
+                <>
+                  <Rainbow colors={COLORS} activeName={null} visible />
+                  <p className="stage-hint">{phase === 'waiting' ? 'Listening…' : 'Tap the rainbow for a chord'}</p>
+                </>
+              )}
             </button>
-          ))}
-        </div>
+            <p className="round-count">
+              {finished && phase === 'revealed' ? 'All 20 done — tap to start over' : `${testRound} / ${TEST_ROUNDS} played`}
+            </p>
+          </>
+        ) : (
+          <>
+            <div className="rainbow-slot">
+              <Rainbow colors={COLORS} activeName={celebrate} visible={!!celebrate} />
+            </div>
+
+            <div className="grid">
+              {COLORS.map((color) => (
+                <button
+                  key={color.name}
+                  className={`pad${justPlayed === color.name ? ' pad-played' : ''}`}
+                  style={{ background: color.hex, color: color.text }}
+                  aria-label={`Play ${color.name} chord`}
+                  onClick={() => play(color)}
+                >
+                  <div className="pad-name">{color.name}</div>
+                  <div className="pad-notes">{color.notes.join(' ')}</div>
+                </button>
+              ))}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
