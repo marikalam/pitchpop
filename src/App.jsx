@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { PianoEngine } from './piano.js';
 import Waves from './Waves.jsx';
+import Rainbow from './Rainbow.jsx';
 
 const COLORS = [
   { name: 'black', hex: '#232323', text: '#FFFFFF', notes: ['A', 'C', 'F'] },
@@ -14,13 +15,38 @@ const COLORS = [
   { name: 'brown', hex: '#7A5238', text: '#FFFFFF', notes: ['G', 'C', 'E'] },
 ];
 
+const PROFILE_NAMES = {
+  maddie: COLORS.map((c) => c.name),
+  marcus: ['black', 'blue', 'red', 'yellow', 'green', 'orange'],
+};
+
+function shuffle(list) {
+  const copy = [...list];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
 export default function App() {
   const engineRef = useRef(null);
+  const [mode, setMode] = useState('practice');
+  const [profile, setProfile] = useState('maddie');
+  const [testPads, setTestPads] = useState(() => shuffle(COLORS));
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [justPlayed, setJustPlayed] = useState(null);
+  const [celebrate, setCelebrate] = useState(null);
 
   if (!engineRef.current) {
     engineRef.current = new PianoEngine();
   }
+
+  useEffect(() => {
+    if (mode !== 'test') return;
+    const names = PROFILE_NAMES[profile];
+    setTestPads(shuffle(COLORS.filter((c) => names.includes(c.name))));
+  }, [mode, profile]);
 
   useEffect(() => {
     if (!justPlayed) return;
@@ -28,11 +54,22 @@ export default function App() {
     return () => clearTimeout(id);
   }, [justPlayed]);
 
+  useEffect(() => {
+    if (!celebrate) return;
+    const id = setTimeout(() => setCelebrate(null), 1000);
+    return () => clearTimeout(id);
+  }, [celebrate]);
+
   function play(color) {
     engineRef.current.playChord(color.notes);
     setJustPlayed(color.name);
     if (navigator.vibrate) navigator.vibrate(25);
+    if (mode === 'practice') {
+      setCelebrate(color.name);
+    }
   }
+
+  const pads = mode === 'test' ? testPads : COLORS;
 
   return (
     <div className="page">
@@ -46,23 +83,78 @@ export default function App() {
               <span className="pop-red">o</span>
               <span className="pop-green">p</span>
             </h1>
-            <p className="subtitle">Tap a pad to play its chord</p>
+            <p className="subtitle">
+              {mode === 'test'
+                ? `Testing ${profile === 'maddie' ? 'Maddie' : 'Marcus'} — no peeking!`
+                : 'Tap a pad to play its chord'}
+            </p>
           </div>
-          <div className="settings-dot" aria-hidden="true">
-            &#9881;
+          <div className="settings-wrap">
+            <button
+              className="settings-dot"
+              aria-label="Settings"
+              aria-expanded={settingsOpen}
+              onClick={() => setSettingsOpen((open) => !open)}
+            >
+              &#9881;
+            </button>
+            {settingsOpen && (
+              <div className="settings-panel">
+                <div className="settings-label">Mode</div>
+                <div className="settings-row">
+                  <button
+                    className={`seg${mode === 'practice' ? ' seg-active' : ''}`}
+                    onClick={() => setMode('practice')}
+                  >
+                    Practice
+                  </button>
+                  <button
+                    className={`seg${mode === 'test' ? ' seg-active' : ''}`}
+                    onClick={() => setMode('test')}
+                  >
+                    Test
+                  </button>
+                </div>
+                {mode === 'test' && (
+                  <>
+                    <div className="settings-label">Who's testing?</div>
+                    <div className="settings-row">
+                      <button
+                        className={`seg${profile === 'maddie' ? ' seg-active' : ''}`}
+                        onClick={() => setProfile('maddie')}
+                      >
+                        Maddie
+                      </button>
+                      <button
+                        className={`seg${profile === 'marcus' ? ' seg-active' : ''}`}
+                        onClick={() => setProfile('marcus')}
+                      >
+                        Marcus
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
           </div>
         </header>
 
+        {mode === 'practice' && (
+          <div className="rainbow-slot">
+            <Rainbow colors={COLORS} activeName={celebrate} visible={!!celebrate} />
+          </div>
+        )}
+
         <div className="grid">
-          {COLORS.map((color) => (
+          {pads.map((color) => (
             <button
               key={color.name}
-              className={`pad${justPlayed === color.name ? ' pad-played' : ''}`}
-              style={{ background: color.hex, color: color.text }}
-              aria-label={`Play ${color.name} chord`}
+              className={`pad${mode === 'test' ? ' pad-hidden' : ''}${justPlayed === color.name ? ' pad-played' : ''}`}
+              style={mode === 'test' ? undefined : { background: color.hex, color: color.text }}
+              aria-label={mode === 'test' ? 'Play chord' : `Play ${color.name} chord`}
               onClick={() => play(color)}
             >
-              <div className="pad-name">{color.name}</div>
+              {mode !== 'test' && <div className="pad-name">{color.name}</div>}
               <div className="pad-notes">{color.notes.join(' ')}</div>
             </button>
           ))}
