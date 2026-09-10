@@ -1,0 +1,80 @@
+import { useRef, useState } from 'react';
+import { PianoEngine } from './piano.js';
+
+const COLORS = [
+  { name: 'black', hex: '#232323', text: '#FFFFFF', notes: ['A', 'C', 'F'] },
+  { name: 'blue', hex: '#3B6FB0', text: '#FFFFFF', notes: ['B', 'D', 'G'] },
+  { name: 'red', hex: '#D6473C', text: '#FFFFFF', notes: ['C', 'E', 'G'] },
+  { name: 'yellow', hex: '#E4C13B', text: '#241D00', notes: ['C', 'F', 'A'] },
+  { name: 'green', hex: '#4C8858', text: '#FFFFFF', notes: ['D', 'G', 'B'] },
+  { name: 'orange', hex: '#E98A2E', text: '#241300', notes: ['E', 'G', 'C'] },
+  { name: 'purple', hex: '#7C4A9E', text: '#FFFFFF', notes: ['F', 'A', 'C'] },
+  { name: 'pink', hex: '#D8688C', text: '#2B0714', notes: ['G', 'B', 'D'] },
+  { name: 'brown', hex: '#7A5238', text: '#FFFFFF', notes: ['G', 'C', 'E'] },
+];
+
+export default function App() {
+  const engineRef = useRef(null);
+  const [current, setCurrent] = useState(null);
+
+  if (!engineRef.current) {
+    engineRef.current = new PianoEngine();
+  }
+
+  function play(color) {
+    engineRef.current.playChord(color.notes);
+    setCurrent(color);
+    if (navigator.vibrate) navigator.vibrate(25);
+  }
+
+  function replay() {
+    if (current) play(current);
+  }
+
+  return (
+    <div className="app">
+      <header>
+        <div>
+          <h1>Chord Colors</h1>
+          <p className="subtitle">Tap a pad to play its chord</p>
+        </div>
+      </header>
+
+      <div
+        className={`display${current ? '' : ' idle'}`}
+        style={current ? { background: current.hex, borderColor: current.hex } : undefined}
+      >
+        <div className="display-name" style={current ? { color: current.text } : undefined}>
+          {current ? current.name : 'Ready'}
+        </div>
+        <div
+          className="display-hint"
+          style={current ? { color: current.text, opacity: 0.75 } : undefined}
+        >
+          {current ? current.notes.join(' · ') : 'tap a color below'}
+        </div>
+      </div>
+
+      <div className="grid">
+        {COLORS.map((color) => (
+          <button
+            key={color.name}
+            className="pad"
+            style={{ background: color.hex, color: color.text }}
+            aria-label={`Play ${color.name} chord`}
+            onClick={() => play(color)}
+          >
+            <div className="pad-name">{color.name}</div>
+            <div className="pad-notes">{color.notes.join(' ')}</div>
+          </button>
+        ))}
+      </div>
+
+      <button className="replay" disabled={!current} onClick={replay}>
+        &#8635; Replay last chord
+      </button>
+
+      <footer>Turn up the volume &mdash; built for the car</footer>
+    </div>
+  );
+}
