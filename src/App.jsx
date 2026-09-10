@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { PianoEngine } from './piano.js';
+import Waves from './Waves.jsx';
 
 const COLORS = [
   { name: 'black', hex: '#232323', text: '#FFFFFF', notes: ['A', 'C', 'F'] },
@@ -35,13 +36,20 @@ export default function App() {
 
   return (
     <div className="page">
+      <Waves />
       <div className="app">
         <header>
           <div>
             <h1>
-              Pitch<span className="pop">Pop</span>
+              <span className="ink">Pitch</span>
+              <span className="pop-blue">P</span>
+              <span className="pop-red">o</span>
+              <span className="pop-green">p</span>
             </h1>
             <p className="subtitle">Tap a pad to play its chord</p>
+          </div>
+          <div className="settings-dot" aria-hidden="true">
+            &#9881;
           </div>
         </header>
 
