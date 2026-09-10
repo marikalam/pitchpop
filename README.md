@@ -1,8 +1,8 @@
 # Chord Colors
 
-We have a game we play in the car: I play a chord on the piano, and my kids have to grab the matching color flag and shout it out. C-E-G is red, A-C-F is black, B-D-G is blue, and so on through nine chords.
+We have a game we play: I play a chord on the piano, and my kids have to grab the matching color flag and shout it out. C-E-G is red, A-C-F is black, B-D-G is blue, and so on through nine chords.
 
-The problem was always the piano app on my phone — trying to hit three exact notes at a red light while everyone's yelling from the back seat is not it. So this is just that: nine buttons, one per color, each one plays the right chord. Tap red, it plays C-E-G. That's the whole app.
+Nine buttons, one per color, each one plays the right chord. Tap red, it plays C-E-G. That's the whole app.
 
 ## What it looks like
 
@@ -21,6 +21,6 @@ Add it to your phone's home screen from the browser (Share → Add to Home Scree
 
 ## Why the notes are in that order
 
-The three letters aren't interchangeable — which one is lowest matters. A-C-F and C-F-A are the same three piano keys, but one is black and the other is yellow, because the bass note is different. So `src/piano.js` always treats the first letter in a color's note list as the one that goes on the bottom, and stacks the rest upward from there. Black's A is the lowest note in the whole app; red's C sits on middle C. If you ever add a color, that's the rule to follow.
+`src/piano.js` always treats the first letter in a color's note list as the one that goes on the bottom, and stacks the rest upward from there. Black's A is the lowest note in the whole app; red's C sits on middle C. If you ever add a color, that's the rule to follow.
 
 The "piano" sound isn't a sample — it's synthesized (a handful of harmonics per note plus a bit of hammer noise and reverb) to get closer to a real piano without shipping actual audio files.
