@@ -14,7 +14,7 @@ Tapping a pad plays the chord and puts a quick ring around that one button so yo
 
 ## Test mode
 
-The gear icon opens Mode settings. Switch to Test and pick who's being tested — Maddie gets all nine colors, Marcus gets the six he's working on (black, blue, red, yellow, green, orange). The grid itself doesn't change at all between Practice and Test (same colors, names, layout, nothing shifts), because it isn't the quiz mechanism — the "Next chord" button inside the settings panel is. Each tap on Next plays the next chord from a pre-shuffled 20-round queue built from that kid's colors (a fair shuffle-and-repeat, so nobody gets a lucky streak of the same three colors). Nothing on screen ties a Next-triggered chord to any specific pad, so the grid can stay fully labeled without spoiling anything.
+The gear icon's settings only pick Mode (Practice/Test) and, for Test, who's being tested — Maddie gets all nine colors, Marcus gets the six he's working on (black, blue, red, yellow, green, orange). The actual quiz isn't in that dropdown, though: switching to Test replaces the pad grid with one big card — a rainbow you tap to hear the next chord from a pre-shuffled 20-round queue for that kid (a fair shuffle-and-repeat, so nobody gets a lucky streak of the same colors). Nothing happens on screen right away; two seconds later the card flips to a bouncy, confetti-y reveal of the color name and notes so you can check the guess, and tapping again plays the next round. After round 20 it says so, and the next tap starts a fresh set.
 
 ## Running it
 
