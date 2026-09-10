@@ -148,29 +148,6 @@ h1 .pop-green {
   font-variant-numeric: tabular-nums;
 }
 
-.stats-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  justify-content: center;
-  margin-top: -8px;
-}
-
-.stat-chip {
-  min-width: 32px;
-  height: 32px;
-  padding: 0 6px;
-  border-radius: 9px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: 'IBM Plex Mono', ui-monospace, monospace;
-  font-weight: 700;
-  font-size: 13px;
-  font-variant-numeric: tabular-nums;
-  box-shadow: var(--shadow);
-}
-
 .test-stage {
   appearance: none;
   border: none;
@@ -178,16 +155,20 @@ h1 .pop-green {
   width: 100%;
   min-height: 340px;
   border-radius: 28px;
-  background: #ffffff;
-  box-shadow: var(--shadow-pad);
+  background: none;
+  box-shadow: none;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 10px;
   padding: 24px;
-  transition: background-color 0.3s ease, transform 0.06s ease;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.06s ease;
   -webkit-tap-highlight-color: transparent;
+}
+
+.test-stage-revealed {
+  box-shadow: var(--shadow-pad);
 }
 
 .test-stage:active {
@@ -200,9 +181,18 @@ h1 .pop-green {
 }
 
 .test-stage .rainbow {
-  width: min(300px, 72vw);
+  width: min(340px, 82vw);
   opacity: 1;
   transform: scale(1);
+}
+
+.rainbow-pretty {
+  filter: drop-shadow(0 12px 16px rgba(20, 22, 26, 0.18));
+}
+
+.rainbow-cloud circle {
+  fill: #ffffff;
+  opacity: 0.9;
 }
 
 .stage-hint {

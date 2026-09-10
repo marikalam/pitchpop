@@ -105,11 +105,6 @@ export default function App() {
 
   const revealedColor = sessionRound > 0 ? COLORS.find((c) => c.name === sessionQueue[sessionRound - 1]) : null;
   const finished = sessionRound >= SESSION_ROUNDS;
-  const playedSoFar = sessionQueue.slice(0, sessionRound);
-  const sessionCounts = {};
-  playedSoFar.forEach((name) => {
-    sessionCounts[name] = (sessionCounts[name] || 0) + 1;
-  });
 
   return (
     <div className="page">
@@ -169,7 +164,7 @@ export default function App() {
                 </div>
               ) : (
                 <>
-                  <Rainbow colors={COLORS} activeName={null} visible />
+                  <Rainbow colors={COLORS} activeName={null} visible pretty />
                   <p className="stage-hint">{phase === 'waiting' ? 'Listening…' : 'Tap the rainbow for a chord'}</p>
                 </>
               )}
@@ -179,22 +174,6 @@ export default function App() {
                 ? `All ${SESSION_ROUNDS} done — tap to start over`
                 : `${sessionRound} / ${SESSION_ROUNDS} played`}
             </p>
-
-            <div className="stats-row">
-              {PROFILE_NAMES[profile].map((name) => {
-                const color = COLORS.find((c) => c.name === name);
-                return (
-                  <div
-                    key={name}
-                    className="stat-chip"
-                    style={{ background: color.hex, color: color.text }}
-                    aria-label={`${name}: ${sessionCounts[name] || 0} played`}
-                  >
-                    {sessionCounts[name] || 0}
-                  </div>
-                );
-              })}
-            </div>
           </>
         ) : (
           <>
