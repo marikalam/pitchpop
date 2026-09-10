@@ -21,7 +21,7 @@ const PROFILE_NAMES = {
 };
 
 const SESSION_ROUNDS = 20;
-const REVEAL_DELAY = 2000;
+const REVEAL_DELAY = 1000;
 
 function shuffle(list) {
   const copy = [...list];
