@@ -13,6 +13,11 @@ function Cloud({ cx, cy }) {
       <circle cx={cx} cy={cy - 10} r={15} />
       <circle cx={cx + 15} cy={cy - 3} r={12} />
       <circle cx={cx} cy={cy + 4} r={14} />
+      <circle className="rainbow-cloud-cheek" cx={cx - 9} cy={cy + 2} r={2.6} />
+      <circle className="rainbow-cloud-cheek" cx={cx + 9} cy={cy + 2} r={2.6} />
+      <circle className="rainbow-cloud-eye" cx={cx - 5.5} cy={cy - 2} r={1.7} />
+      <circle className="rainbow-cloud-eye" cx={cx + 5.5} cy={cy - 2} r={1.7} />
+      <path className="rainbow-cloud-smile" d={`M ${cx - 5.5} ${cy + 3} Q ${cx} ${cy + 7.5} ${cx + 5.5} ${cy + 3}`} />
     </g>
   );
 }
@@ -37,12 +42,6 @@ export default function Rainbow({ colors, activeName, visible, pretty = false })
       aria-hidden="true"
       focusable="false"
     >
-      {pretty && (
-        <>
-          <Cloud cx={cx - outerRadius} cy={cy} />
-          <Cloud cx={cx + outerRadius} cy={cy} />
-        </>
-      )}
       {bands.map((color, i) => {
         const r = startRadius + (maxIndex - i) * spacing;
         return (
@@ -57,6 +56,12 @@ export default function Rainbow({ colors, activeName, visible, pretty = false })
           />
         );
       })}
+      {pretty && (
+        <>
+          <Cloud cx={cx - outerRadius} cy={cy} />
+          <Cloud cx={cx + outerRadius} cy={cy} />
+        </>
+      )}
     </svg>
   );
 }

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { PianoEngine } from './piano.js';
 import Waves from './Waves.jsx';
 import Rainbow from './Rainbow.jsx';
+import PotOfGold from './PotOfGold.jsx';
 
 const COLORS = [
   { name: 'black', hex: '#232323', text: '#FFFFFF', notes: ['A', 'C', 'F'] },
@@ -100,27 +101,28 @@ export default function App() {
     setPhase('waiting');
   }
 
-  function tapStage() {
+  const revealedColor = sessionRound > 0 ? COLORS.find((c) => c.name === sessionQueue[sessionRound - 1]) : null;
+  const finished = sessionRound >= SESSION_ROUNDS;
+
+  function tapRainbow() {
     if (phase === 'waiting') {
-      setPhase('revealed');
+      if (revealedColor) {
+        engineRef.current.playChord(revealedColor.notes);
+        if (navigator.vibrate) navigator.vibrate(15);
+      }
       return;
     }
     advanceRound();
+  }
+
+  function revealAnswer() {
+    setPhase('revealed');
   }
 
   function markScore(isCorrect) {
     setScoredCount((s) => s + 1);
     if (isCorrect) setCorrectCount((c) => c + 1);
     advanceRound();
-  }
-
-  const revealedColor = sessionRound > 0 ? COLORS.find((c) => c.name === sessionQueue[sessionRound - 1]) : null;
-  const finished = sessionRound >= SESSION_ROUNDS;
-
-  function replayCurrent() {
-    if (!revealedColor) return;
-    engineRef.current.playChord(revealedColor.notes);
-    if (navigator.vibrate) navigator.vibrate(15);
   }
 
   return (
@@ -164,7 +166,7 @@ export default function App() {
             <button
               className={`test-stage${phase === 'revealed' ? ' test-stage-revealed' : ''}`}
               style={phase === 'revealed' ? { background: revealedColor.hex } : undefined}
-              onClick={tapStage}
+              onClick={tapRainbow}
             >
               {phase === 'revealed' ? (
                 <div className="reveal" style={{ color: revealedColor.text }} key={sessionRound}>
@@ -185,14 +187,15 @@ export default function App() {
                 <>
                   <Rainbow colors={COLORS} activeName={null} visible pretty />
                   <p className="stage-hint">
-                    {phase === 'waiting' ? 'Tap again to see the answer' : 'Tap the rainbow for a chord'}
+                    {phase === 'waiting' ? 'Tap the rainbow to hear it again' : 'Tap the rainbow for a chord'}
                   </p>
                 </>
               )}
             </button>
             {phase === 'waiting' && (
-              <button className="replay-link" onClick={replayCurrent}>
-                🔁 Hear it again
+              <button className="reveal-btn" onClick={revealAnswer} aria-label="Reveal the color">
+                <PotOfGold />
+                <span className="reveal-btn-label">Tap for the answer</span>
               </button>
             )}
             {phase === 'revealed' && (

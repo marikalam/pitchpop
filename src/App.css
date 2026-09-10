@@ -148,18 +148,68 @@ h1 .pop-green {
   font-variant-numeric: tabular-nums;
 }
 
-.replay-link {
+.reveal-btn {
   appearance: none;
   border: none;
   cursor: pointer;
   background: none;
   align-self: center;
-  padding: 4px 8px;
-  margin-top: -6px;
+  margin-top: -10px;
+  padding: 4px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.reveal-btn:active {
+  transform: scale(0.95);
+}
+
+.reveal-btn-label {
   color: var(--accent);
   font-family: 'IBM Plex Sans', sans-serif;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 13px;
+}
+
+.pot-body {
+  fill: #4a3524;
+}
+
+.pot-rim {
+  fill: #3a2a1c;
+}
+
+.pot-coin {
+  fill: #f0c93d;
+  stroke: #c9962a;
+  stroke-width: 1.5;
+}
+
+.pot-sparkle {
+  fill: #f0c93d;
+  transform-origin: 39px 13px;
+  animation: sparkle-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes sparkle-pulse {
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(0.85);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pot-sparkle {
+    animation: none;
+  }
 }
 
 .score-row {
@@ -233,6 +283,24 @@ h1 .pop-green {
 .rainbow-cloud circle {
   fill: #ffffff;
   opacity: 0.9;
+}
+
+.rainbow-cloud-cheek {
+  fill: #f5a9c0;
+  opacity: 0.7;
+}
+
+.rainbow-cloud-eye {
+  fill: #4a4a52;
+  opacity: 1;
+}
+
+.rainbow-cloud-smile {
+  fill: none;
+  stroke: #4a4a52;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  opacity: 1;
 }
 
 .stage-hint {
