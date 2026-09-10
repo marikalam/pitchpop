@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { PianoEngine } from './piano.js';
 
 const COLORS = [
@@ -15,22 +15,26 @@ const COLORS = [
 
 export default function App() {
   const engineRef = useRef(null);
-  const [current, setCurrent] = useState(null);
+  const [justPlayed, setJustPlayed] = useState(null);
 
   if (!engineRef.current) {
     engineRef.current = new PianoEngine();
   }
 
+  useEffect(() => {
+    if (!justPlayed) return;
+    const id = setTimeout(() => setJustPlayed(null), 450);
+    return () => clearTimeout(id);
+  }, [justPlayed]);
+
   function play(color) {
     engineRef.current.playChord(color.notes);
-    setCurrent(color);
+    setJustPlayed(color.name);
     if (navigator.vibrate) navigator.vibrate(25);
   }
 
-  const pageStyle = current ? { background: current.hex, color: current.text } : undefined;
-
   return (
-    <div className="page" style={pageStyle}>
+    <div className="page">
       <div className="app">
         <header>
           <div>
@@ -43,7 +47,7 @@ export default function App() {
           {COLORS.map((color) => (
             <button
               key={color.name}
-              className="pad"
+              className={`pad${justPlayed === color.name ? ' pad-played' : ''}`}
               style={{ background: color.hex, color: color.text }}
               aria-label={`Play ${color.name} chord`}
               onClick={() => play(color)}

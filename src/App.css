@@ -86,13 +86,17 @@ h1 {
   gap: 3px;
   cursor: pointer;
   box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.16), var(--shadow);
-  transition: transform 0.06s ease;
+  transition: transform 0.06s ease, box-shadow 0.2s ease;
   -webkit-tap-highlight-color: transparent;
 }
 
 .pad:active {
   transform: translateY(2px) scale(0.98);
   box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.16);
+}
+
+.pad-played {
+  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.16), var(--shadow), 0 0 0 3px var(--paper), 0 0 0 6px var(--brass);
 }
 
 .pad-name {
