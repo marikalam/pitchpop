@@ -172,6 +172,43 @@ h1 .pop-green {
   color: #fff;
 }
 
+.round-count {
+  font-size: 13px;
+  color: var(--ink-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.next-btn {
+  appearance: none;
+  border: none;
+  cursor: pointer;
+  padding: 10px;
+  border-radius: 10px;
+  background: var(--accent);
+  color: #fff;
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.next-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.restart-link {
+  appearance: none;
+  border: none;
+  cursor: pointer;
+  background: none;
+  padding: 2px;
+  color: var(--ink-dim);
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 12px;
+  text-decoration: underline;
+  align-self: center;
+}
+
 .rainbow-slot {
   height: 60px;
   display: flex;
@@ -241,15 +278,6 @@ h1 .pop-green {
 .pad-played {
   box-shadow: var(--shadow-pad), 0 0 0 3px var(--paper), 0 0 0 6px var(--accent);
   animation: pop-bounce 0.38s ease;
-}
-
-.pad-hidden {
-  background: linear-gradient(135deg, #e5473c, #e98a2e, #e4c13b, #239b58, #3b6fb0, #7c4a9e);
-  color: #ffffff;
-}
-
-.pad-hidden .pad-notes {
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
 }
 
 @keyframes pop-bounce {
