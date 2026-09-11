@@ -2,7 +2,7 @@
 
 We have a game we play: I play a chord on the piano, and my kids have to grab the matching color flag and shout it out. C-E-G is red, A-C-F is black, B-D-G is blue, and so on through nine chords.
 
-Live at **[marikalam.github.io/pitchpop](https://marikalam.github.io/pitchpop/)**.
+Live at **[marikalam.github.io/games/pitchpop](https://marikalam.github.io/games/pitchpop/)**, alongside [the other games](https://marikalam.github.io/games/). (The old `/pitchpop/` link still works — it just redirects here.)
 
 ## What it looks like
 
