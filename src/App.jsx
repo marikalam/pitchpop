@@ -64,7 +64,7 @@ function saveProgress(data) {
   }
 }
 
-function AppHeader({ profile, onChangeProfile, onBack, onSettings, showBack }) {
+function AppHeader({ profile, onChangeProfile, onBack, showBack }) {
   return (
     <>
       <div className="brand-row">
@@ -75,9 +75,9 @@ function AppHeader({ profile, onChangeProfile, onBack, onSettings, showBack }) {
           <span className="pop-green">p</span>
         </h1>
         {!showBack && (
-          <button className="icon-btn" onClick={onSettings} aria-label="Settings">
-            ⚙
-          </button>
+          <a className="icon-btn" href="https://marikalam.github.io/games/" aria-label="See all games">
+            🎮
+          </a>
         )}
       </div>
       {showBack ? (
@@ -220,7 +220,7 @@ export default function App() {
       <div className="app">
         {view === 'home' && (
           <>
-            <AppHeader profile={profile} onChangeProfile={setProfile} showBack={false} onSettings={() => {}} />
+            <AppHeader profile={profile} onChangeProfile={setProfile} showBack={false} />
             <div className="menu-list">
               <button className="menu-card menu-card-blue" onClick={startPlay}>
                 <span className="icon-badge" style={{ background: 'rgba(255,255,255,0.22)' }}>

@@ -71,6 +71,7 @@ body {
   appearance: none;
   border: none;
   cursor: pointer;
+  text-decoration: none;
   width: 40px;
   height: 40px;
   border-radius: 50%;
