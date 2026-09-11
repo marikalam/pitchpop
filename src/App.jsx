@@ -47,8 +47,6 @@ export default function App() {
   const [sessionQueue, setSessionQueue] = useState(() => buildQueue(PROFILE_NAMES.maddie, SESSION_ROUNDS));
   const [sessionRound, setSessionRound] = useState(0);
   const [phase, setPhase] = useState('ready');
-  const [correctCount, setCorrectCount] = useState(0);
-  const [scoredCount, setScoredCount] = useState(0);
   const [justPlayed, setJustPlayed] = useState(null);
   const [celebrate, setCelebrate] = useState(null);
 
@@ -61,8 +59,6 @@ export default function App() {
     setSessionQueue(buildQueue(PROFILE_NAMES[profile], SESSION_ROUNDS));
     setSessionRound(0);
     setPhase('ready');
-    setCorrectCount(0);
-    setScoredCount(0);
   }, [mode, profile]);
 
   useEffect(() => {
@@ -88,8 +84,6 @@ export default function App() {
     if (sessionRound >= SESSION_ROUNDS) {
       setSessionQueue(buildQueue(PROFILE_NAMES[profile], SESSION_ROUNDS));
       setSessionRound(0);
-      setCorrectCount(0);
-      setScoredCount(0);
       setPhase('ready');
       return;
     }
@@ -117,12 +111,6 @@ export default function App() {
 
   function revealAnswer() {
     setPhase('revealed');
-  }
-
-  function markScore(isCorrect) {
-    setScoredCount((s) => s + 1);
-    if (isCorrect) setCorrectCount((c) => c + 1);
-    advanceRound();
   }
 
   return (
@@ -198,19 +186,8 @@ export default function App() {
                 <span className="reveal-btn-label">Tap for the answer</span>
               </button>
             )}
-            {phase === 'revealed' && (
-              <div className="score-row">
-                <button className="score-btn score-yes" onClick={() => markScore(true)}>
-                  ✓ Got it
-                </button>
-                <button className="score-btn score-no" onClick={() => markScore(false)}>
-                  ✗ Missed it
-                </button>
-              </div>
-            )}
             <p className="round-count">
               {finished && phase === 'revealed' ? `${SESSION_ROUNDS} done — tap to start over` : `${sessionRound} done`}
-              {scoredCount > 0 ? ` · ${correctCount}/${scoredCount} correct` : ''}
             </p>
           </>
         ) : (
