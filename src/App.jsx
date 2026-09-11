@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { PianoEngine } from './piano.js';
+import { PianoEngine, playCorrectChime } from './piano.js';
 import Rainbow from './Rainbow.jsx';
 import ProfileSwitcher from './ProfileSwitcher.jsx';
 import { MusicNoteIcon, BookIcon, ChartIcon, PlayTriangleIcon, SpeakerIcon, CheckIcon, XIcon } from './icons.jsx';
@@ -21,7 +21,7 @@ const PROFILE_NAMES = {
   marcus: ['black', 'blue', 'red', 'yellow', 'green', 'orange'],
 };
 
-const SESSION_ROUNDS = 5;
+const SESSION_ROUNDS = 10;
 const PROGRESS_KEY = 'pitchpop-progress-v1';
 
 function shuffle(list) {
@@ -172,6 +172,7 @@ export default function App() {
   function chooseAnswer(color) {
     const correct = color.name === currentColor.name;
     setAnswerCorrect(correct);
+    if (correct) playCorrectChime();
     setProgress((prev) => {
       const p = prev[profile] || { total: 0, correct: 0, perColor: {} };
       const next = {

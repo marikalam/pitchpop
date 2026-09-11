@@ -126,3 +126,34 @@ export class PianoEngine {
     });
   }
 }
+
+let chimeCtx = null;
+
+function ensureChimeAudio() {
+  if (!chimeCtx) {
+    chimeCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (chimeCtx.state === 'suspended') chimeCtx.resume();
+  return chimeCtx;
+}
+
+function chimeTone(ctx, freqHz, startTime, duration, peak) {
+  const osc = ctx.createOscillator();
+  osc.type = 'sine';
+  osc.frequency.value = freqHz;
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(0.0001, startTime);
+  gain.gain.linearRampToValueAtTime(peak, startTime + 0.01);
+  gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+  osc.connect(gain).connect(ctx.destination);
+  osc.start(startTime);
+  osc.stop(startTime + duration + 0.02);
+}
+
+export function playCorrectChime() {
+  const ctx = ensureChimeAudio();
+  const now = ctx.currentTime + 0.01;
+  chimeTone(ctx, 523.25, now, 0.16, 0.18);
+  chimeTone(ctx, 659.25, now + 0.09, 0.22, 0.18);
+  chimeTone(ctx, 783.99, now + 0.18, 0.3, 0.18);
+}
