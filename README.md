@@ -2,19 +2,17 @@
 
 We have a game we play: I play a chord on the piano, and my kids have to grab the matching color flag and shout it out. C-E-G is red, A-C-F is black, B-D-G is blue, and so on through nine chords.
 
-Nine buttons, one per color, each one plays the right chord. Tap red, it plays C-E-G. That's the whole app.
-
 Live at **[marikalam.github.io/pitchpop](https://marikalam.github.io/pitchpop/)**.
 
 ## What it looks like
 
-<img src="screenshots/01-idle.png" width="360" alt="PitchPop at rest, waiting for a tap"> <img src="screenshots/02-red.png" width="360" alt="After tapping red — a quiet ring confirms the tap, nothing reveals the color">
+<img src="screenshots/01-home.png" width="280" alt="Home screen with Play, Explore, and Progress cards"> <img src="screenshots/02-listen.png" width="280" alt="Listen screen with the rainbow and a play button"> <img src="screenshots/03-feedback.png" width="280" alt="Correct-answer feedback screen with confetti">
 
-Tapping a pad plays the chord and puts a quick ring around that one button so you know it registered. A little rainbow also arcs up and glows on the color you just played, just for fun.
+The home screen has three things to do, picked from a "Playing as [avatar] ▾" switcher that follows you into every screen:
 
-## Practice mode
-
-Practice is what opens by default. The pill in the header (← Explore / 🎯 Practice) switches to the other way to use the app — there's no settings menu hiding it. **Explore** is the free-play grid: tap anything. **Practice** is a big real-spectrum rainbow floating on the page (red/orange/yellow/green/blue/indigo/violet — no black or brown bands, it's meant to look like an actual rainbow), with a couple of cloud characters smiling at its base — pick Maddie (all nine colors) or Marcus (the six he's working on: black, blue, red, yellow, green, orange). Tap the rainbow to hear the next chord from a pre-shuffled 20-round session for that kid (a fair shuffle-and-repeat, so nobody gets a lucky streak of the same colors) — tap it again any time to hear it again, as many times as you like, nothing changes state. When you're ready, tap the pot of gold that appears underneath (the classic end of the rainbow) to reveal it: a shower of sparks in the chord's actual color, settling into a colored square with the name and notes. Tapping that colored square moves straight to the next round. The line below just says how many chords are done — no fraction, no score. After round 20 it says so, and the next tap starts a fresh set.
+- **Play** — the actual quiz. Tap the rainbow to hear a chord, pick which color you think it was from four options, and get feedback (confetti and "Great job!" if right; the correct answer shown if not). A "Hear again" link from either result takes you to a re-listen screen with a "Choose a different answer" link back to the same question, so a wrong guess turns into another listen-and-try rather than a dead end. Five chords per round; Maddie draws from all nine colors, Marcus from the six he's working on (black, blue, red, yellow, green, orange). At the end, "Play again" starts a fresh shuffled set.
+- **Explore** — the original free-play grid: tap any of the nine pads to hear its chord, no quiz attached.
+- **Progress** — a running per-kid record (saved on the device, so it survives closing the app): total chords answered, overall accuracy, and a breakdown of how many times each color has come up.
 
 ## Running it
 
