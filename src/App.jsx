@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { PianoEngine } from './piano.js';
-import Waves from './Waves.jsx';
 import Rainbow from './Rainbow.jsx';
-import PotOfGold from './PotOfGold.jsx';
+import ProfileSwitcher from './ProfileSwitcher.jsx';
+import { MusicNoteIcon, BookIcon, ChartIcon, PlayTriangleIcon, SpeakerIcon, CheckIcon, XIcon } from './icons.jsx';
 
 const COLORS = [
   { name: 'black', hex: '#232323', text: '#FFFFFF', notes: ['A', 'C', 'F'] },
@@ -21,7 +21,8 @@ const PROFILE_NAMES = {
   marcus: ['black', 'blue', 'red', 'yellow', 'green', 'orange'],
 };
 
-const SESSION_ROUNDS = 20;
+const SESSION_ROUNDS = 5;
+const PROGRESS_KEY = 'pitchpop-progress-v1';
 
 function shuffle(list) {
   const copy = [...list];
@@ -40,26 +41,94 @@ function buildQueue(names, total) {
   return queue.slice(0, total);
 }
 
+function buildOptions(correctName, profile) {
+  const pool = PROFILE_NAMES[profile].filter((n) => n !== correctName);
+  const distractors = shuffle(pool).slice(0, 3);
+  const names = shuffle([correctName, ...distractors]);
+  return names.map((n) => COLORS.find((c) => c.name === n));
+}
+
+function loadProgress() {
+  try {
+    return JSON.parse(localStorage.getItem(PROGRESS_KEY)) || {};
+  } catch {
+    return {};
+  }
+}
+
+function saveProgress(data) {
+  try {
+    localStorage.setItem(PROGRESS_KEY, JSON.stringify(data));
+  } catch {
+    /* ignore */
+  }
+}
+
+function AppHeader({ profile, onChangeProfile, onBack, onSettings, showBack }) {
+  return (
+    <>
+      <div className="brand-row">
+        <h1 className="logo">
+          <span className="ink">Pitch</span>
+          <span className="pop-blue">P</span>
+          <span className="pop-red">o</span>
+          <span className="pop-green">p</span>
+        </h1>
+        {!showBack && (
+          <button className="icon-btn" onClick={onSettings} aria-label="Settings">
+            ⚙
+          </button>
+        )}
+      </div>
+      {showBack ? (
+        <div className="nav-row">
+          <button className="back-link" onClick={onBack}>
+            ← Back
+          </button>
+          <ProfileSwitcher profile={profile} onChange={onChangeProfile} />
+        </div>
+      ) : (
+        <ProfileSwitcher profile={profile} onChange={onChangeProfile} />
+      )}
+    </>
+  );
+}
+
+function ProgressDots({ current, total }) {
+  const items = [];
+  for (let i = 1; i <= total; i++) {
+    items.push(<span key={`d${i}`} className={`progress-dot${i <= current ? ' progress-dot-filled' : ''}`} />);
+    if (i < total) {
+      items.push(<span key={`l${i}`} className={`progress-line${i < current ? ' progress-line-filled' : ''}`} />);
+    }
+  }
+  return (
+    <div className="progress-wrap">
+      <div className="progress-dots">{items}</div>
+      <span className="progress-count">
+        {current} / {total}
+      </span>
+    </div>
+  );
+}
+
 export default function App() {
   const engineRef = useRef(null);
-  const [mode, setMode] = useState('practice');
-  const [profile, setProfile] = useState('maddie');
-  const [sessionQueue, setSessionQueue] = useState(() => buildQueue(PROFILE_NAMES.maddie, SESSION_ROUNDS));
-  const [sessionRound, setSessionRound] = useState(0);
-  const [phase, setPhase] = useState('ready');
-  const [justPlayed, setJustPlayed] = useState(null);
-  const [celebrate, setCelebrate] = useState(null);
-
   if (!engineRef.current) {
     engineRef.current = new PianoEngine();
   }
 
-  useEffect(() => {
-    if (mode !== 'practice') return;
-    setSessionQueue(buildQueue(PROFILE_NAMES[profile], SESSION_ROUNDS));
-    setSessionRound(0);
-    setPhase('ready');
-  }, [mode, profile]);
+  const [view, setView] = useState('home');
+  const [profile, setProfile] = useState('maddie');
+  const [progress, setProgress] = useState(loadProgress);
+
+  const [sessionQueue, setSessionQueue] = useState([]);
+  const [roundIndex, setRoundIndex] = useState(0);
+  const [options, setOptions] = useState([]);
+  const [answerCorrect, setAnswerCorrect] = useState(false);
+
+  const [justPlayed, setJustPlayed] = useState(null);
+  const [celebrate, setCelebrate] = useState(null);
 
   useEffect(() => {
     if (!justPlayed) return;
@@ -73,129 +142,236 @@ export default function App() {
     return () => clearTimeout(id);
   }, [celebrate]);
 
-  function play(color) {
+  const currentColor = sessionQueue.length ? COLORS.find((c) => c.name === sessionQueue[roundIndex]) : null;
+
+  function playChord(color) {
     engineRef.current.playChord(color.notes);
-    if (navigator.vibrate) navigator.vibrate(25);
+    if (navigator.vibrate) navigator.vibrate(20);
+  }
+
+  function goHome() {
+    setView('home');
+  }
+
+  function startPlay() {
+    setSessionQueue(buildQueue(PROFILE_NAMES[profile], SESSION_ROUNDS));
+    setRoundIndex(0);
+    setView('play-listen');
+  }
+
+  function listenTap() {
+    playChord(currentColor);
+    setOptions(buildOptions(currentColor.name, profile));
+    setView('play-question');
+  }
+
+  function relistenTap() {
+    playChord(currentColor);
+  }
+
+  function chooseAnswer(color) {
+    const correct = color.name === currentColor.name;
+    setAnswerCorrect(correct);
+    setProgress((prev) => {
+      const p = prev[profile] || { total: 0, correct: 0, perColor: {} };
+      const next = {
+        ...prev,
+        [profile]: {
+          total: p.total + 1,
+          correct: p.correct + (correct ? 1 : 0),
+          perColor: { ...p.perColor, [currentColor.name]: (p.perColor[currentColor.name] || 0) + 1 },
+        },
+      };
+      saveProgress(next);
+      return next;
+    });
+    setView('play-feedback');
+  }
+
+  function hearAgainFromFeedback() {
+    playChord(currentColor);
+    setView('play-relisten');
+  }
+
+  function chooseDifferentAnswer() {
+    setView('play-question');
+  }
+
+  function nextChord() {
+    if (roundIndex + 1 >= SESSION_ROUNDS) {
+      setView('play-complete');
+      return;
+    }
+    setRoundIndex((r) => r + 1);
+    setView('play-listen');
+  }
+
+  function exploreTap(color) {
+    playChord(color);
     setJustPlayed(color.name);
     setCelebrate(color.name);
   }
 
-  function advanceRound() {
-    if (sessionRound >= SESSION_ROUNDS) {
-      setSessionQueue(buildQueue(PROFILE_NAMES[profile], SESSION_ROUNDS));
-      setSessionRound(0);
-      setPhase('ready');
-      return;
-    }
-
-    const color = COLORS.find((c) => c.name === sessionQueue[sessionRound]);
-    engineRef.current.playChord(color.notes);
-    if (navigator.vibrate) navigator.vibrate(25);
-    setSessionRound((r) => r + 1);
-    setPhase('waiting');
-  }
-
-  const revealedColor = sessionRound > 0 ? COLORS.find((c) => c.name === sessionQueue[sessionRound - 1]) : null;
-  const finished = sessionRound >= SESSION_ROUNDS;
-
-  function tapRainbow() {
-    if (phase === 'waiting') {
-      if (revealedColor) {
-        engineRef.current.playChord(revealedColor.notes);
-        if (navigator.vibrate) navigator.vibrate(15);
-      }
-      return;
-    }
-    advanceRound();
-  }
-
-  function revealAnswer() {
-    setPhase('revealed');
-  }
+  const stats = progress[profile] || { total: 0, correct: 0, perColor: {} };
+  const accuracy = stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0;
 
   return (
     <div className="page">
-      <Waves />
       <div className="app">
-        <header>
-          <div>
-            <h1>
-              <span className="ink">Pitch</span>
-              <span className="pop-blue">P</span>
-              <span className="pop-red">o</span>
-              <span className="pop-green">p</span>
-            </h1>
-            <p className="subtitle">
-              {mode === 'practice' ? 'Practice time — listen carefully! 🎵' : 'Tap a pad to play its chord'}
-            </p>
-          </div>
-          <button className="mode-pill" onClick={() => setMode(mode === 'explore' ? 'practice' : 'explore')}>
-            {mode === 'explore' ? '🎯 Practice' : '← Explore'}
-          </button>
-        </header>
-
-        {mode === 'practice' ? (
+        {view === 'home' && (
           <>
-            <div className="profile-row">
-              <button
-                className={`seg${profile === 'maddie' ? ' seg-active' : ''}`}
-                onClick={() => setProfile('maddie')}
-              >
-                Maddie
+            <AppHeader profile={profile} onChangeProfile={setProfile} showBack={false} onSettings={() => {}} />
+            <div className="menu-list">
+              <button className="menu-card menu-card-blue" onClick={startPlay}>
+                <span className="icon-badge" style={{ background: 'rgba(255,255,255,0.22)' }}>
+                  <MusicNoteIcon />
+                </span>
+                <span className="menu-text">
+                  <span className="menu-title">Play</span>
+                  <span className="menu-sub">Listen and identify chords</span>
+                </span>
               </button>
-              <button
-                className={`seg${profile === 'marcus' ? ' seg-active' : ''}`}
-                onClick={() => setProfile('marcus')}
-              >
-                Marcus
+              <button className="menu-card menu-card-purple" onClick={() => setView('explore')}>
+                <span className="icon-badge" style={{ background: '#8E4FD6' }}>
+                  <BookIcon />
+                </span>
+                <span className="menu-text">
+                  <span className="menu-title">Explore</span>
+                  <span className="menu-sub">Learn chords and colors</span>
+                </span>
+              </button>
+              <button className="menu-card menu-card-green" onClick={() => setView('progress')}>
+                <span className="icon-badge" style={{ background: '#2FAE6B' }}>
+                  <ChartIcon />
+                </span>
+                <span className="menu-text">
+                  <span className="menu-title">Progress</span>
+                  <span className="menu-sub">See your stats</span>
+                </span>
               </button>
             </div>
-
-            <button
-              className={`test-stage${phase === 'revealed' ? ' test-stage-revealed' : ''}`}
-              style={phase === 'revealed' ? { background: revealedColor.hex } : undefined}
-              onClick={tapRainbow}
-            >
-              {phase === 'revealed' ? (
-                <div className="reveal" style={{ color: revealedColor.text }} key={sessionRound}>
-                  <div className="confetti" aria-hidden="true">
-                    <span style={{ background: revealedColor.hex, color: revealedColor.hex }} />
-                    <span style={{ background: '#fff', color: '#fff' }} />
-                    <span style={{ background: revealedColor.hex, color: revealedColor.hex }} />
-                    <span style={{ background: '#fff', color: '#fff' }} />
-                    <span style={{ background: revealedColor.hex, color: revealedColor.hex }} />
-                    <span style={{ background: '#fff', color: '#fff' }} />
-                    <span style={{ background: revealedColor.hex, color: revealedColor.hex }} />
-                    <span style={{ background: '#fff', color: '#fff' }} />
-                  </div>
-                  <div className="reveal-name">{revealedColor.name}</div>
-                  <div className="reveal-notes">{revealedColor.notes.join(' ')}</div>
-                </div>
-              ) : (
-                <>
-                  <Rainbow colors={COLORS} activeName={null} visible pretty />
-                  <p className="stage-hint">
-                    {phase === 'waiting' ? 'Tap the rainbow to hear it again' : 'Tap the rainbow for a chord'}
-                  </p>
-                </>
-              )}
-            </button>
-            {phase === 'waiting' && (
-              <button className="reveal-btn" onClick={revealAnswer} aria-label="Reveal the color">
-                <PotOfGold />
-                <span className="reveal-btn-label">Tap for the answer</span>
-              </button>
-            )}
-            <p className="round-count">
-              {finished && phase === 'revealed' ? `${SESSION_ROUNDS} done — tap to start over` : `${sessionRound} done`}
-            </p>
           </>
-        ) : (
+        )}
+
+        {view === 'play-listen' && currentColor && (
           <>
+            <AppHeader profile={profile} onChangeProfile={setProfile} showBack onBack={goHome} />
+            <ProgressDots current={roundIndex + 1} total={SESSION_ROUNDS} />
+            <h2 className="screen-title">Listen to the chord</h2>
+            <p className="screen-sub">Tap the rainbow to hear it</p>
+            <button className="rainbow-play-wrap" onClick={listenTap} aria-label="Play chord">
+              <Rainbow colors={COLORS} activeName={null} visible pretty />
+              <span className="rainbow-center-btn">
+                <PlayTriangleIcon />
+              </span>
+            </button>
+            <div className="tap-pill">Tap to listen</div>
+          </>
+        )}
+
+        {view === 'play-relisten' && currentColor && (
+          <>
+            <AppHeader profile={profile} onChangeProfile={setProfile} showBack onBack={goHome} />
+            <ProgressDots current={roundIndex + 1} total={SESSION_ROUNDS} />
+            <h2 className="screen-title">Listen to the chord again?</h2>
+            <button className="rainbow-play-wrap" onClick={relistenTap} aria-label="Replay chord">
+              <Rainbow colors={COLORS} activeName={null} visible pretty />
+              <span className="rainbow-center-btn">
+                <SpeakerIcon />
+              </span>
+            </button>
+            <div className="tap-pill">Tap to hear again</div>
+            <button className="back-link back-link-center" onClick={chooseDifferentAnswer}>
+              ← Choose a different answer
+            </button>
+          </>
+        )}
+
+        {view === 'play-question' && currentColor && (
+          <>
+            <AppHeader profile={profile} onChangeProfile={setProfile} showBack onBack={goHome} />
+            <ProgressDots current={roundIndex + 1} total={SESSION_ROUNDS} />
+            <h2 className="screen-title">What chord did you hear?</h2>
+            <div className="options-grid">
+              {options.map((color) => (
+                <button
+                  key={color.name}
+                  className="option-btn"
+                  style={{ background: color.hex, color: color.text }}
+                  onClick={() => chooseAnswer(color)}
+                >
+                  {color.name}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+
+        {view === 'play-feedback' && currentColor && (
+          <>
+            <AppHeader profile={profile} onChangeProfile={setProfile} showBack onBack={goHome} />
+            <ProgressDots current={roundIndex + 1} total={SESSION_ROUNDS} />
+            <div className={`feedback-icon-wrap${answerCorrect ? ' feedback-correct' : ' feedback-incorrect'}`}>
+              {answerCorrect && (
+                <div className="feedback-confetti" aria-hidden="true">
+                  <span />
+                  <span />
+                  <span />
+                  <span />
+                  <span />
+                  <span />
+                  <span />
+                  <span />
+                </div>
+              )}
+              <span className="feedback-icon">{answerCorrect ? <CheckIcon /> : <XIcon />}</span>
+            </div>
+            <h2 className="screen-title">{answerCorrect ? 'Great job!' : 'Almost!'}</h2>
+            <p className="screen-sub">{answerCorrect ? "That's right!" : 'The correct answer is:'}</p>
+            <div className="answer-card" style={{ background: currentColor.hex, color: currentColor.text }}>
+              <div className="answer-name">{currentColor.name}</div>
+              <div className="answer-notes">{currentColor.notes.join(' · ')}</div>
+            </div>
+            <div className="feedback-actions">
+              <button className="pill-btn-secondary" onClick={hearAgainFromFeedback}>
+                🔊 Hear again
+              </button>
+              <button className="pill-btn-primary" onClick={nextChord}>
+                {roundIndex + 1 >= SESSION_ROUNDS ? 'Finish' : 'Next chord'} →
+              </button>
+            </div>
+          </>
+        )}
+
+        {view === 'play-complete' && (
+          <>
+            <AppHeader profile={profile} onChangeProfile={setProfile} showBack onBack={goHome} />
+            <div className="complete-wrap">
+              <div className="complete-emoji">🎉</div>
+              <h2 className="screen-title">All done!</h2>
+              <p className="screen-sub">
+                You went through all {SESSION_ROUNDS} chords for {profile === 'maddie' ? 'Maddie' : 'Marcus'}.
+              </p>
+              <div className="feedback-actions">
+                <button className="pill-btn-secondary" onClick={goHome}>
+                  Home
+                </button>
+                <button className="pill-btn-primary" onClick={startPlay}>
+                  Play again →
+                </button>
+              </div>
+            </div>
+          </>
+        )}
+
+        {view === 'explore' && (
+          <>
+            <AppHeader profile={profile} onChangeProfile={setProfile} showBack onBack={goHome} />
+            <h2 className="screen-title">Explore</h2>
+            <p className="screen-sub">Tap a pad to play its chord</p>
             <div className="rainbow-slot">
               <Rainbow colors={COLORS} activeName={celebrate} visible={!!celebrate} />
             </div>
-
             <div className="grid">
               {COLORS.map((color) => (
                 <button
@@ -203,12 +379,41 @@ export default function App() {
                   className={`pad${justPlayed === color.name ? ' pad-played' : ''}`}
                   style={{ background: color.hex, color: color.text }}
                   aria-label={`Play ${color.name} chord`}
-                  onClick={() => play(color)}
+                  onClick={() => exploreTap(color)}
                 >
                   <div className="pad-name">{color.name}</div>
                   <div className="pad-notes">{color.notes.join(' ')}</div>
                 </button>
               ))}
+            </div>
+          </>
+        )}
+
+        {view === 'progress' && (
+          <>
+            <AppHeader profile={profile} onChangeProfile={setProfile} showBack onBack={goHome} />
+            <h2 className="screen-title">Progress</h2>
+            <div className="stat-tiles">
+              <div className="stat-tile">
+                <div className="stat-number">{stats.total}</div>
+                <div className="stat-label">Chords played</div>
+              </div>
+              <div className="stat-tile">
+                <div className="stat-number">{accuracy}%</div>
+                <div className="stat-label">Accuracy</div>
+              </div>
+            </div>
+            <div className="screen-sub progress-colors-label">By color</div>
+            <div className="progress-colors">
+              {PROFILE_NAMES[profile].map((name) => {
+                const color = COLORS.find((c) => c.name === name);
+                const count = (stats.perColor && stats.perColor[name]) || 0;
+                return (
+                  <div key={name} className="progress-chip" style={{ background: color.hex, color: color.text }}>
+                    {count}
+                  </div>
+                );
+              })}
             </div>
           </>
         )}
