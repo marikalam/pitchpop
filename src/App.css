@@ -67,18 +67,19 @@ body {
   color: var(--accent-green);
 }
 
-.icon-btn {
+.games-link-btn {
   appearance: none;
   border: none;
   cursor: pointer;
   text-decoration: none;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
+  padding: 9px 16px;
+  border-radius: 999px;
   background: var(--card-bg);
   box-shadow: var(--shadow-sm);
   color: var(--ink-dim);
-  font-size: 17px;
+  font-family: 'Fredoka', ui-rounded, system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
