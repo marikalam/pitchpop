@@ -259,24 +259,6 @@ h1 .pop-green {
   opacity: 0.9;
 }
 
-.rainbow-cloud-cheek {
-  fill: #f5a9c0;
-  opacity: 0.7;
-}
-
-.rainbow-cloud-eye {
-  fill: #4a4a52;
-  opacity: 1;
-}
-
-.rainbow-cloud-smile {
-  fill: none;
-  stroke: #4a4a52;
-  stroke-width: 1.6;
-  stroke-linecap: round;
-  opacity: 1;
-}
-
 .stage-hint {
   margin: 0;
   font-size: 14px;
