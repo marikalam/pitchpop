@@ -118,11 +118,11 @@ export default function App() {
     engineRef.current = new PianoEngine();
   }
 
-  const [view, setView] = useState('home');
+  const [view, setView] = useState('play-listen');
   const [profile, setProfile] = useState('maddie');
   const [progress, setProgress] = useState(loadProgress);
 
-  const [sessionQueue, setSessionQueue] = useState([]);
+  const [sessionQueue, setSessionQueue] = useState(() => buildQueue(PROFILE_NAMES.maddie, SESSION_ROUNDS));
   const [roundIndex, setRoundIndex] = useState(0);
   const [options, setOptions] = useState([]);
   const [answerCorrect, setAnswerCorrect] = useState(false);
