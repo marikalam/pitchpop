@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import Avatar from './Avatar.jsx';
 
-const LABELS = { maddie: 'Maddie', marcus: 'Marcus' };
-const PROFILES = ['maddie', 'marcus'];
+const LABELS = { maddie: 'Maddie', marcus: 'Marcus', melody: 'Melody' };
+const PROFILES = ['maddie', 'marcus', 'melody'];
 
 export default function ProfileSwitcher({ profile, onChange }) {
   const [open, setOpen] = useState(false);

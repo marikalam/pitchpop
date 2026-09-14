@@ -19,6 +19,7 @@ const COLORS = [
 const PROFILE_NAMES = {
   maddie: COLORS.map((c) => c.name),
   marcus: ['red', 'blue', 'black', 'yellow', 'orange', 'green', 'purple'],
+  melody: ['red', 'yellow'],
 };
 
 const SESSION_ROUNDS = 10;
@@ -217,6 +218,27 @@ export default function App() {
   const accuracy = stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0;
   const profileColors = PROFILE_NAMES[profile].map((name) => COLORS.find((c) => c.name === name));
 
+  if (profile === 'melody') {
+    return (
+      <div className="page">
+        <div className="app">
+          <AppHeader profile={profile} onChangeProfile={setProfile} showBack={false} />
+          <div className="melody-grid">
+            {profileColors.map((color) => (
+              <button
+                key={color.name}
+                className={`melody-btn${justPlayed === color.name ? ' melody-btn-played' : ''}`}
+                style={{ background: color.hex }}
+                aria-label={`Play ${color.name} sound`}
+                onClick={() => exploreTap(color)}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="page">
       <div className="app">
@@ -294,8 +316,11 @@ export default function App() {
             <AppHeader profile={profile} onChangeProfile={setProfile} showBack onBack={goHome} />
             <ProgressDots current={roundIndex + 1} total={SESSION_ROUNDS} />
             <h2 className="screen-title">What chord did you hear?</h2>
-            <button className="pill-btn-secondary" onClick={relistenTap}>
-              🔊 Play again
+            <button className="rainbow-play-wrap rainbow-play-wrap-compact" onClick={relistenTap} aria-label="Play chord again">
+              <Rainbow colors={COLORS} activeName={null} visible pretty />
+              <span className="rainbow-center-btn">
+                <SpeakerIcon />
+              </span>
             </button>
             <div className="options-grid">
               {options.map((color) => (
