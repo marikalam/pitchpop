@@ -3,14 +3,14 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "homepage": "https://marikalam.github.io/games/pitchpop",
+  "homepage": "https://marikalam.github.io/apps/pitchpop",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist -r https://github.com/marikalam/games.git -b gh-pages -e pitchpop --add",
-    "deploy:redirect": "gh-pages -d redirect -m \"Redirect to games/pitchpop\""
+    "deploy": "gh-pages -d dist -r https://github.com/marikalam/apps.git -b gh-pages -e pitchpop --add",
+    "deploy:redirect": "gh-pages -d redirect -m \"Redirect to apps/pitchpop\""
   },
   "dependencies": {
     "react": "^18.3.1",

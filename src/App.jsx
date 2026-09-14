@@ -18,7 +18,7 @@ const COLORS = [
 
 const PROFILE_NAMES = {
   maddie: COLORS.map((c) => c.name),
-  marcus: ['black', 'blue', 'red', 'yellow', 'green', 'orange'],
+  marcus: ['red', 'blue', 'black', 'yellow', 'orange', 'green', 'purple'],
 };
 
 const SESSION_ROUNDS = 10;
@@ -75,8 +75,8 @@ function AppHeader({ profile, onChangeProfile, onBack, showBack }) {
           <span className="pop-green">p</span>
         </h1>
         {!showBack && (
-          <a className="games-link-btn" href="https://marikalam.github.io/games/">
-            Games
+          <a className="games-link-btn" href="https://marikalam.github.io/apps/">
+            Apps
           </a>
         )}
       </div>
@@ -215,6 +215,7 @@ export default function App() {
 
   const stats = progress[profile] || { total: 0, correct: 0, perColor: {} };
   const accuracy = stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0;
+  const profileColors = PROFILE_NAMES[profile].map((name) => COLORS.find((c) => c.name === name));
 
   return (
     <div className="page">
@@ -293,6 +294,9 @@ export default function App() {
             <AppHeader profile={profile} onChangeProfile={setProfile} showBack onBack={goHome} />
             <ProgressDots current={roundIndex + 1} total={SESSION_ROUNDS} />
             <h2 className="screen-title">What chord did you hear?</h2>
+            <button className="pill-btn-secondary" onClick={relistenTap}>
+              🔊 Play again
+            </button>
             <div className="options-grid">
               {options.map((color) => (
                 <button
@@ -374,7 +378,7 @@ export default function App() {
               <Rainbow colors={COLORS} activeName={celebrate} visible={!!celebrate} />
             </div>
             <div className="grid">
-              {COLORS.map((color) => (
+              {profileColors.map((color) => (
                 <button
                   key={color.name}
                   className={`pad${justPlayed === color.name ? ' pad-played' : ''}`}
@@ -406,11 +410,10 @@ export default function App() {
             </div>
             <div className="screen-sub progress-colors-label">By color</div>
             <div className="progress-colors">
-              {PROFILE_NAMES[profile].map((name) => {
-                const color = COLORS.find((c) => c.name === name);
-                const count = (stats.perColor && stats.perColor[name]) || 0;
+              {profileColors.map((color) => {
+                const count = (stats.perColor && stats.perColor[color.name]) || 0;
                 return (
-                  <div key={name} className="progress-chip" style={{ background: color.hex, color: color.text }}>
+                  <div key={color.name} className="progress-chip" style={{ background: color.hex, color: color.text }}>
                     {count}
                   </div>
                 );
