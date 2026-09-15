@@ -26,6 +26,7 @@ const PROFILE_NAMES = {
 const SESSION_ROUNDS = 10;
 const MELODY_SESSION_TAPS = 20;
 const PROGRESS_KEY = 'pitchpop-progress-v1';
+const SESSION_KEY = 'pitchpop-session-v1';
 
 function shuffle(list) {
   const copy = [...list];
@@ -62,6 +63,22 @@ function loadProgress() {
 function saveProgress(data) {
   try {
     localStorage.setItem(PROGRESS_KEY, JSON.stringify(data));
+  } catch {
+    /* ignore */
+  }
+}
+
+function loadSession() {
+  try {
+    return JSON.parse(localStorage.getItem(SESSION_KEY)) || {};
+  } catch {
+    return {};
+  }
+}
+
+function saveSession(data) {
+  try {
+    localStorage.setItem(SESSION_KEY, JSON.stringify(data));
   } catch {
     /* ignore */
   }
@@ -121,18 +138,29 @@ export default function App() {
     engineRef.current = new PianoEngine();
   }
 
-  const [view, setView] = useState('play-listen');
-  const [profile, setProfile] = useState('maddie');
+  const initialSessionRef = useRef(null);
+  if (!initialSessionRef.current) {
+    initialSessionRef.current = loadSession();
+  }
+  const initialSession = initialSessionRef.current;
+
+  const [view, setView] = useState(initialSession.view || 'play-listen');
+  const [profile, setProfile] = useState(initialSession.profile || 'maddie');
+  const [lastActiveProfile, setLastActiveProfile] = useState(initialSession.lastActiveProfile || 'maddie');
   const [progress, setProgress] = useState(loadProgress);
 
-  const [sessionQueue, setSessionQueue] = useState(() => buildQueue(PROFILE_NAMES.maddie, SESSION_ROUNDS));
-  const [roundIndex, setRoundIndex] = useState(0);
-  const [options, setOptions] = useState([]);
-  const [answerCorrect, setAnswerCorrect] = useState(false);
-  const [roundResults, setRoundResults] = useState({});
+  const [sessionQueue, setSessionQueue] = useState(
+    () => initialSession.sessionQueue || buildQueue(PROFILE_NAMES.maddie, SESSION_ROUNDS),
+  );
+  const [roundIndex, setRoundIndex] = useState(initialSession.roundIndex ?? 0);
+  const [options, setOptions] = useState(() =>
+    (initialSession.optionNames || []).map((n) => COLORS.find((c) => c.name === n)).filter(Boolean),
+  );
+  const [answerCorrect, setAnswerCorrect] = useState(initialSession.answerCorrect || false);
+  const [roundResults, setRoundResults] = useState(initialSession.roundResults || {});
 
-  const [melodyTaps, setMelodyTaps] = useState(0);
-  const [melodyColorCounts, setMelodyColorCounts] = useState({});
+  const [melodyTaps, setMelodyTaps] = useState(initialSession.melodyTaps || 0);
+  const [melodyColorCounts, setMelodyColorCounts] = useState(initialSession.melodyColorCounts || {});
 
   const [justPlayed, setJustPlayed] = useState(null);
   const [celebrate, setCelebrate] = useState(null);
@@ -141,6 +169,32 @@ export default function App() {
     engineRef.current.prewarm(COLORS.map((c) => c.notes));
     prewarmVoices();
   }, []);
+
+  useEffect(() => {
+    saveSession({
+      view,
+      profile,
+      lastActiveProfile,
+      sessionQueue,
+      roundIndex,
+      optionNames: options.map((c) => c.name),
+      answerCorrect,
+      roundResults,
+      melodyTaps,
+      melodyColorCounts,
+    });
+  }, [
+    view,
+    profile,
+    lastActiveProfile,
+    sessionQueue,
+    roundIndex,
+    options,
+    answerCorrect,
+    roundResults,
+    melodyTaps,
+    melodyColorCounts,
+  ]);
 
   useEffect(() => {
     if (!justPlayed) return;
@@ -159,6 +213,11 @@ export default function App() {
   function playChord(color) {
     engineRef.current.playChord(color.notes);
     if (navigator.vibrate) navigator.vibrate(20);
+  }
+
+  function changeProfile(next) {
+    if (profile !== 'melody') setLastActiveProfile(profile);
+    setProfile(next);
   }
 
   function goHome() {
@@ -261,7 +320,12 @@ export default function App() {
     return (
       <div className="page">
         <div className="app">
-          <AppHeader profile={profile} onChangeProfile={setProfile} showBack={false} />
+          <AppHeader
+            profile={profile}
+            onChangeProfile={changeProfile}
+            showBack
+            onBack={() => changeProfile(lastActiveProfile)}
+          />
           {melodyDone ? (
             <div className="complete-wrap">
               <div className="complete-emoji">🌟</div>
@@ -308,7 +372,7 @@ export default function App() {
       <div className="app">
         {view === 'home' && (
           <>
-            <AppHeader profile={profile} onChangeProfile={setProfile} showBack={false} />
+            <AppHeader profile={profile} onChangeProfile={changeProfile} showBack={false} />
             <div className="menu-list">
               <button className="menu-card menu-card-blue" onClick={startPlay}>
                 <span className="icon-badge" style={{ background: 'rgba(255,255,255,0.22)' }}>
@@ -343,7 +407,7 @@ export default function App() {
 
         {view === 'play-listen' && currentColor && (
           <>
-            <AppHeader profile={profile} onChangeProfile={setProfile} showBack onBack={goHome} />
+            <AppHeader profile={profile} onChangeProfile={changeProfile} showBack onBack={goHome} />
             <ProgressDots current={roundIndex + 1} total={SESSION_ROUNDS} />
             <h2 className="screen-title">Listen to the chord</h2>
             <p className="screen-sub">Tap the rainbow to hear it</p>
@@ -359,7 +423,7 @@ export default function App() {
 
         {view === 'play-relisten' && currentColor && (
           <>
-            <AppHeader profile={profile} onChangeProfile={setProfile} showBack onBack={goHome} />
+            <AppHeader profile={profile} onChangeProfile={changeProfile} showBack onBack={goHome} />
             <ProgressDots current={roundIndex + 1} total={SESSION_ROUNDS} />
             <h2 className="screen-title">Listen to the chord again?</h2>
             <button className="rainbow-play-wrap" onClick={relistenTap} aria-label="Replay chord">
@@ -377,7 +441,7 @@ export default function App() {
 
         {view === 'play-question' && currentColor && (
           <>
-            <AppHeader profile={profile} onChangeProfile={setProfile} showBack onBack={goHome} />
+            <AppHeader profile={profile} onChangeProfile={changeProfile} showBack onBack={goHome} />
             <ProgressDots current={roundIndex + 1} total={SESSION_ROUNDS} />
             <h2 className="screen-title">What chord did you hear?</h2>
             <button className="rainbow-play-wrap rainbow-play-wrap-compact" onClick={relistenTap} aria-label="Play chord again">
@@ -403,7 +467,7 @@ export default function App() {
 
         {view === 'play-feedback' && currentColor && (
           <>
-            <AppHeader profile={profile} onChangeProfile={setProfile} showBack onBack={goHome} />
+            <AppHeader profile={profile} onChangeProfile={changeProfile} showBack onBack={goHome} />
             <ProgressDots current={roundIndex + 1} total={SESSION_ROUNDS} />
             <div className={`feedback-icon-wrap${answerCorrect ? ' feedback-correct' : ' feedback-incorrect'}`}>
               {answerCorrect && (
@@ -439,7 +503,7 @@ export default function App() {
 
         {view === 'play-complete' && (
           <>
-            <AppHeader profile={profile} onChangeProfile={setProfile} showBack onBack={goHome} />
+            <AppHeader profile={profile} onChangeProfile={changeProfile} showBack onBack={goHome} />
             <div className="complete-wrap">
               <div className="complete-emoji">🎉</div>
               <h2 className="screen-title">All done!</h2>
@@ -484,7 +548,7 @@ export default function App() {
 
         {view === 'explore' && (
           <>
-            <AppHeader profile={profile} onChangeProfile={setProfile} showBack onBack={goHome} />
+            <AppHeader profile={profile} onChangeProfile={changeProfile} showBack onBack={goHome} />
             <h2 className="screen-title">Explore</h2>
             <p className="screen-sub">Tap a pad to play its chord</p>
             <div className="rainbow-slot">
@@ -509,7 +573,7 @@ export default function App() {
 
         {view === 'progress' && (
           <>
-            <AppHeader profile={profile} onChangeProfile={setProfile} showBack onBack={goHome} />
+            <AppHeader profile={profile} onChangeProfile={changeProfile} showBack onBack={goHome} />
             <h2 className="screen-title">Progress</h2>
             <div className="stat-tiles">
               <div className="stat-tile">
