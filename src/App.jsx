@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { PianoEngine, playCorrectChime } from './piano.js';
+import { PianoEngine, playCorrectChime, playWrongBuzz } from './piano.js';
+import { speakColorName } from './speech.js';
 import Rainbow from './Rainbow.jsx';
 import ProfileSwitcher from './ProfileSwitcher.jsx';
 import { MusicNoteIcon, BookIcon, ChartIcon, PlayTriangleIcon, SpeakerIcon, CheckIcon, XIcon } from './icons.jsx';
@@ -23,6 +24,7 @@ const PROFILE_NAMES = {
 };
 
 const SESSION_ROUNDS = 10;
+const MELODY_SESSION_TAPS = 20;
 const PROGRESS_KEY = 'pitchpop-progress-v1';
 
 function shuffle(list) {
@@ -127,9 +129,17 @@ export default function App() {
   const [roundIndex, setRoundIndex] = useState(0);
   const [options, setOptions] = useState([]);
   const [answerCorrect, setAnswerCorrect] = useState(false);
+  const [roundResults, setRoundResults] = useState({});
+
+  const [melodyTaps, setMelodyTaps] = useState(0);
+  const [melodyColorCounts, setMelodyColorCounts] = useState({});
 
   const [justPlayed, setJustPlayed] = useState(null);
   const [celebrate, setCelebrate] = useState(null);
+
+  useEffect(() => {
+    engineRef.current.prewarm(COLORS.map((c) => c.notes));
+  }, []);
 
   useEffect(() => {
     if (!justPlayed) return;
@@ -157,6 +167,7 @@ export default function App() {
   function startPlay() {
     setSessionQueue(buildQueue(PROFILE_NAMES[profile], SESSION_ROUNDS));
     setRoundIndex(0);
+    setRoundResults({});
     setView('play-listen');
   }
 
@@ -174,6 +185,8 @@ export default function App() {
     const correct = color.name === currentColor.name;
     setAnswerCorrect(correct);
     if (correct) playCorrectChime();
+    else playWrongBuzz();
+    setTimeout(() => speakColorName(currentColor.name), 350);
     setProgress((prev) => {
       const p = prev[profile] || { total: 0, correct: 0, perColor: {} };
       const next = {
@@ -186,6 +199,16 @@ export default function App() {
       };
       saveProgress(next);
       return next;
+    });
+    setRoundResults((prev) => {
+      const entry = prev[currentColor.name] || { correct: 0, wrong: 0 };
+      return {
+        ...prev,
+        [currentColor.name]: {
+          correct: entry.correct + (correct ? 1 : 0),
+          wrong: entry.wrong + (correct ? 0 : 1),
+        },
+      };
     });
     setView('play-feedback');
   }
@@ -214,26 +237,66 @@ export default function App() {
     setCelebrate(color.name);
   }
 
+  function melodyTap(color) {
+    if (melodyTaps >= MELODY_SESSION_TAPS) return;
+    exploreTap(color);
+    setMelodyTaps((t) => t + 1);
+    setMelodyColorCounts((prev) => ({ ...prev, [color.name]: (prev[color.name] || 0) + 1 }));
+  }
+
+  function melodyPlayAgain() {
+    setMelodyTaps(0);
+    setMelodyColorCounts({});
+  }
+
   const stats = progress[profile] || { total: 0, correct: 0, perColor: {} };
   const accuracy = stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0;
   const profileColors = PROFILE_NAMES[profile].map((name) => COLORS.find((c) => c.name === name));
+  const roundCorrect = Object.values(roundResults).reduce((sum, r) => sum + r.correct, 0);
+  const roundWrong = Object.values(roundResults).reduce((sum, r) => sum + r.wrong, 0);
 
   if (profile === 'melody') {
+    const melodyDone = melodyTaps >= MELODY_SESSION_TAPS;
     return (
       <div className="page">
         <div className="app">
           <AppHeader profile={profile} onChangeProfile={setProfile} showBack={false} />
-          <div className="melody-grid">
-            {profileColors.map((color) => (
-              <button
-                key={color.name}
-                className={`melody-btn${justPlayed === color.name ? ' melody-btn-played' : ''}`}
-                style={{ background: color.hex }}
-                aria-label={`Play ${color.name} sound`}
-                onClick={() => exploreTap(color)}
-              />
-            ))}
-          </div>
+          {melodyDone ? (
+            <div className="complete-wrap">
+              <div className="complete-emoji">🌟</div>
+              <h2 className="screen-title">Good job, Melody!</h2>
+              <p className="screen-sub">You pressed the buttons {MELODY_SESSION_TAPS} times.</p>
+              <div className="progress-colors">
+                {profileColors.map((color) => (
+                  <div key={color.name} className="progress-chip" style={{ background: color.hex, color: color.text }}>
+                    {color.name}: {melodyColorCounts[color.name] || 0}
+                  </div>
+                ))}
+              </div>
+              <div className="feedback-actions">
+                <button className="pill-btn-primary" onClick={melodyPlayAgain}>
+                  Play again →
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="melody-counter">
+                {melodyTaps} / {MELODY_SESSION_TAPS}
+              </div>
+              <div className="melody-grid">
+                {profileColors.map((color) => (
+                  <button
+                    key={color.name}
+                    className={`melody-btn${justPlayed === color.name ? ' melody-btn-played' : ''}`}
+                    style={{ background: color.hex }}
+                    aria-label={`Play ${color.name} sound`}
+                    onClick={() => melodyTap(color)}
+                  />
+                ))}
+              </div>
+            </>
+          )}
         </div>
       </div>
     );
@@ -382,14 +445,38 @@ export default function App() {
               <p className="screen-sub">
                 You went through all {SESSION_ROUNDS} chords for {profile === 'maddie' ? 'Maddie' : 'Marcus'}.
               </p>
-              <div className="feedback-actions">
-                <button className="pill-btn-secondary" onClick={goHome}>
-                  Home
-                </button>
-                <button className="pill-btn-primary" onClick={startPlay}>
-                  Play again →
-                </button>
+            </div>
+            <div className="stat-tiles">
+              <div className="stat-tile">
+                <div className="stat-number">{roundCorrect}</div>
+                <div className="stat-label">Correct</div>
               </div>
+              <div className="stat-tile">
+                <div className="stat-number">{roundWrong}</div>
+                <div className="stat-label">Wrong</div>
+              </div>
+            </div>
+            <div className="screen-sub progress-colors-label">By color</div>
+            <div className="result-chip-list">
+              {Object.entries(roundResults).map(([name, r]) => {
+                const color = COLORS.find((c) => c.name === name);
+                return (
+                  <div key={name} className="result-chip" style={{ background: color.hex, color: color.text }}>
+                    <span className="result-chip-name">{name}</span>
+                    <span className="result-chip-counts">
+                      ✓ {r.correct} · ✗ {r.wrong}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="feedback-actions">
+              <button className="pill-btn-secondary" onClick={goHome}>
+                Home
+              </button>
+              <button className="pill-btn-primary" onClick={startPlay}>
+                Play again →
+              </button>
             </div>
           </>
         )}

@@ -625,6 +625,35 @@ body {
   box-shadow: var(--shadow-sm);
 }
 
+.result-chip-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.result-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+  font-family: 'IBM Plex Sans', sans-serif;
+}
+
+.result-chip-name {
+  font-weight: 700;
+  font-size: 14px;
+  text-transform: capitalize;
+}
+
+.result-chip-counts {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-weight: 600;
+  font-size: 13px;
+  opacity: 0.9;
+}
+
 .rainbow-slot {
   height: 60px;
   display: flex;
@@ -702,6 +731,15 @@ body {
   100% {
     transform: scale(1);
   }
+}
+
+.melody-counter {
+  align-self: center;
+  font-family: 'Fredoka', ui-rounded, system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 22px;
+  color: var(--ink-dim);
+  font-variant-numeric: tabular-nums;
 }
 
 .melody-grid {
