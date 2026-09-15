@@ -217,6 +217,17 @@ export default function App() {
 
   function changeProfile(next) {
     if (profile !== 'melody') setLastActiveProfile(profile);
+    if (next !== profile) {
+      // A quiz round in progress is built from the outgoing profile's
+      // color set - switching identity mid-round let colors outside the
+      // new profile's palette (e.g. Maddie's "brown") leak into Marcus's
+      // answer options. Reset to a clean state for whoever's playing now.
+      setSessionQueue(buildQueue(PROFILE_NAMES[next] || PROFILE_NAMES.maddie, SESSION_ROUNDS));
+      setRoundIndex(0);
+      setOptions([]);
+      setRoundResults({});
+      setView('home');
+    }
     setProfile(next);
   }
 
