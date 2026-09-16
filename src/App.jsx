@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { PianoEngine, playCorrectChime, playWrongBuzz } from './piano.js';
-import { speakColorName, prewarmVoices } from './speech.js';
+import { speakColorName, speakResults, prewarmVoices } from './speech.js';
 import Rainbow from './Rainbow.jsx';
 import ProfileSwitcher from './ProfileSwitcher.jsx';
 import { MusicNoteIcon, BookIcon, ChartIcon, PlayTriangleIcon, SpeakerIcon, CheckIcon, XIcon } from './icons.jsx';
@@ -207,6 +207,12 @@ export default function App() {
     const id = setTimeout(() => setCelebrate(null), 1000);
     return () => clearTimeout(id);
   }, [celebrate]);
+
+  useEffect(() => {
+    if (view !== 'play-complete') return;
+    const correct = Object.values(roundResults).reduce((sum, r) => sum + r.correct, 0);
+    speakResults(correct, SESSION_ROUNDS);
+  }, [view]);
 
   const currentColor = sessionQueue.length ? COLORS.find((c) => c.name === sessionQueue[roundIndex]) : null;
 
