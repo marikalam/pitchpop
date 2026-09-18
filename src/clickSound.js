@@ -24,7 +24,8 @@ function playClick() {
 }
 
 export function initClickSound() {
-  document.addEventListener('click', () => {
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('.option-btn') || e.target.closest('.melody-btn')) return;
     try {
       playClick();
     } catch {

@@ -3,7 +3,7 @@ import { PianoEngine, playCorrectChime, playWrongBuzz } from './piano.js';
 import { speakColorName, speakResults, prewarmVoices } from './speech.js';
 import Rainbow from './Rainbow.jsx';
 import ProfileSwitcher from './ProfileSwitcher.jsx';
-import { MusicNoteIcon, BookIcon, ChartIcon, PlayTriangleIcon, SpeakerIcon, CheckIcon, XIcon } from './icons.jsx';
+import { MusicNoteIcon, BookIcon, PlayTriangleIcon, SpeakerIcon, CheckIcon, XIcon } from './icons.jsx';
 
 const COLORS = [
   { name: 'black', hex: '#232323', text: '#FFFFFF', notes: ['A', 'C', 'F'] },
@@ -88,12 +88,23 @@ function AppHeader({ profile, onChangeProfile, onBack, showBack }) {
   return (
     <>
       <div className="brand-row">
-        <h1 className="logo">
-          <span className="ink">Pitch</span>
-          <span className="pop-blue">P</span>
-          <span className="pop-red">o</span>
-          <span className="pop-green">p</span>
-        </h1>
+        {showBack ? (
+          <button className="logo-btn" onClick={onBack}>
+            <h1 className="logo">
+              <span className="ink">Pitch</span>
+              <span className="pop-blue">P</span>
+              <span className="pop-red">o</span>
+              <span className="pop-green">p</span>
+            </h1>
+          </button>
+        ) : (
+          <h1 className="logo">
+            <span className="ink">Pitch</span>
+            <span className="pop-blue">P</span>
+            <span className="pop-red">o</span>
+            <span className="pop-green">p</span>
+          </h1>
+        )}
         {!showBack && (
           <a className="games-link-btn" href="https://marikalam.github.io/apps/">
             Apps
@@ -158,6 +169,12 @@ export default function App() {
   );
   const [answerCorrect, setAnswerCorrect] = useState(initialSession.answerCorrect || false);
   const [roundResults, setRoundResults] = useState(initialSession.roundResults || {});
+  // Tracks whether each round's FIRST attempt was correct, keyed by round
+  // index. roundResults keeps incrementing on every retry, so a round the
+  // player missed and then got right on a second try still looked
+  // "correct" in the final tally - this is what the session score (and
+  // the end-of-session speech) should actually be based on.
+  const [roundOutcomes, setRoundOutcomes] = useState(initialSession.roundOutcomes || {});
 
   const [melodyTaps, setMelodyTaps] = useState(initialSession.melodyTaps || 0);
   const [melodyColorCounts, setMelodyColorCounts] = useState(initialSession.melodyColorCounts || {});
@@ -180,6 +197,7 @@ export default function App() {
       optionNames: options.map((c) => c.name),
       answerCorrect,
       roundResults,
+      roundOutcomes,
       melodyTaps,
       melodyColorCounts,
     });
@@ -192,6 +210,7 @@ export default function App() {
     options,
     answerCorrect,
     roundResults,
+    roundOutcomes,
     melodyTaps,
     melodyColorCounts,
   ]);
@@ -210,7 +229,7 @@ export default function App() {
 
   useEffect(() => {
     if (view !== 'play-complete') return;
-    const correct = Object.values(roundResults).reduce((sum, r) => sum + r.correct, 0);
+    const correct = Object.values(roundOutcomes).filter(Boolean).length;
     speakResults(correct, SESSION_ROUNDS);
   }, [view]);
 
@@ -227,12 +246,15 @@ export default function App() {
       // A quiz round in progress is built from the outgoing profile's
       // color set - switching identity mid-round let colors outside the
       // new profile's palette (e.g. Maddie's "brown") leak into Marcus's
-      // answer options. Reset to a clean state for whoever's playing now.
+      // answer options. Reset to a clean state for whoever's playing now,
+      // but stay on the play screen instead of bouncing to home if a
+      // round was already in progress.
       setSessionQueue(buildQueue(PROFILE_NAMES[next] || PROFILE_NAMES.maddie, SESSION_ROUNDS));
       setRoundIndex(0);
       setOptions([]);
       setRoundResults({});
-      setView('home');
+      setRoundOutcomes({});
+      setView(view.startsWith('play-') ? 'play-listen' : view);
     }
     setProfile(next);
   }
@@ -245,6 +267,7 @@ export default function App() {
     setSessionQueue(buildQueue(PROFILE_NAMES[profile], SESSION_ROUNDS));
     setRoundIndex(0);
     setRoundResults({});
+    setRoundOutcomes({});
     setView('play-listen');
   }
 
@@ -261,22 +284,8 @@ export default function App() {
   function chooseAnswer(color) {
     const correct = color.name === currentColor.name;
     setAnswerCorrect(correct);
-    if (correct) playCorrectChime();
-    else playWrongBuzz();
-    setTimeout(() => speakColorName(currentColor.name), 350);
-    setProgress((prev) => {
-      const p = prev[profile] || { total: 0, correct: 0, perColor: {} };
-      const next = {
-        ...prev,
-        [profile]: {
-          total: p.total + 1,
-          correct: p.correct + (correct ? 1 : 0),
-          perColor: { ...p.perColor, [currentColor.name]: (p.perColor[currentColor.name] || 0) + 1 },
-        },
-      };
-      saveProgress(next);
-      return next;
-    });
+
+    // Always track in roundResults (every attempt, including retries)
     setRoundResults((prev) => {
       const entry = prev[currentColor.name] || { correct: 0, wrong: 0 };
       return {
@@ -287,7 +296,39 @@ export default function App() {
         },
       };
     });
-    setView('play-feedback');
+
+    // The session score only reflects each round's FIRST attempt - a
+    // player can retry until they get it, but that shouldn't erase a miss.
+    setRoundOutcomes((prev) => (roundIndex in prev ? prev : { ...prev, [roundIndex]: correct }));
+
+    // Long-term accuracy needs every attempt counted in "total", not just
+    // the ones that happened to be correct - otherwise accuracy is stuck
+    // at 100% forever, since only correct attempts ever incremented it.
+    setProgress((prev) => {
+      const p = prev[profile] || { total: 0, correct: 0, perColor: {} };
+      const next = {
+        ...prev,
+        [profile]: {
+          total: p.total + 1,
+          correct: p.correct + (correct ? 1 : 0),
+          perColor: correct
+            ? { ...p.perColor, [currentColor.name]: (p.perColor[currentColor.name] || 0) + 1 }
+            : p.perColor,
+        },
+      };
+      saveProgress(next);
+      return next;
+    });
+
+    if (correct) {
+      playCorrectChime();
+      setTimeout(() => speakColorName(currentColor.name, currentColor.notes), 350);
+      setView('play-feedback');
+    } else {
+      playWrongBuzz();
+      setTimeout(() => speakColorName(currentColor.name, currentColor.notes), 350);
+      setView('play-feedback');
+    }
   }
 
   function hearAgainFromFeedback() {
@@ -326,11 +367,9 @@ export default function App() {
     setMelodyColorCounts({});
   }
 
-  const stats = progress[profile] || { total: 0, correct: 0, perColor: {} };
-  const accuracy = stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0;
   const profileColors = PROFILE_NAMES[profile].map((name) => COLORS.find((c) => c.name === name));
-  const roundCorrect = Object.values(roundResults).reduce((sum, r) => sum + r.correct, 0);
-  const roundWrong = Object.values(roundResults).reduce((sum, r) => sum + r.wrong, 0);
+  const roundCorrect = Object.values(roundOutcomes).filter(Boolean).length;
+  const roundWrong = Object.values(roundOutcomes).filter((v) => v === false).length;
 
   if (profile === 'melody') {
     const melodyDone = melodyTaps >= MELODY_SESSION_TAPS;
@@ -407,15 +446,6 @@ export default function App() {
                 <span className="menu-text">
                   <span className="menu-title">Explore</span>
                   <span className="menu-sub">Learn chords and colors</span>
-                </span>
-              </button>
-              <button className="menu-card menu-card-green" onClick={() => setView('progress')}>
-                <span className="icon-badge" style={{ background: '#2FAE6B' }}>
-                  <ChartIcon />
-                </span>
-                <span className="menu-text">
-                  <span className="menu-title">Progress</span>
-                  <span className="menu-sub">See your stats</span>
                 </span>
               </button>
             </div>
@@ -508,12 +538,20 @@ export default function App() {
               <div className="answer-notes">{currentColor.notes.join(' · ')}</div>
             </div>
             <div className="feedback-actions">
-              <button className="pill-btn-secondary" onClick={hearAgainFromFeedback}>
-                🔊 Hear again
-              </button>
-              <button className="pill-btn-primary" onClick={nextChord}>
-                {roundIndex + 1 >= SESSION_ROUNDS ? 'Finish' : 'Next chord'} →
-              </button>
+              {answerCorrect ? (
+                <>
+                  <button className="pill-btn-secondary" onClick={hearAgainFromFeedback}>
+                    🔊 Hear again
+                  </button>
+                  <button className="pill-btn-primary" onClick={nextChord}>
+                    {roundIndex + 1 >= SESSION_ROUNDS ? 'Finish' : 'Next chord'} →
+                  </button>
+                </>
+              ) : (
+                <button className="pill-btn-primary pill-btn-full" onClick={chooseDifferentAnswer}>
+                  Try again →
+                </button>
+              )}
             </div>
           </>
         )}
@@ -537,20 +575,6 @@ export default function App() {
                 <div className="stat-number">{roundWrong}</div>
                 <div className="stat-label">Wrong</div>
               </div>
-            </div>
-            <div className="screen-sub progress-colors-label">By color</div>
-            <div className="result-chip-list">
-              {Object.entries(roundResults).map(([name, r]) => {
-                const color = COLORS.find((c) => c.name === name);
-                return (
-                  <div key={name} className="result-chip" style={{ background: color.hex, color: color.text }}>
-                    <span className="result-chip-name">{name}</span>
-                    <span className="result-chip-counts">
-                      ✓ {r.correct} · ✗ {r.wrong}
-                    </span>
-                  </div>
-                );
-              })}
             </div>
             <div className="feedback-actions">
               <button className="pill-btn-secondary" onClick={goHome}>
@@ -588,33 +612,6 @@ export default function App() {
           </>
         )}
 
-        {view === 'progress' && (
-          <>
-            <AppHeader profile={profile} onChangeProfile={changeProfile} showBack onBack={goHome} />
-            <h2 className="screen-title">Progress</h2>
-            <div className="stat-tiles">
-              <div className="stat-tile">
-                <div className="stat-number">{stats.total}</div>
-                <div className="stat-label">Chords played</div>
-              </div>
-              <div className="stat-tile">
-                <div className="stat-number">{accuracy}%</div>
-                <div className="stat-label">Accuracy</div>
-              </div>
-            </div>
-            <div className="screen-sub progress-colors-label">By color</div>
-            <div className="progress-colors">
-              {profileColors.map((color) => {
-                const count = (stats.perColor && stats.perColor[color.name]) || 0;
-                return (
-                  <div key={color.name} className="progress-chip" style={{ background: color.hex, color: color.text }}>
-                    {count}
-                  </div>
-                );
-              })}
-            </div>
-          </>
-        )}
       </div>
     </div>
   );

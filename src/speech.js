@@ -22,9 +22,10 @@ function loadVoices() {
 }
 
 // The Web Speech API has no true "ChatGPT-style" neural voice - browsers
-// only expose whatever voices the OS ships, for free. Siri and other
-// Enhanced/Premium system voices sound far more natural than the flat
-// compact defaults, so they're weighted highest.
+// only expose whatever voices the OS ships, for free. Edge's
+// "Online (Natural)" voices are real cloud neural voices (Azure) and
+// sound best by far; macOS Enhanced/Premium voices are next; flat
+// compact/default voices are last.
 const PREFERRED_NAME_HINTS = [
   'siri',
   'samantha',
@@ -37,6 +38,12 @@ const PREFERRED_NAME_HINTS = [
   'susan',
   'jenny',
   'sonia',
+  'ava',
+  'allison',
+  'zoe',
+  'noelle',
+  'isha',
+  'natasha',
   'google us english',
 ];
 
@@ -48,12 +55,14 @@ function scoreVoice(voice) {
   let score = 0;
   if (!isEnglish) score -= 10;
   if (soundsMale) score -= 10;
-  if (/natural|premium|enhanced|neural/.test(name)) score += 4;
+  if (/online \(natural\)/.test(name)) score += 6;
+  if (/neural/.test(name)) score += 6;
+  if (/premium|enhanced/.test(name)) score += 4;
   if (name.includes('siri')) score += 3;
   if (/female/.test(name)) score += 2;
   if (PREFERRED_NAME_HINTS.some((hint) => name.includes(hint))) score += 2;
   if (voice.localService === false) score += 1;
-  if (/compact/.test(name)) score -= 2;
+  if (/compact/.test(name)) score -= 3;
   return score;
 }
 
@@ -67,12 +76,17 @@ export function prewarmVoices() {
   loadVoices();
 }
 
-export async function speakColorName(name) {
+export async function speakColorName(name, notes) {
   if (!('speechSynthesis' in window)) return;
   window.speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(name);
-  utterance.rate = 0.92;
-  utterance.pitch = 1.05;
+  let text = name;
+  if (notes && Array.isArray(notes) && notes.length > 0) {
+    text = `${name.charAt(0).toUpperCase() + name.slice(1)} ${notes.join(' ')}`;
+  }
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.rate = 0.97;
+  utterance.pitch = 1.0;
+  utterance.volume = 1.0;
   const voice = await pickVoice();
   if (voice) utterance.voice = voice;
   window.speechSynthesis.speak(utterance);
@@ -84,8 +98,9 @@ export async function speakResults(correct, total) {
   const wrong = total - correct;
   const text = correct === total ? `Perfect! You got all ${total} correct!` : `You got ${correct} correct and ${wrong} wrong.`;
   const utterance = new SpeechSynthesisUtterance(text);
-  utterance.rate = 0.95;
-  utterance.pitch = 1.05;
+  utterance.rate = 0.97;
+  utterance.pitch = 1.0;
+  utterance.volume = 1.0;
   const voice = await pickVoice();
   if (voice) utterance.voice = voice;
   window.speechSynthesis.speak(utterance);
