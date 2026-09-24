@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { PianoEngine, playCorrectChime, playWrongBuzz } from './piano.js';
-import { speakColorName, speakResults, prewarmVoices } from './speech.js';
+import { speakColorName, speakResults, prewarmVoices, unlockAudio } from './speech.js';
 import Rainbow from './Rainbow.jsx';
 import ProfileSwitcher from './ProfileSwitcher.jsx';
 import { MusicNoteIcon, BookIcon, PlayTriangleIcon, SpeakerIcon, CheckIcon, XIcon } from './icons.jsx';
@@ -185,6 +185,18 @@ export default function App() {
   useEffect(() => {
     engineRef.current.prewarm(COLORS.map((c) => c.notes));
     prewarmVoices();
+
+    // Mobile browsers only allow audio to start playing when it's tied to
+    // a real tap. Speech is generated asynchronously, so by the time it's
+    // ready the tap that triggered it may no longer count — priming a
+    // silent clip on the very first tap anywhere unlocks audio for the
+    // rest of the session.
+    const unlock = () => {
+      unlockAudio();
+      document.removeEventListener('pointerdown', unlock);
+    };
+    document.addEventListener('pointerdown', unlock, { once: true });
+    return () => document.removeEventListener('pointerdown', unlock);
   }, []);
 
   useEffect(() => {
