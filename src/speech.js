@@ -154,11 +154,17 @@ async function speak(text) {
 }
 
 export async function speakColorName(name, notes) {
-  let text = name;
-  if (notes && Array.isArray(notes) && notes.length > 0) {
-    text = `${name.charAt(0).toUpperCase() + name.slice(1)} ${notes.join(' ')}`;
+  const capitalized = name.charAt(0).toUpperCase() + name.slice(1);
+  if (!notes || !Array.isArray(notes) || notes.length === 0) {
+    speak(capitalized);
+    return;
   }
-  speak(text);
+  // A bare run of letters ("C E G") gets slurred together or misread - "A"
+  // in particular comes out as the word "a" instead of the letter name. A
+  // trailing period per letter forces TTS engines to read each one as a
+  // spelled-out letter, with a clear pause between them.
+  const spelled = notes.map((n) => `${n}.`).join(' ');
+  speak(`${capitalized} is ${spelled}`);
 }
 
 export async function speakResults(correct, total) {
