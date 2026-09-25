@@ -1,3 +1,13 @@
+let audioCtx = null;
+
+function ensureAudio() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+
 let voicesPromise = null;
 
 // Voice lists load asynchronously on most browsers - calling getVoices()
@@ -98,33 +108,19 @@ function getPiperModule() {
   return piperModulePromise;
 }
 
-// Mobile browsers (especially iOS Safari) only allow audio.play() to "just
-// work" when it's called synchronously inside a real user gesture. Piper
-// speech goes through an async pipeline (model load + inference) before it
-// has anything to play, so by the time it's ready the original tap no
-// longer counts — playback gets silently blocked. The fix: reuse one
-// <audio> element and "spend" the very first tap anywhere in the app on a
-// real (silent) play() call, synchronously. Once an element has been
-// successfully played from a real gesture, browsers let that SAME element
-// keep playing programmatically for the rest of the page session — so all
-// later speak() calls, even from timers, go through fine.
-const SILENT_WAV = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
-let ttsAudioEl = null;
-let audioUnlocked = false;
-
-function getTtsAudioEl() {
-  if (!ttsAudioEl) ttsAudioEl = new Audio();
-  return ttsAudioEl;
-}
-
+// Mobile browsers only let audio start playing when it's tied to a real
+// user gesture, and speech goes through an async pipeline (model load +
+// inference) before it has anything to play — by the time it's ready, the
+// original tap no longer counts. Resuming the shared AudioContext
+// synchronously on the very first tap anywhere "spends" that gesture; once
+// resumed, the same context keeps working from async code and timers for
+// the rest of the page session. This also matters on iOS specifically:
+// speech plays through this AudioContext rather than an <audio> element,
+// which is the playback path iOS is willing to mix with other apps' audio
+// (e.g. Spotify over CarPlay) instead of muting it — speechSynthesis, by
+// contrast, always takes exclusive control there.
 export function unlockAudio() {
-  if (audioUnlocked) return;
-  audioUnlocked = true;
-  const el = getTtsAudioEl();
-  el.src = SILENT_WAV;
-  el.play().catch(() => {
-    /* some browsers still refuse a literal silent clip — later real speech will re-attempt */
-  });
+  ensureAudio();
 }
 
 export function prewarmVoices() {
@@ -136,17 +132,28 @@ export function prewarmVoices() {
     });
 }
 
+let currentSource = null;
+
 async function speak(text) {
   try {
     const { synthesizeSpeech } = await getPiperModule();
     const blob = await synthesizeSpeech(text);
-    const audioEl = getTtsAudioEl();
-    const prevUrl = audioEl.dataset.blobUrl;
-    const url = URL.createObjectURL(blob);
-    audioEl.dataset.blobUrl = url;
-    audioEl.src = url;
-    await audioEl.play();
-    if (prevUrl) URL.revokeObjectURL(prevUrl);
+    const arrayBuffer = await blob.arrayBuffer();
+    const ctx = ensureAudio();
+    const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
+
+    if (currentSource) {
+      try {
+        currentSource.stop();
+      } catch {
+        /* already stopped */
+      }
+    }
+    const source = ctx.createBufferSource();
+    source.buffer = audioBuffer;
+    source.connect(ctx.destination);
+    currentSource = source;
+    source.start();
   } catch (err) {
     console.warn('Piper TTS unavailable, falling back to the built-in voice', err);
     speakWithWebSpeechAPI(text);
