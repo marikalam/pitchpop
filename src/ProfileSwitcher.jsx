@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import Avatar from './Avatar.jsx';
 
-export default function ProfileSwitcher({ profile, profiles, onChange, onOpenSettings }) {
+export default function ProfileSwitcher({ profile, profiles, colors, onChange, onOpenSettings }) {
   const [open, setOpen] = useState(false);
   const current = profiles.find((p) => p.id === profile) || profiles[0];
 
@@ -28,6 +28,12 @@ export default function ProfileSwitcher({ profile, profiles, onChange, onOpenSet
             >
               <Avatar profile={p.id} size={24} />
               <span>{p.name}</span>
+              <span className="profile-level" aria-label={`Learning ${p.colors.join(', ')}`}>
+                {p.colors.map((name) => {
+                  const color = colors.find((c) => c.name === name);
+                  return color && <span key={name} className="profile-level-bar" style={{ background: color.hex }} />;
+                })}
+              </span>
             </button>
           ))}
           <button

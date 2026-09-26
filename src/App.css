@@ -55,11 +55,21 @@ body {
 }
 
 .logo {
+  display: flex;
+  align-items: center;
   font-family: 'Fredoka', ui-rounded, system-ui, sans-serif;
   font-weight: 700;
   font-size: 26px;
   margin: 0;
   letter-spacing: -0.01em;
+}
+
+.logo-mark {
+  width: 32px;
+  height: 32px;
+  margin-right: 8px;
+  border-radius: 9px;
+  box-shadow: var(--shadow-sm);
 }
 
 .logo .ink {
@@ -949,55 +959,6 @@ body {
   padding-inline: 14px;
 }
 
-/* Family account (cloud sync) */
-.cloud-account {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 14px;
-  border-radius: 16px;
-  background: #eaf4ff;
-  color: var(--ink);
-}
-
-.cloud-account p {
-  margin: -3px 0 2px;
-  color: var(--ink-dim);
-  font-size: 12px;
-}
-
-.cloud-account input {
-  border: 1px solid #cbdced;
-  border-radius: 9px;
-  padding: 9px 10px;
-  background: #fff;
-  color: var(--ink);
-  font: 14px 'IBM Plex Sans', sans-serif;
-}
-
-.cloud-account .pill-btn-primary {
-  flex: none;
-}
-
-.cloud-account-connected {
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.cloud-account-connected div {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.cloud-account-connected span,
-.cloud-message {
-  color: var(--ink-dim);
-  font-size: 12px;
-  overflow-wrap: anywhere;
-}
-
 /* First-visit welcome */
 .welcome-backdrop {
   position: fixed;
@@ -1037,4 +998,291 @@ body {
 
 .welcome-card .pill-btn-primary {
   margin-top: 14px;
+}
+
+/* In the back-button row the player pill sits on the right, so open the
+   menu leftward to keep it on screen. */
+.nav-row .profile-menu {
+  left: auto;
+  right: 0;
+}
+
+/* Tiny color bars in the player menu showing which colors each player is learning */
+.profile-level {
+  display: flex;
+  gap: 2px;
+  margin-left: auto;
+  padding-left: 8px;
+}
+
+.profile-level-bar {
+  width: 6px;
+  height: 4px;
+  border-radius: 2px;
+}
+
+/* Header account button */
+.brand-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.account-btn {
+  appearance: none;
+  border: none;
+  cursor: pointer;
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-weight: 700;
+}
+
+.account-btn-signed-in {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+  color: #fff;
+  font-size: 15px;
+  box-shadow: var(--shadow-sm);
+}
+
+.account-btn-signed-out {
+  padding: 9px 14px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: #fff;
+  font-size: 13px;
+}
+
+/* Sync status line on Players & colors */
+.sync-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 14px;
+  border-radius: 14px;
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 13px;
+  text-align: left;
+}
+
+.sync-status-on {
+  background: #e8f6ee;
+  color: #1f6b43;
+  overflow-wrap: anywhere;
+}
+
+.sync-status-off {
+  appearance: none;
+  border: none;
+  cursor: pointer;
+  justify-content: space-between;
+  background: #eef1f7;
+  color: var(--ink-dim);
+}
+
+.sync-link {
+  color: var(--accent-blue);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.sync-dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-green);
+}
+
+/* Account screen */
+.account-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.auth-card,
+.account-section {
+  background: var(--card-bg);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+}
+
+.auth-title {
+  margin: 0;
+  font: 700 21px 'Fredoka', ui-rounded, system-ui, sans-serif;
+  text-align: center;
+}
+
+.auth-sub {
+  margin: 6px 0 16px;
+  color: var(--ink-dim);
+  font-size: 13px;
+  text-align: center;
+}
+
+.auth-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 4px;
+  margin-bottom: 16px;
+  border-radius: 12px;
+  background: #eef1f7;
+}
+
+.auth-tab {
+  appearance: none;
+  border: none;
+  cursor: pointer;
+  padding: 9px;
+  border-radius: 9px;
+  background: none;
+  color: var(--ink-dim);
+  font: 700 13px 'IBM Plex Sans', sans-serif;
+}
+
+.auth-tab-active {
+  background: var(--card-bg);
+  color: var(--ink);
+  box-shadow: var(--shadow-sm);
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.auth-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font: 600 12px 'IBM Plex Sans', sans-serif;
+  color: var(--ink-dim);
+}
+
+.auth-field input {
+  border: 1px solid #d9deeb;
+  border-radius: 12px;
+  padding: 12px 14px;
+  background: #fbfcff;
+  color: var(--ink);
+  font: 15px 'IBM Plex Sans', sans-serif;
+}
+
+.auth-field input:focus {
+  outline: none;
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 3px rgba(59, 111, 239, 0.15);
+}
+
+.auth-error,
+.auth-notice {
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+.auth-error {
+  background: #fdecec;
+  color: #b3261e;
+}
+
+.auth-notice {
+  background: #e8f6ee;
+  color: #1f6b43;
+}
+
+.account-profile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0 4px;
+}
+
+.account-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+  color: #fff;
+  font: 700 30px 'Fredoka', ui-rounded, system-ui, sans-serif;
+  box-shadow: var(--shadow);
+}
+
+.account-email {
+  font-weight: 700;
+  font-size: 16px;
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+
+.account-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #e8f6ee;
+  color: #1f6b43;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.account-section {
+  padding: 4px 16px;
+}
+
+.account-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 0;
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 15px;
+}
+
+.account-row-button {
+  appearance: none;
+  border: none;
+  cursor: pointer;
+  background: none;
+  color: var(--ink);
+  text-align: left;
+}
+
+.account-row-label {
+  font-weight: 700;
+}
+
+.account-row-value {
+  color: var(--ink-dim);
+  font-weight: 600;
+}
+
+.account-row-help {
+  margin: -6px 0 14px;
+  color: var(--ink-dim);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.account-signout {
+  appearance: none;
+  cursor: pointer;
+  padding: 13px;
+  border: 1px solid #f1b8bb;
+  border-radius: 999px;
+  background: #fff5f5;
+  color: #bb3036;
+  font: 700 14px 'IBM Plex Sans', sans-serif;
 }

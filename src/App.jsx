@@ -3,7 +3,7 @@ import { PianoEngine, playCorrectChime, playWrongBuzz } from './piano.js';
 import { speakColorName, speakResults, prewarmVoices, unlockAudio } from './speech.js';
 import Rainbow from './Rainbow.jsx';
 import ProfileSwitcher from './ProfileSwitcher.jsx';
-import { PlayerSettingsCard, AddPlayerForm, CloudAccount } from './Settings.jsx';
+import { PlayerSettingsCard, AddPlayerForm, AccountButton, AccountScreen, SyncStatus } from './Settings.jsx';
 import { getUser, loadCloudProfiles, saveCloudProfile, deleteCloudProfile } from './cloud.js';
 import { MusicNoteIcon, BookIcon, PlayTriangleIcon, SpeakerIcon, CheckIcon, XIcon } from './icons.jsx';
 
@@ -108,13 +108,14 @@ function saveSession(data) {
   }
 }
 
-function AppHeader({ profile, profiles, onChangeProfile, onOpenSettings, onBack, showBack }) {
+function AppHeader({ profile, profiles, user, onChangeProfile, onOpenSettings, onOpenAccount, onBack, showBack }) {
   return (
     <>
       <div className="brand-row">
         {showBack ? (
           <button className="logo-btn" onClick={onBack}>
             <h1 className="logo">
+              <img className="logo-mark" src={`${import.meta.env.BASE_URL}icon-192.png`} alt="" />
               <span className="ink">Pitch</span>
               <span className="pop-blue">P</span>
               <span className="pop-red">o</span>
@@ -123,17 +124,21 @@ function AppHeader({ profile, profiles, onChangeProfile, onOpenSettings, onBack,
           </button>
         ) : (
           <h1 className="logo">
+            <img className="logo-mark" src={`${import.meta.env.BASE_URL}icon-192.png`} alt="" />
             <span className="ink">Pitch</span>
             <span className="pop-blue">P</span>
             <span className="pop-red">o</span>
             <span className="pop-green">p</span>
           </h1>
         )}
-        {!showBack && (
-          <a className="games-link-btn" href="https://marikalam.github.io/apps/">
-            Apps
-          </a>
-        )}
+        <div className="brand-actions">
+          {!showBack && (
+            <a className="games-link-btn" href="https://marikalam.github.io/apps/">
+              Apps
+            </a>
+          )}
+          <AccountButton user={user} onClick={onOpenAccount} />
+        </div>
       </div>
       {showBack ? (
         <div className="nav-row">
@@ -143,6 +148,7 @@ function AppHeader({ profile, profiles, onChangeProfile, onOpenSettings, onBack,
           <ProfileSwitcher
             profile={profile}
             profiles={profiles}
+            colors={COLORS}
             onChange={onChangeProfile}
             onOpenSettings={onOpenSettings}
           />
@@ -151,6 +157,7 @@ function AppHeader({ profile, profiles, onChangeProfile, onOpenSettings, onBack,
         <ProfileSwitcher
           profile={profile}
           profiles={profiles}
+          colors={COLORS}
           onChange={onChangeProfile}
           onOpenSettings={onOpenSettings}
         />
@@ -261,6 +268,7 @@ export default function App() {
         setCloudUser(user);
         if (cloudProfiles?.length) {
           setProfiles(cloudProfiles);
+          setDraftProfiles(cloudProfiles);
           setCloudConnected(true);
         }
       })
@@ -450,6 +458,10 @@ export default function App() {
     setMelodyColorCounts({});
   }
 
+  function openAccount() {
+    setView('account');
+  }
+
   function openSettings() {
     setDraftProfiles(profiles);
     setView('settings');
@@ -513,6 +525,33 @@ export default function App() {
   const roundCorrect = Object.values(roundOutcomes).filter(Boolean).length;
   const roundWrong = Object.values(roundOutcomes).filter((v) => v === false).length;
 
+  if (view === 'account') {
+    return (
+      <div className="page">
+        <div className="app">
+          <AppHeader
+            profile={profile}
+            profiles={profiles}
+            onChangeProfile={changeProfile}
+            onOpenSettings={openSettings}
+            user={cloudUser}
+            onOpenAccount={openAccount}
+            showBack
+            onBack={goHome}
+          />
+          <h2 className="screen-title">Account</h2>
+          <AccountScreen
+            user={cloudUser}
+            playerCount={profiles.length}
+            onSignedIn={handleSignedIn}
+            onOpenPlayers={openSettings}
+            onDone={goHome}
+          />
+        </div>
+      </div>
+    );
+  }
+
   if (view === 'settings') {
     return (
       <div className="page">
@@ -522,12 +561,14 @@ export default function App() {
             profiles={profiles}
             onChangeProfile={changeProfile}
             onOpenSettings={openSettings}
+            user={cloudUser}
+            onOpenAccount={openAccount}
             showBack
             onBack={goHome}
           />
           <h2 className="screen-title">Players &amp; colors</h2>
           <p className="screen-sub">Each player starts with red. Add colors in the order you want to learn them.</p>
-          <CloudAccount user={cloudUser} onSignedIn={handleSignedIn} />
+          <SyncStatus user={cloudUser} onOpenAccount={openAccount} />
           <div className="settings-list">
             {draftProfiles.map((p) => (
               <PlayerSettingsCard
@@ -562,6 +603,8 @@ export default function App() {
             profiles={profiles}
             onChangeProfile={changeProfile}
             onOpenSettings={openSettings}
+            user={cloudUser}
+            onOpenAccount={openAccount}
             showBack
             onBack={() => changeProfile(lastProfile.id)}
           />
@@ -616,6 +659,8 @@ export default function App() {
               profiles={profiles}
               onChangeProfile={changeProfile}
               onOpenSettings={openSettings}
+              user={cloudUser}
+              onOpenAccount={openAccount}
               showBack={false}
             />
             <div className="menu-list">
@@ -648,6 +693,8 @@ export default function App() {
               profiles={profiles}
               onChangeProfile={changeProfile}
               onOpenSettings={openSettings}
+              user={cloudUser}
+              onOpenAccount={openAccount}
               showBack
               onBack={goHome}
             />
@@ -671,6 +718,8 @@ export default function App() {
               profiles={profiles}
               onChangeProfile={changeProfile}
               onOpenSettings={openSettings}
+              user={cloudUser}
+              onOpenAccount={openAccount}
               showBack
               onBack={goHome}
             />
@@ -696,6 +745,8 @@ export default function App() {
               profiles={profiles}
               onChangeProfile={changeProfile}
               onOpenSettings={openSettings}
+              user={cloudUser}
+              onOpenAccount={openAccount}
               showBack
               onBack={goHome}
             />
@@ -729,6 +780,8 @@ export default function App() {
               profiles={profiles}
               onChangeProfile={changeProfile}
               onOpenSettings={openSettings}
+              user={cloudUser}
+              onOpenAccount={openAccount}
               showBack
               onBack={goHome}
             />
@@ -780,6 +833,8 @@ export default function App() {
               profiles={profiles}
               onChangeProfile={changeProfile}
               onOpenSettings={openSettings}
+              user={cloudUser}
+              onOpenAccount={openAccount}
               showBack
               onBack={goHome}
             />
@@ -818,6 +873,8 @@ export default function App() {
               profiles={profiles}
               onChangeProfile={changeProfile}
               onOpenSettings={openSettings}
+              user={cloudUser}
+              onOpenAccount={openAccount}
               showBack
               onBack={goHome}
             />
@@ -843,7 +900,7 @@ export default function App() {
           </>
         )}
 
-        {showWelcome && view !== 'settings' && (
+        {showWelcome && view !== 'settings' && view !== 'account' && (
           <div className="welcome-backdrop">
             <div className="welcome-card" role="dialog" aria-labelledby="welcome-title">
               <div className="welcome-emoji">🌈</div>
