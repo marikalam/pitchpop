@@ -346,6 +346,14 @@ export default function App() {
     if (navigator.vibrate) navigator.vibrate(20);
   }
 
+  // Says the color name, then plays its real notes one at a time right
+  // after - so "Blue" is followed by the actual B, D, G pitches instead of
+  // a voice just naming letters with no real connection to the chord.
+  async function announceColor(color) {
+    await speakColorName(color.name);
+    engineRef.current.playNoteSequence(color.notes);
+  }
+
   function changeProfile(next) {
     if (profile !== 'melody') setLastActiveProfile(profile);
     if (next !== profile) {
@@ -441,11 +449,11 @@ export default function App() {
 
     if (correct) {
       playCorrectChime();
-      setTimeout(() => speakColorName(currentColor.name, currentColor.notes), 350);
+      setTimeout(() => announceColor(currentColor), 350);
       setView('play-feedback');
     } else {
       playWrongBuzz();
-      setTimeout(() => speakColorName(currentColor.name, currentColor.notes), 350);
+      setTimeout(() => announceColor(currentColor), 350);
       setView('play-feedback');
     }
   }

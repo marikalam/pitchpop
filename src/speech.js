@@ -95,7 +95,11 @@ async function speakWithWebSpeechAPI(text) {
   utterance.volume = 1.0;
   const voice = await pickVoice();
   if (voice) utterance.voice = voice;
-  window.speechSynthesis.speak(utterance);
+  await new Promise((resolve) => {
+    utterance.onend = resolve;
+    utterance.onerror = resolve;
+    window.speechSynthesis.speak(utterance);
+  });
 }
 
 // piper-tts-web pulls in onnxruntime-web (a sizeable WASM runtime), so it's
@@ -134,6 +138,10 @@ export function prewarmVoices() {
 
 let currentSource = null;
 
+// Resolves once playback actually finishes, so callers can chain something
+// after the spoken words end (e.g. playing the real notes right after the
+// color name, so "Blue" is followed by the actual B-D-G pitches instead of
+// spoken letters with no real connection to the chord's pitch).
 async function speak(text) {
   try {
     const { synthesizeSpeech } = await getPiperModule();
@@ -153,25 +161,18 @@ async function speak(text) {
     source.buffer = audioBuffer;
     source.connect(ctx.destination);
     currentSource = source;
-    source.start();
+    await new Promise((resolve) => {
+      source.onended = resolve;
+      source.start();
+    });
   } catch (err) {
     console.warn('Piper TTS unavailable, falling back to the built-in voice', err);
-    speakWithWebSpeechAPI(text);
+    await speakWithWebSpeechAPI(text);
   }
 }
 
-export async function speakColorName(name, notes) {
-  const capitalized = name.charAt(0).toUpperCase() + name.slice(1);
-  if (!notes || !Array.isArray(notes) || notes.length === 0) {
-    speak(capitalized);
-    return;
-  }
-  // A bare run of letters ("C E G") gets slurred together or misread - "A"
-  // in particular comes out as the word "a" instead of the letter name. A
-  // trailing period per letter forces TTS engines to read each one as a
-  // spelled-out letter, with a clear pause between them.
-  const spelled = notes.map((n) => `${n}.`).join(' ');
-  speak(`${capitalized} is ${spelled}`);
+export async function speakColorName(name) {
+  await speak(name.charAt(0).toUpperCase() + name.slice(1));
 }
 
 export async function speakResults(correct, total) {

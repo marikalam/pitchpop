@@ -123,6 +123,40 @@ async function renderChordBuffer(notes) {
   return offline.startRendering();
 }
 
+// Same voicing/instrument as the real chord, but one note at a time - for
+// pairing a spoken note name with its actual pitch (e.g. "B" said, then the
+// real B note rings) instead of just naming letters with no pitch at all.
+async function renderNoteSequenceBuffer(notes) {
+  const interval = 0.6;
+  const noteDuration = 0.9;
+  const duration = 0.1 + (notes.length - 1) * interval + noteDuration + 1.2;
+  const OfflineCtx = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+  const offline = new OfflineCtx(2, Math.ceil(SAMPLE_RATE * duration), SAMPLE_RATE);
+
+  const compressor = offline.createDynamicsCompressor();
+  compressor.threshold.value = -12;
+  compressor.knee.value = 18;
+  compressor.ratio.value = 4;
+  compressor.attack.value = 0.003;
+  compressor.release.value = 0.25;
+  compressor.connect(offline.destination);
+
+  const convolver = offline.createConvolver();
+  convolver.buffer = buildImpulse(offline, 2.0, 3.0);
+  const reverbSend = offline.createGain();
+  reverbSend.gain.value = 0.55;
+  reverbSend.connect(convolver);
+  convolver.connect(compressor);
+
+  const noiseBuffer = buildNoiseBuffer(offline, 0.08);
+
+  buildVoicing(notes).forEach(({ note, octave }, i) => {
+    scheduleNote(offline, compressor, reverbSend, noiseBuffer, 0.1 + i * interval, freq(note, octave), noteDuration);
+  });
+
+  return offline.startRendering();
+}
+
 export class PianoEngine {
   constructor() {
     this.ctx = null;
@@ -151,11 +185,13 @@ export class PianoEngine {
     return promise;
   }
 
-  // Renders every chord ahead of time (offline rendering needs no user
-  // gesture) so the very first tap of each color is already cached.
+  // Renders every chord (and its note-by-note sequence) ahead of time
+  // (offline rendering needs no user gesture) so the very first tap or
+  // answer reveal of each color is already cached.
   prewarm(notesLists) {
     notesLists.forEach((notes) => {
       this.getChordBuffer(notes);
+      this.getNoteSequenceBuffer(notes);
     });
   }
 
@@ -169,6 +205,36 @@ export class PianoEngine {
       }
     }
     const buffer = await this.getChordBuffer(notes);
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.connect(ctx.destination);
+    source.start();
+  }
+
+  getNoteSequenceBuffer(notes) {
+    const key = `seq:${notes.join('')}`;
+    if (this.bufferCache.has(key)) return Promise.resolve(this.bufferCache.get(key));
+    if (this.pendingRenders.has(key)) return this.pendingRenders.get(key);
+
+    const promise = renderNoteSequenceBuffer(notes).then((buffer) => {
+      this.bufferCache.set(key, buffer);
+      this.pendingRenders.delete(key);
+      return buffer;
+    });
+    this.pendingRenders.set(key, promise);
+    return promise;
+  }
+
+  async playNoteSequence(notes) {
+    const ctx = this.ensureAudio();
+    if (ctx.state === 'suspended') {
+      try {
+        await ctx.resume();
+      } catch {
+        /* ignore - will retry resuming on the next tap */
+      }
+    }
+    const buffer = await this.getNoteSequenceBuffer(notes);
     const source = ctx.createBufferSource();
     source.buffer = buffer;
     source.connect(ctx.destination);
