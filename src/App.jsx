@@ -5,7 +5,7 @@ import Rainbow from './Rainbow.jsx';
 import ProfileSwitcher from './ProfileSwitcher.jsx';
 import { PlayerSettingsCard, AddPlayerForm, AccountButton, AccountScreen, SyncStatus } from './Settings.jsx';
 import { getUser, loadCloudProfiles, saveCloudProfile, deleteCloudProfile } from './cloud.js';
-import { MusicNoteIcon, BookIcon, PlayTriangleIcon, SpeakerIcon, CheckIcon, XIcon } from './icons.jsx';
+import { MusicNoteIcon, PlayTriangleIcon, SpeakerIcon, CheckIcon, XIcon } from './icons.jsx';
 
 const COLORS = [
   { name: 'black', hex: '#232323', text: '#FFFFFF', notes: ['A', 'C', 'F'] },
@@ -203,8 +203,7 @@ export default function App() {
   const [cloudConnected, setCloudConnected] = useState(false);
   const [showWelcome, setShowWelcome] = useState(() => localStorage.getItem(WELCOME_KEY) !== '1');
 
-  const [view, setView] = useState(initialSession.view || 'play-listen');
-  const [profile, setProfile] = useState(initialSession.profile || profiles[0].id);
+  const [profile, setProfile] = useState(profiles[0].id);
   const [lastActiveProfile, setLastActiveProfile] = useState(initialSession.lastActiveProfile || profiles[0].id);
   const [progress, setProgress] = useState(loadProgress);
 
@@ -216,21 +215,34 @@ export default function App() {
     return (profiles.find((p) => p.id === id) || profiles[0]).colors;
   }
 
+  // Always opening on the first-listed profile (above) means a saved
+  // mid-quiz session built for whoever played *last* would otherwise get
+  // resumed under the wrong kid's name and color set. Only trust the saved
+  // quiz state when it actually belongs to the profile we're defaulting to;
+  // a saved non-quiz screen (home, settings, ...) is fine to restore either
+  // way, same as changeProfile's own reset only touches "play-" views.
+  const profileMismatch = initialSession.profile !== undefined && initialSession.profile !== profiles[0].id;
+  const resumableSession = profileMismatch ? {} : initialSession;
+
+  const [view, setView] = useState(() => {
+    const savedView = initialSession.view || 'play-listen';
+    return profileMismatch && savedView.startsWith('play-') ? 'play-listen' : savedView;
+  });
   const [sessionQueue, setSessionQueue] = useState(
-    () => initialSession.sessionQueue || buildQueue(profileColorNames, SESSION_ROUNDS),
+    () => resumableSession.sessionQueue || buildQueue(profileColorNames, SESSION_ROUNDS),
   );
-  const [roundIndex, setRoundIndex] = useState(initialSession.roundIndex ?? 0);
+  const [roundIndex, setRoundIndex] = useState(resumableSession.roundIndex ?? 0);
   const [options, setOptions] = useState(() =>
-    (initialSession.optionNames || []).map((n) => COLORS.find((c) => c.name === n)).filter(Boolean),
+    (resumableSession.optionNames || []).map((n) => COLORS.find((c) => c.name === n)).filter(Boolean),
   );
-  const [answerCorrect, setAnswerCorrect] = useState(initialSession.answerCorrect || false);
-  const [roundResults, setRoundResults] = useState(initialSession.roundResults || {});
+  const [answerCorrect, setAnswerCorrect] = useState(resumableSession.answerCorrect || false);
+  const [roundResults, setRoundResults] = useState(resumableSession.roundResults || {});
   // Tracks whether each round's FIRST attempt was correct, keyed by round
   // index. roundResults keeps incrementing on every retry, so a round the
   // player missed and then got right on a second try still looked
   // "correct" in the final tally - this is what the session score (and
   // the end-of-session speech) should actually be based on.
-  const [roundOutcomes, setRoundOutcomes] = useState(initialSession.roundOutcomes || {});
+  const [roundOutcomes, setRoundOutcomes] = useState(resumableSession.roundOutcomes || {});
 
   const [melodyTaps, setMelodyTaps] = useState(initialSession.melodyTaps || 0);
   const [melodyColorCounts, setMelodyColorCounts] = useState(initialSession.melodyColorCounts || {});
@@ -673,15 +685,6 @@ export default function App() {
                   <span className="menu-sub">Listen and identify chords</span>
                 </span>
               </button>
-              <button className="menu-card menu-card-purple" onClick={() => setView('explore')}>
-                <span className="icon-badge" style={{ background: '#8E4FD6' }}>
-                  <BookIcon />
-                </span>
-                <span className="menu-text">
-                  <span className="menu-title">Explore</span>
-                  <span className="menu-sub">Learn chords and colors</span>
-                </span>
-              </button>
             </div>
           </>
         )}
@@ -862,40 +865,6 @@ export default function App() {
               <button className="pill-btn-primary" onClick={startPlay}>
                 Play again →
               </button>
-            </div>
-          </>
-        )}
-
-        {view === 'explore' && (
-          <>
-            <AppHeader
-              profile={profile}
-              profiles={profiles}
-              onChangeProfile={changeProfile}
-              onOpenSettings={openSettings}
-              user={cloudUser}
-              onOpenAccount={openAccount}
-              showBack
-              onBack={goHome}
-            />
-            <h2 className="screen-title">Explore</h2>
-            <p className="screen-sub">Tap a pad to play its chord</p>
-            <div className="rainbow-slot">
-              <Rainbow colors={COLORS} activeName={celebrate} visible={!!celebrate} />
-            </div>
-            <div className="grid">
-              {profileColors.map((color) => (
-                <button
-                  key={color.name}
-                  className={`pad${justPlayed === color.name ? ' pad-played' : ''}`}
-                  style={{ background: color.hex, color: color.text }}
-                  aria-label={`Play ${color.name} chord`}
-                  onClick={() => exploreTap(color)}
-                >
-                  <div className="pad-name">{color.name}</div>
-                  <div className="pad-notes">{color.notes.join(' ')}</div>
-                </button>
-              ))}
             </div>
           </>
         )}
