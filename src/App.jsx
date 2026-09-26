@@ -5,7 +5,7 @@ import Rainbow from './Rainbow.jsx';
 import ProfileSwitcher from './ProfileSwitcher.jsx';
 import { PlayerSettingsCard, AddPlayerForm, AccountButton, AccountScreen, SyncStatus } from './Settings.jsx';
 import { getUser, loadCloudProfiles, saveCloudProfile, deleteCloudProfile } from './cloud.js';
-import { MusicNoteIcon, PlayTriangleIcon, SpeakerIcon, CheckIcon, XIcon } from './icons.jsx';
+import { PlayTriangleIcon, SpeakerIcon, CheckIcon, XIcon } from './icons.jsx';
 
 const COLORS = [
   { name: 'black', hex: '#232323', text: '#FFFFFF', notes: ['A', 'C', 'F'] },
@@ -108,7 +108,7 @@ function saveSession(data) {
   }
 }
 
-function AppHeader({ profile, profiles, user, onChangeProfile, onOpenSettings, onOpenAccount, onBack, showBack }) {
+function AppHeader({ profile, profiles, user, onChangeProfile, onOpenSettings, onOpenAccount, onOpenExplore, onBack, showBack }) {
   return (
     <>
       <div className="brand-row">
@@ -132,11 +132,9 @@ function AppHeader({ profile, profiles, user, onChangeProfile, onOpenSettings, o
           </h1>
         )}
         <div className="brand-actions">
-          {!showBack && (
-            <a className="games-link-btn" href="https://marikalam.github.io/apps/">
-              Apps
-            </a>
-          )}
+          <a className="games-link-btn" href="https://marikalam.github.io/apps/">
+            Apps
+          </a>
           <AccountButton user={user} onClick={onOpenAccount} />
         </div>
       </div>
@@ -151,6 +149,7 @@ function AppHeader({ profile, profiles, user, onChangeProfile, onOpenSettings, o
             colors={COLORS}
             onChange={onChangeProfile}
             onOpenSettings={onOpenSettings}
+            onOpenExplore={onOpenExplore}
           />
         </div>
       ) : (
@@ -160,6 +159,7 @@ function AppHeader({ profile, profiles, user, onChangeProfile, onOpenSettings, o
           colors={COLORS}
           onChange={onChangeProfile}
           onOpenSettings={onOpenSettings}
+          onOpenExplore={onOpenExplore}
         />
       )}
     </>
@@ -225,9 +225,12 @@ export default function App() {
   const resumableSession = profileMismatch ? {} : initialSession;
 
   const [view, setView] = useState(() => {
-    const savedView = initialSession.view || 'play-listen';
+    // 'home' no longer exists (there's nothing to hub to - Play is the
+    // whole app), so a session saved before this change falls back to Play.
+    const savedView = initialSession.view === 'home' ? 'play-listen' : initialSession.view || 'play-listen';
     return profileMismatch && savedView.startsWith('play-') ? 'play-listen' : savedView;
   });
+  const [preExploreView, setPreExploreView] = useState('play-listen');
   const [sessionQueue, setSessionQueue] = useState(
     () => resumableSession.sessionQueue || buildQueue(profileColorNames, SESSION_ROUNDS),
   );
@@ -362,8 +365,9 @@ export default function App() {
     setProfile(next);
   }
 
+  // There's no home menu anymore - "back" just means "back to playing".
   function goHome() {
-    setView('home');
+    startPlay();
   }
 
   function startPlay() {
@@ -372,6 +376,18 @@ export default function App() {
     setRoundResults({});
     setRoundOutcomes({});
     setView('play-listen');
+  }
+
+  // Explore is reachable from the "Playing as" dropdown on every screen,
+  // including mid-quiz - closing it should return to wherever the player
+  // actually was, not reset their progress.
+  function openExplore() {
+    setPreExploreView(view);
+    setView('explore');
+  }
+
+  function closeExplore() {
+    setView(preExploreView);
   }
 
   function listenTap() {
@@ -548,6 +564,7 @@ export default function App() {
             onOpenSettings={openSettings}
             user={cloudUser}
             onOpenAccount={openAccount}
+            onOpenExplore={openExplore}
             showBack
             onBack={goHome}
           />
@@ -575,6 +592,7 @@ export default function App() {
             onOpenSettings={openSettings}
             user={cloudUser}
             onOpenAccount={openAccount}
+            onOpenExplore={openExplore}
             showBack
             onBack={goHome}
           />
@@ -617,6 +635,7 @@ export default function App() {
             onOpenSettings={openSettings}
             user={cloudUser}
             onOpenAccount={openAccount}
+            onOpenExplore={openExplore}
             showBack
             onBack={() => changeProfile(lastProfile.id)}
           />
@@ -664,7 +683,7 @@ export default function App() {
   return (
     <div className="page">
       <div className="app">
-        {view === 'home' && (
+        {view === 'explore' && (
           <>
             <AppHeader
               profile={profile}
@@ -673,18 +692,28 @@ export default function App() {
               onOpenSettings={openSettings}
               user={cloudUser}
               onOpenAccount={openAccount}
-              showBack={false}
+              onOpenExplore={openExplore}
+              showBack
+              onBack={closeExplore}
             />
-            <div className="menu-list">
-              <button className="menu-card menu-card-blue" onClick={startPlay}>
-                <span className="icon-badge" style={{ background: 'rgba(255,255,255,0.22)' }}>
-                  <MusicNoteIcon />
-                </span>
-                <span className="menu-text">
-                  <span className="menu-title">Play</span>
-                  <span className="menu-sub">Listen and identify chords</span>
-                </span>
-              </button>
+            <h2 className="screen-title">Explore</h2>
+            <p className="screen-sub">Tap a pad to play its chord</p>
+            <div className="rainbow-slot">
+              <Rainbow colors={COLORS} activeName={celebrate} visible={!!celebrate} />
+            </div>
+            <div className="grid">
+              {profileColors.map((color) => (
+                <button
+                  key={color.name}
+                  className={`pad${justPlayed === color.name ? ' pad-played' : ''}`}
+                  style={{ background: color.hex, color: color.text }}
+                  aria-label={`Play ${color.name} chord`}
+                  onClick={() => exploreTap(color)}
+                >
+                  <div className="pad-name">{color.name}</div>
+                  <div className="pad-notes">{color.notes.join(' ')}</div>
+                </button>
+              ))}
             </div>
           </>
         )}
@@ -698,6 +727,7 @@ export default function App() {
               onOpenSettings={openSettings}
               user={cloudUser}
               onOpenAccount={openAccount}
+              onOpenExplore={openExplore}
               showBack
               onBack={goHome}
             />
@@ -723,6 +753,7 @@ export default function App() {
               onOpenSettings={openSettings}
               user={cloudUser}
               onOpenAccount={openAccount}
+              onOpenExplore={openExplore}
               showBack
               onBack={goHome}
             />
@@ -750,6 +781,7 @@ export default function App() {
               onOpenSettings={openSettings}
               user={cloudUser}
               onOpenAccount={openAccount}
+              onOpenExplore={openExplore}
               showBack
               onBack={goHome}
             />
@@ -785,6 +817,7 @@ export default function App() {
               onOpenSettings={openSettings}
               user={cloudUser}
               onOpenAccount={openAccount}
+              onOpenExplore={openExplore}
               showBack
               onBack={goHome}
             />
@@ -838,6 +871,7 @@ export default function App() {
               onOpenSettings={openSettings}
               user={cloudUser}
               onOpenAccount={openAccount}
+              onOpenExplore={openExplore}
               showBack
               onBack={goHome}
             />
