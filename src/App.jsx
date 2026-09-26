@@ -4,6 +4,7 @@ import { speakColorName, speakResults, prewarmVoices, unlockAudio } from './spee
 import Rainbow from './Rainbow.jsx';
 import ProfileSwitcher from './ProfileSwitcher.jsx';
 import { PlayerSettingsCard, AddPlayerForm, AccountButton, AccountScreen, SyncStatus } from './Settings.jsx';
+import NoteSpeller from './NoteSpeller.jsx';
 import { getUser, loadCloudProfiles, saveCloudProfile, deleteCloudProfile, onAuthEvent } from './cloud.js';
 import { PlayTriangleIcon, SpeakerIcon, CheckIcon, XIcon } from './icons.jsx';
 
@@ -108,7 +109,18 @@ function saveSession(data) {
   }
 }
 
-function AppHeader({ profile, profiles, user, onChangeProfile, onOpenSettings, onOpenAccount, onOpenExplore, onBack, showBack }) {
+function AppHeader({
+  profile,
+  profiles,
+  user,
+  onChangeProfile,
+  onOpenSettings,
+  onOpenAccount,
+  onOpenExplore,
+  onOpenNoteSpeller,
+  onBack,
+  showBack,
+}) {
   return (
     <>
       <div className="brand-row">
@@ -150,6 +162,7 @@ function AppHeader({ profile, profiles, user, onChangeProfile, onOpenSettings, o
             onChange={onChangeProfile}
             onOpenSettings={onOpenSettings}
             onOpenExplore={onOpenExplore}
+            onOpenNoteSpeller={onOpenNoteSpeller}
           />
         </div>
       ) : (
@@ -160,6 +173,7 @@ function AppHeader({ profile, profiles, user, onChangeProfile, onOpenSettings, o
           onChange={onChangeProfile}
           onOpenSettings={onOpenSettings}
           onOpenExplore={onOpenExplore}
+          onOpenNoteSpeller={onOpenNoteSpeller}
         />
       )}
     </>
@@ -513,6 +527,10 @@ export default function App() {
     setView('account');
   }
 
+  function openNoteSpeller() {
+    setView('notespeller');
+  }
+
   function openSettings() {
     setDraftProfiles(profiles);
     setView('settings');
@@ -588,6 +606,7 @@ export default function App() {
             user={cloudUser}
             onOpenAccount={openAccount}
             onOpenExplore={openExplore}
+            onOpenNoteSpeller={openNoteSpeller}
             showBack
             onBack={goHome}
           />
@@ -606,6 +625,28 @@ export default function App() {
     );
   }
 
+  if (view === 'notespeller') {
+    return (
+      <div className="page">
+        <div className="app">
+          <AppHeader
+            profile={profile}
+            profiles={profiles}
+            onChangeProfile={changeProfile}
+            onOpenSettings={openSettings}
+            user={cloudUser}
+            onOpenAccount={openAccount}
+            onOpenExplore={openExplore}
+            onOpenNoteSpeller={openNoteSpeller}
+            showBack
+            onBack={goHome}
+          />
+          <NoteSpeller engine={engineRef.current} />
+        </div>
+      </div>
+    );
+  }
+
   if (view === 'settings') {
     return (
       <div className="page">
@@ -618,6 +659,7 @@ export default function App() {
             user={cloudUser}
             onOpenAccount={openAccount}
             onOpenExplore={openExplore}
+            onOpenNoteSpeller={openNoteSpeller}
             showBack
             onBack={goHome}
           />
@@ -661,6 +703,7 @@ export default function App() {
             user={cloudUser}
             onOpenAccount={openAccount}
             onOpenExplore={openExplore}
+            onOpenNoteSpeller={openNoteSpeller}
             showBack
             onBack={() => changeProfile(lastProfile.id)}
           />
@@ -718,6 +761,7 @@ export default function App() {
               user={cloudUser}
               onOpenAccount={openAccount}
               onOpenExplore={openExplore}
+              onOpenNoteSpeller={openNoteSpeller}
               showBack
               onBack={closeExplore}
             />
@@ -753,6 +797,7 @@ export default function App() {
               user={cloudUser}
               onOpenAccount={openAccount}
               onOpenExplore={openExplore}
+              onOpenNoteSpeller={openNoteSpeller}
               showBack
               onBack={goHome}
             />
@@ -779,6 +824,7 @@ export default function App() {
               user={cloudUser}
               onOpenAccount={openAccount}
               onOpenExplore={openExplore}
+              onOpenNoteSpeller={openNoteSpeller}
               showBack
               onBack={goHome}
             />
@@ -807,6 +853,7 @@ export default function App() {
               user={cloudUser}
               onOpenAccount={openAccount}
               onOpenExplore={openExplore}
+              onOpenNoteSpeller={openNoteSpeller}
               showBack
               onBack={goHome}
             />
@@ -843,6 +890,7 @@ export default function App() {
               user={cloudUser}
               onOpenAccount={openAccount}
               onOpenExplore={openExplore}
+              onOpenNoteSpeller={openNoteSpeller}
               showBack
               onBack={goHome}
             />
@@ -897,6 +945,7 @@ export default function App() {
               user={cloudUser}
               onOpenAccount={openAccount}
               onOpenExplore={openExplore}
+              onOpenNoteSpeller={openNoteSpeller}
               showBack
               onBack={goHome}
             />

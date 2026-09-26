@@ -428,6 +428,45 @@ body {
   transform: scale(0.97);
 }
 
+.notespeller-keys {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+.notespeller-key {
+  appearance: none;
+  border: none;
+  cursor: pointer;
+  min-height: 72px;
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  background: var(--card-bg);
+  color: var(--ink);
+  font-family: 'Fredoka', ui-rounded, system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 24px;
+  transition: transform 0.06s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.notespeller-key:active {
+  transform: scale(0.97);
+}
+
+.notespeller-key:disabled {
+  cursor: default;
+}
+
+.notespeller-key-correct {
+  background: var(--accent-green);
+  color: #ffffff;
+}
+
+.notespeller-key-wrong {
+  background: var(--accent-red);
+  color: #ffffff;
+}
+
 .feedback-icon-wrap {
   position: relative;
   align-self: center;

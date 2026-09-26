@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import Avatar from './Avatar.jsx';
 
-export default function ProfileSwitcher({ profile, profiles, colors, onChange, onOpenSettings, onOpenExplore }) {
+export default function ProfileSwitcher({ profile, profiles, colors, onChange, onOpenSettings, onOpenExplore, onOpenNoteSpeller }) {
   const [open, setOpen] = useState(false);
   const current = profiles.find((p) => p.id === profile) || profiles[0];
 
@@ -44,6 +44,15 @@ export default function ProfileSwitcher({ profile, profiles, colors, onChange, o
             }}
           >
             🎵 <span>Explore sounds</span>
+          </button>
+          <button
+            className="profile-settings-item"
+            onClick={() => {
+              onOpenNoteSpeller();
+              setOpen(false);
+            }}
+          >
+            🎼 <span>NoteSpeller</span>
           </button>
           <button
             className="profile-settings-item"
