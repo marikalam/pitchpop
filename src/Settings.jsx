@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { signIn, signOut, signUp } from './cloud.js';
+import { requestPasswordReset, signIn, signOut, signUp, updatePassword } from './cloud.js';
 
 export function PlayerSettingsCard({ profile, colors, onUpdate, onRemove, canRemove }) {
   function toggleColor(name) {
@@ -104,9 +104,10 @@ export function SyncStatus({ user, onOpenAccount }) {
   );
 }
 
-export function AccountScreen({ user, playerCount, onSignedIn, onOpenPlayers, onDone }) {
+export function AccountScreen({ user, playerCount, onSignedIn, onOpenPlayers, onDone, recoveryMode, onPasswordUpdated }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
   const [mode, setMode] = useState('sign-in');
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
@@ -118,6 +119,11 @@ export function AccountScreen({ user, playerCount, onSignedIn, onOpenPlayers, on
     setError('');
     setNotice('');
     try {
+      if (mode === 'reset-request') {
+        await requestPasswordReset(email);
+        setNotice(`We sent a password reset link to ${email}. Open it on this device to set a new password.`);
+        return;
+      }
       const signedIn = mode === 'sign-in' ? await signIn(email, password) : await signUp(email, password);
       if (signedIn) {
         await onSignedIn(signedIn);
@@ -133,9 +139,55 @@ export function AccountScreen({ user, playerCount, onSignedIn, onOpenPlayers, on
     }
   }
 
+  async function handleResetPassword(e) {
+    e.preventDefault();
+    setBusy(true);
+    setError('');
+    try {
+      await updatePassword(newPassword);
+      setNewPassword('');
+      onPasswordUpdated();
+      setNotice('Your password has been updated.');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function handleSignOut() {
     await signOut();
     onSignedIn(null);
+  }
+
+  if (recoveryMode) {
+    return (
+      <div className="account-screen">
+        <div className="auth-card">
+          <h2 className="auth-title">Choose a new password</h2>
+          <p className="auth-sub">Enter a new password for {user?.email || 'your account'}.</p>
+          <form className="auth-form" onSubmit={handleResetPassword}>
+            <label className="auth-field">
+              <span>New password</span>
+              <input
+                type="password"
+                autoComplete="new-password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="At least 6 characters"
+                minLength={6}
+                required
+              />
+            </label>
+            {error && <div className="auth-error">{error}</div>}
+            {notice && <div className="auth-notice">{notice}</div>}
+            <button className="pill-btn-primary pill-btn-full" type="submit" disabled={busy}>
+              {busy ? 'Please wait…' : 'Save new password'}
+            </button>
+          </form>
+        </div>
+      </div>
+    );
   }
 
   if (user) {
@@ -169,6 +221,46 @@ export function AccountScreen({ user, playerCount, onSignedIn, onOpenPlayers, on
 
         <button className="account-signout" onClick={handleSignOut}>
           Sign out
+        </button>
+      </div>
+    );
+  }
+
+  if (mode === 'reset-request') {
+    return (
+      <div className="account-screen">
+        <div className="auth-card">
+          <h2 className="auth-title">Reset your password</h2>
+          <p className="auth-sub">Enter your email and we'll send you a link to set a new password.</p>
+          <form className="auth-form" onSubmit={handleSubmit}>
+            <label className="auth-field">
+              <span>Email</span>
+              <input
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                required
+              />
+            </label>
+            {error && <div className="auth-error">{error}</div>}
+            {notice && <div className="auth-notice">{notice}</div>}
+            <button className="pill-btn-primary pill-btn-full" type="submit" disabled={busy}>
+              {busy ? 'Please wait…' : 'Send reset link'}
+            </button>
+          </form>
+        </div>
+
+        <button
+          className="back-link back-link-center"
+          onClick={() => {
+            setMode('sign-in');
+            setError('');
+            setNotice('');
+          }}
+        >
+          Back to sign in
         </button>
       </div>
     );
@@ -229,6 +321,19 @@ export function AccountScreen({ user, playerCount, onSignedIn, onOpenPlayers, on
               required
             />
           </label>
+          {mode === 'sign-in' && (
+            <button
+              type="button"
+              className="auth-forgot-link"
+              onClick={() => {
+                setMode('reset-request');
+                setError('');
+                setNotice('');
+              }}
+            >
+              Forgot password?
+            </button>
+          )}
           {error && <div className="auth-error">{error}</div>}
           {notice && <div className="auth-notice">{notice}</div>}
           <button className="pill-btn-primary pill-btn-full" type="submit" disabled={busy}>

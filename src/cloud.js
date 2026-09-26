@@ -34,6 +34,29 @@ export async function signOut() {
   await supabase.auth.signOut();
 }
 
+// Sends an email with a link back to this app; Supabase appends a recovery
+// token to the URL, which onAuthEvent() below picks up as a
+// PASSWORD_RECOVERY event so the app can show the "set a new password" form.
+export async function requestPasswordReset(email) {
+  const redirectTo = `${window.location.origin}${import.meta.env.BASE_URL}`;
+  const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+  if (error) throw error;
+}
+
+// Only works while the special recovery session from the emailed link (or
+// an already-signed-in session) is active.
+export async function updatePassword(newPassword) {
+  const { error } = await supabase.auth.updateUser({ password: newPassword });
+  if (error) throw error;
+}
+
+export function onAuthEvent(callback) {
+  const {
+    data: { subscription },
+  } = supabase.auth.onAuthStateChange((event, session) => callback(event, session));
+  return () => subscription.unsubscribe();
+}
+
 // Returns null when signed out or unreachable, so callers keep local profiles.
 export async function loadCloudProfiles() {
   if (!(await getUser())) return null;

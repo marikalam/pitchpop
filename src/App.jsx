@@ -4,7 +4,7 @@ import { speakColorName, speakResults, prewarmVoices, unlockAudio } from './spee
 import Rainbow from './Rainbow.jsx';
 import ProfileSwitcher from './ProfileSwitcher.jsx';
 import { PlayerSettingsCard, AddPlayerForm, AccountButton, AccountScreen, SyncStatus } from './Settings.jsx';
-import { getUser, loadCloudProfiles, saveCloudProfile, deleteCloudProfile } from './cloud.js';
+import { getUser, loadCloudProfiles, saveCloudProfile, deleteCloudProfile, onAuthEvent } from './cloud.js';
 import { PlayTriangleIcon, SpeakerIcon, CheckIcon, XIcon } from './icons.jsx';
 
 const COLORS = [
@@ -201,6 +201,7 @@ export default function App() {
   const [draftProfiles, setDraftProfiles] = useState(profiles);
   const [cloudUser, setCloudUser] = useState(null);
   const [cloudConnected, setCloudConnected] = useState(false);
+  const [passwordRecovery, setPasswordRecovery] = useState(false);
   const [showWelcome, setShowWelcome] = useState(() => localStorage.getItem(WELCOME_KEY) !== '1');
 
   const [profile, setProfile] = useState(profiles[0].id);
@@ -291,6 +292,20 @@ export default function App() {
     return () => {
       cancelled = true;
     };
+  }, []);
+
+  // Clicking the link in a "reset your password" email lands back here with
+  // a recovery session already active - Supabase surfaces that as this
+  // event rather than a normal sign-in, so the account screen can jump
+  // straight to "choose a new password" instead of asking to sign in first.
+  useEffect(() => {
+    const unsubscribe = onAuthEvent((event) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setPasswordRecovery(true);
+        setView('account');
+      }
+    });
+    return unsubscribe;
   }, []);
 
   useEffect(() => {
@@ -583,6 +598,8 @@ export default function App() {
             onSignedIn={handleSignedIn}
             onOpenPlayers={openSettings}
             onDone={goHome}
+            recoveryMode={passwordRecovery}
+            onPasswordUpdated={() => setPasswordRecovery(false)}
           />
         </div>
       </div>
