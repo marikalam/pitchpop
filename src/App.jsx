@@ -3,6 +3,8 @@ import { PianoEngine, playCorrectChime, playWrongBuzz } from './piano.js';
 import { speakColorName, speakResults, prewarmVoices, unlockAudio } from './speech.js';
 import Rainbow from './Rainbow.jsx';
 import ProfileSwitcher from './ProfileSwitcher.jsx';
+import { PlayerSettingsCard, AddPlayerForm, CloudAccount } from './Settings.jsx';
+import { getUser, loadCloudProfiles, saveCloudProfile, deleteCloudProfile } from './cloud.js';
 import { MusicNoteIcon, BookIcon, PlayTriangleIcon, SpeakerIcon, CheckIcon, XIcon } from './icons.jsx';
 
 const COLORS = [
@@ -17,16 +19,20 @@ const COLORS = [
   { name: 'brown', hex: '#7A5238', text: '#FFFFFF', notes: ['G', 'C', 'E'] },
 ];
 
-const PROFILE_NAMES = {
-  maddie: COLORS.map((c) => c.name),
-  marcus: ['red', 'blue', 'black', 'yellow', 'orange', 'green', 'purple'],
-  melody: ['red', 'yellow'],
-};
+// Used only until a player list has been saved on this device or in the
+// family's cloud account; after that the saved list is the source of truth.
+const DEFAULT_PROFILES = [
+  { id: 'maddie', name: 'Maddie', colors: COLORS.map((c) => c.name) },
+  { id: 'marcus', name: 'Marcus', colors: ['red', 'blue', 'black', 'yellow', 'orange', 'green', 'purple'] },
+  { id: 'melody', name: 'Melody', colors: ['red', 'yellow'] },
+];
 
 const SESSION_ROUNDS = 10;
 const MELODY_SESSION_TAPS = 20;
 const PROGRESS_KEY = 'pitchpop-progress-v1';
 const SESSION_KEY = 'pitchpop-session-v1';
+const PROFILES_KEY = 'pitchpop-profiles-v1';
+const WELCOME_KEY = 'pitchpop-welcome-seen-v1';
 
 function shuffle(list) {
   const copy = [...list];
@@ -45,11 +51,29 @@ function buildQueue(names, total) {
   return queue.slice(0, total);
 }
 
-function buildOptions(correctName, profile) {
-  const pool = PROFILE_NAMES[profile].filter((n) => n !== correctName);
+function buildOptions(correctName, colorNames) {
+  const pool = colorNames.filter((n) => n !== correctName);
   const distractors = shuffle(pool).slice(0, 3);
   const names = shuffle([correctName, ...distractors]);
   return names.map((n) => COLORS.find((c) => c.name === n));
+}
+
+function loadProfiles() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(PROFILES_KEY));
+    if (Array.isArray(saved) && saved.length) return saved;
+  } catch {
+    /* ignore */
+  }
+  return DEFAULT_PROFILES;
+}
+
+function saveProfiles(profiles) {
+  try {
+    localStorage.setItem(PROFILES_KEY, JSON.stringify(profiles));
+  } catch {
+    /* ignore */
+  }
 }
 
 function loadProgress() {
@@ -84,7 +108,7 @@ function saveSession(data) {
   }
 }
 
-function AppHeader({ profile, onChangeProfile, onBack, showBack }) {
+function AppHeader({ profile, profiles, onChangeProfile, onOpenSettings, onBack, showBack }) {
   return (
     <>
       <div className="brand-row">
@@ -116,10 +140,20 @@ function AppHeader({ profile, onChangeProfile, onBack, showBack }) {
           <button className="back-link" onClick={onBack}>
             ← Back
           </button>
-          <ProfileSwitcher profile={profile} onChange={onChangeProfile} />
+          <ProfileSwitcher
+            profile={profile}
+            profiles={profiles}
+            onChange={onChangeProfile}
+            onOpenSettings={onOpenSettings}
+          />
         </div>
       ) : (
-        <ProfileSwitcher profile={profile} onChange={onChangeProfile} />
+        <ProfileSwitcher
+          profile={profile}
+          profiles={profiles}
+          onChange={onChangeProfile}
+          onOpenSettings={onOpenSettings}
+        />
       )}
     </>
   );
@@ -155,13 +189,28 @@ export default function App() {
   }
   const initialSession = initialSessionRef.current;
 
+  const [profiles, setProfiles] = useState(loadProfiles);
+  // Edits on the settings screen stay in this draft until "Save" is tapped.
+  const [draftProfiles, setDraftProfiles] = useState(profiles);
+  const [cloudUser, setCloudUser] = useState(null);
+  const [cloudConnected, setCloudConnected] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(() => localStorage.getItem(WELCOME_KEY) !== '1');
+
   const [view, setView] = useState(initialSession.view || 'play-listen');
-  const [profile, setProfile] = useState(initialSession.profile || 'maddie');
-  const [lastActiveProfile, setLastActiveProfile] = useState(initialSession.lastActiveProfile || 'maddie');
+  const [profile, setProfile] = useState(initialSession.profile || profiles[0].id);
+  const [lastActiveProfile, setLastActiveProfile] = useState(initialSession.lastActiveProfile || profiles[0].id);
   const [progress, setProgress] = useState(loadProgress);
 
+  const currentProfile = profiles.find((p) => p.id === profile) || profiles[0];
+  const lastProfile = profiles.find((p) => p.id === lastActiveProfile) || profiles[0];
+  const profileColorNames = currentProfile.colors;
+
+  function colorsFor(id) {
+    return (profiles.find((p) => p.id === id) || profiles[0]).colors;
+  }
+
   const [sessionQueue, setSessionQueue] = useState(
-    () => initialSession.sessionQueue || buildQueue(PROFILE_NAMES.maddie, SESSION_ROUNDS),
+    () => initialSession.sessionQueue || buildQueue(profileColorNames, SESSION_ROUNDS),
   );
   const [roundIndex, setRoundIndex] = useState(initialSession.roundIndex ?? 0);
   const [options, setOptions] = useState(() =>
@@ -197,6 +246,28 @@ export default function App() {
     };
     document.addEventListener('pointerdown', unlock, { once: true });
     return () => document.removeEventListener('pointerdown', unlock);
+  }, []);
+
+  useEffect(() => {
+    saveProfiles(profiles);
+  }, [profiles]);
+
+  // A signed-in family account's player list wins over this device's copy.
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([getUser(), loadCloudProfiles()])
+      .then(([user, cloudProfiles]) => {
+        if (cancelled) return;
+        setCloudUser(user);
+        if (cloudProfiles?.length) {
+          setProfiles(cloudProfiles);
+          setCloudConnected(true);
+        }
+      })
+      .catch((err) => console.error('PitchPop is using local profile settings', err));
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -261,7 +332,7 @@ export default function App() {
       // answer options. Reset to a clean state for whoever's playing now,
       // but stay on the play screen instead of bouncing to home if a
       // round was already in progress.
-      setSessionQueue(buildQueue(PROFILE_NAMES[next] || PROFILE_NAMES.maddie, SESSION_ROUNDS));
+      setSessionQueue(buildQueue(colorsFor(next), SESSION_ROUNDS));
       setRoundIndex(0);
       setOptions([]);
       setRoundResults({});
@@ -276,7 +347,7 @@ export default function App() {
   }
 
   function startPlay() {
-    setSessionQueue(buildQueue(PROFILE_NAMES[profile], SESSION_ROUNDS));
+    setSessionQueue(buildQueue(profileColorNames, SESSION_ROUNDS));
     setRoundIndex(0);
     setRoundResults({});
     setRoundOutcomes({});
@@ -285,7 +356,7 @@ export default function App() {
 
   function listenTap() {
     playChord(currentColor);
-    setOptions(buildOptions(currentColor.name, profile));
+    setOptions(buildOptions(currentColor.name, profileColorNames));
     setView('play-question');
   }
 
@@ -379,9 +450,107 @@ export default function App() {
     setMelodyColorCounts({});
   }
 
-  const profileColors = PROFILE_NAMES[profile].map((name) => COLORS.find((c) => c.name === name));
+  function openSettings() {
+    setDraftProfiles(profiles);
+    setView('settings');
+  }
+
+  function dismissWelcome() {
+    localStorage.setItem(WELCOME_KEY, '1');
+    setShowWelcome(false);
+  }
+
+  function updateDraftProfile(id, changes) {
+    setDraftProfiles((prev) => prev.map((p) => (p.id === id ? { ...p, ...changes } : p)));
+  }
+
+  function saveSettings() {
+    const keptIds = new Set(draftProfiles.map((p) => p.id));
+    setProfiles(draftProfiles);
+    if (cloudConnected) {
+      draftProfiles.forEach(saveCloudProfile);
+      profiles.filter((p) => !keptIds.has(p.id)).forEach((p) => deleteCloudProfile(p.id));
+    }
+    if (!keptIds.has(profile)) setProfile(draftProfiles[0].id);
+    setView('home');
+  }
+
+  async function handleSignedIn(user) {
+    setCloudUser(user);
+    if (!user) {
+      setCloudConnected(false);
+      return;
+    }
+    const cloudProfiles = await loadCloudProfiles();
+    if (!cloudProfiles) return;
+    // A brand-new family account starts from the players on this device.
+    const next = cloudProfiles.length ? cloudProfiles : profiles;
+    setProfiles(next);
+    setDraftProfiles(next);
+    setCloudConnected(true);
+    if (!cloudProfiles.length) next.forEach(saveCloudProfile);
+  }
+
+  function addPlayer(rawName) {
+    const name = rawName.trim();
+    if (!name) return;
+    const id = `${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${Date.now()}`;
+    setDraftProfiles((prev) => [...prev, { id, name, colors: ['red'] }]);
+  }
+
+  function removePlayer(id) {
+    const target = draftProfiles.find((p) => p.id === id);
+    if (!target || draftProfiles.length === 1) return;
+    if (
+      window.confirm(`Are you sure you want to remove ${target.name}?`) &&
+      window.confirm(`Are you really sure? ${target.name}'s colors and settings will be deleted.`)
+    ) {
+      setDraftProfiles((prev) => prev.filter((p) => p.id !== id));
+    }
+  }
+
+  const profileColors = profileColorNames.map((name) => COLORS.find((c) => c.name === name)).filter(Boolean);
   const roundCorrect = Object.values(roundOutcomes).filter(Boolean).length;
   const roundWrong = Object.values(roundOutcomes).filter((v) => v === false).length;
+
+  if (view === 'settings') {
+    return (
+      <div className="page">
+        <div className="app">
+          <AppHeader
+            profile={profile}
+            profiles={profiles}
+            onChangeProfile={changeProfile}
+            onOpenSettings={openSettings}
+            showBack
+            onBack={goHome}
+          />
+          <h2 className="screen-title">Players &amp; colors</h2>
+          <p className="screen-sub">Each player starts with red. Add colors in the order you want to learn them.</p>
+          <CloudAccount user={cloudUser} onSignedIn={handleSignedIn} />
+          <div className="settings-list">
+            {draftProfiles.map((p) => (
+              <PlayerSettingsCard
+                key={p.id}
+                profile={p}
+                colors={COLORS}
+                onUpdate={(changes) => updateDraftProfile(p.id, changes)}
+                onRemove={() => removePlayer(p.id)}
+                canRemove={draftProfiles.length > 1}
+              />
+            ))}
+          </div>
+          <AddPlayerForm onAdd={addPlayer} />
+          <button className="pill-btn-primary pill-btn-full" onClick={saveSettings}>
+            Save players &amp; colors
+          </button>
+          <button className="back-link back-link-center" onClick={goHome}>
+            Cancel
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (profile === 'melody') {
     const melodyDone = melodyTaps >= MELODY_SESSION_TAPS;
@@ -390,14 +559,16 @@ export default function App() {
         <div className="app">
           <AppHeader
             profile={profile}
+            profiles={profiles}
             onChangeProfile={changeProfile}
+            onOpenSettings={openSettings}
             showBack
-            onBack={() => changeProfile(lastActiveProfile)}
+            onBack={() => changeProfile(lastProfile.id)}
           />
           {melodyDone ? (
             <div className="complete-wrap">
               <div className="complete-emoji">🌟</div>
-              <h2 className="screen-title">Good job, Melody!</h2>
+              <h2 className="screen-title">Good job, {currentProfile.name}!</h2>
               <p className="screen-sub">You pressed the buttons {MELODY_SESSION_TAPS} times.</p>
               <div className="progress-colors">
                 {profileColors.map((color) => (
@@ -440,7 +611,13 @@ export default function App() {
       <div className="app">
         {view === 'home' && (
           <>
-            <AppHeader profile={profile} onChangeProfile={changeProfile} showBack={false} />
+            <AppHeader
+              profile={profile}
+              profiles={profiles}
+              onChangeProfile={changeProfile}
+              onOpenSettings={openSettings}
+              showBack={false}
+            />
             <div className="menu-list">
               <button className="menu-card menu-card-blue" onClick={startPlay}>
                 <span className="icon-badge" style={{ background: 'rgba(255,255,255,0.22)' }}>
@@ -466,7 +643,14 @@ export default function App() {
 
         {view === 'play-listen' && currentColor && (
           <>
-            <AppHeader profile={profile} onChangeProfile={changeProfile} showBack onBack={goHome} />
+            <AppHeader
+              profile={profile}
+              profiles={profiles}
+              onChangeProfile={changeProfile}
+              onOpenSettings={openSettings}
+              showBack
+              onBack={goHome}
+            />
             <ProgressDots current={roundIndex + 1} total={SESSION_ROUNDS} />
             <h2 className="screen-title">Listen to the chord</h2>
             <p className="screen-sub">Tap the rainbow to hear it</p>
@@ -482,7 +666,14 @@ export default function App() {
 
         {view === 'play-relisten' && currentColor && (
           <>
-            <AppHeader profile={profile} onChangeProfile={changeProfile} showBack onBack={goHome} />
+            <AppHeader
+              profile={profile}
+              profiles={profiles}
+              onChangeProfile={changeProfile}
+              onOpenSettings={openSettings}
+              showBack
+              onBack={goHome}
+            />
             <ProgressDots current={roundIndex + 1} total={SESSION_ROUNDS} />
             <h2 className="screen-title">Listen to the chord again?</h2>
             <button className="rainbow-play-wrap" onClick={relistenTap} aria-label="Replay chord">
@@ -500,7 +691,14 @@ export default function App() {
 
         {view === 'play-question' && currentColor && (
           <>
-            <AppHeader profile={profile} onChangeProfile={changeProfile} showBack onBack={goHome} />
+            <AppHeader
+              profile={profile}
+              profiles={profiles}
+              onChangeProfile={changeProfile}
+              onOpenSettings={openSettings}
+              showBack
+              onBack={goHome}
+            />
             <ProgressDots current={roundIndex + 1} total={SESSION_ROUNDS} />
             <h2 className="screen-title">What chord did you hear?</h2>
             <button className="rainbow-play-wrap rainbow-play-wrap-compact" onClick={relistenTap} aria-label="Play chord again">
@@ -526,7 +724,14 @@ export default function App() {
 
         {view === 'play-feedback' && currentColor && (
           <>
-            <AppHeader profile={profile} onChangeProfile={changeProfile} showBack onBack={goHome} />
+            <AppHeader
+              profile={profile}
+              profiles={profiles}
+              onChangeProfile={changeProfile}
+              onOpenSettings={openSettings}
+              showBack
+              onBack={goHome}
+            />
             <ProgressDots current={roundIndex + 1} total={SESSION_ROUNDS} />
             <div className={`feedback-icon-wrap${answerCorrect ? ' feedback-correct' : ' feedback-incorrect'}`}>
               {answerCorrect && (
@@ -570,12 +775,19 @@ export default function App() {
 
         {view === 'play-complete' && (
           <>
-            <AppHeader profile={profile} onChangeProfile={changeProfile} showBack onBack={goHome} />
+            <AppHeader
+              profile={profile}
+              profiles={profiles}
+              onChangeProfile={changeProfile}
+              onOpenSettings={openSettings}
+              showBack
+              onBack={goHome}
+            />
             <div className="complete-wrap">
               <div className="complete-emoji">🎉</div>
               <h2 className="screen-title">All done!</h2>
               <p className="screen-sub">
-                You went through all {SESSION_ROUNDS} chords for {profile === 'maddie' ? 'Maddie' : 'Marcus'}.
+                You went through all {SESSION_ROUNDS} chords for {currentProfile.name}.
               </p>
             </div>
             <div className="stat-tiles">
@@ -601,7 +813,14 @@ export default function App() {
 
         {view === 'explore' && (
           <>
-            <AppHeader profile={profile} onChangeProfile={changeProfile} showBack onBack={goHome} />
+            <AppHeader
+              profile={profile}
+              profiles={profiles}
+              onChangeProfile={changeProfile}
+              onOpenSettings={openSettings}
+              showBack
+              onBack={goHome}
+            />
             <h2 className="screen-title">Explore</h2>
             <p className="screen-sub">Tap a pad to play its chord</p>
             <div className="rainbow-slot">
@@ -624,6 +843,22 @@ export default function App() {
           </>
         )}
 
+        {showWelcome && view !== 'settings' && (
+          <div className="welcome-backdrop">
+            <div className="welcome-card" role="dialog" aria-labelledby="welcome-title">
+              <div className="welcome-emoji">🌈</div>
+              <h2 id="welcome-title">Welcome to PitchPop!</h2>
+              <p>Start with one color, red. When it feels easy, add yellow, then more colors one at a time.</p>
+              <p>
+                Choose a player to begin. An adult can open <strong>Players &amp; colors</strong> to change the color
+                order or add a new player.
+              </p>
+              <button className="pill-btn-primary pill-btn-full" onClick={dismissWelcome}>
+                Let’s start
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

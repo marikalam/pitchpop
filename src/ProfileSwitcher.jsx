@@ -1,11 +1,9 @@
 import { useState } from 'react';
 import Avatar from './Avatar.jsx';
 
-const LABELS = { maddie: 'Maddie', marcus: 'Marcus', melody: 'Melody' };
-const PROFILES = ['maddie', 'marcus', 'melody'];
-
-export default function ProfileSwitcher({ profile, onChange }) {
+export default function ProfileSwitcher({ profile, profiles, onChange, onOpenSettings }) {
   const [open, setOpen] = useState(false);
+  const current = profiles.find((p) => p.id === profile) || profiles[0];
 
   return (
     <div className="profile-switcher">
@@ -13,25 +11,34 @@ export default function ProfileSwitcher({ profile, onChange }) {
         <Avatar profile={profile} size={28} />
         <span className="profile-pill-text">
           <span className="profile-pill-label">Playing as</span>
-          <span className="profile-pill-name">{LABELS[profile]}</span>
+          <span className="profile-pill-name">{current.name}</span>
         </span>
         <span className="profile-pill-chevron">▾</span>
       </button>
       {open && (
         <div className="profile-menu">
-          {PROFILES.map((p) => (
+          {profiles.map((p) => (
             <button
-              key={p}
-              className={`profile-menu-item${p === profile ? ' profile-menu-item-active' : ''}`}
+              key={p.id}
+              className={`profile-menu-item${p.id === profile ? ' profile-menu-item-active' : ''}`}
               onClick={() => {
-                onChange(p);
+                onChange(p.id);
                 setOpen(false);
               }}
             >
-              <Avatar profile={p} size={24} />
-              <span>{LABELS[p]}</span>
+              <Avatar profile={p.id} size={24} />
+              <span>{p.name}</span>
             </button>
           ))}
+          <button
+            className="profile-settings-item"
+            onClick={() => {
+              onOpenSettings();
+              setOpen(false);
+            }}
+          >
+            ⚙️ <span>Players &amp; colors</span>
+          </button>
         </div>
       )}
     </div>

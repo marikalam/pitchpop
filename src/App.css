@@ -829,3 +829,212 @@ body {
 .logo-btn:active {
   transform: scale(0.98);
 }
+
+/* Players & colors settings */
+.pill-btn-full {
+  width: 100%;
+}
+
+.profile-settings-item {
+  appearance: none;
+  border: none;
+  border-top: 1px solid #edf0f6;
+  cursor: pointer;
+  background: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  padding: 10px;
+  color: var(--accent-blue);
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  text-align: left;
+}
+
+.settings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.settings-card {
+  background: var(--card-bg);
+  border-radius: 18px;
+  padding: 14px;
+  box-shadow: var(--shadow-sm);
+}
+
+.settings-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.settings-card-header .profile-name-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.remove-player-btn {
+  appearance: none;
+  border: 1px solid #f1b8bb;
+  border-radius: 9px;
+  cursor: pointer;
+  padding: 9px 10px;
+  background: #fff5f5;
+  color: #bb3036;
+  font: 700 12px 'IBM Plex Sans', sans-serif;
+}
+
+.remove-player-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.profile-name-input,
+.add-profile input {
+  width: 100%;
+  border: 1px solid #d9deeb;
+  border-radius: 10px;
+  padding: 10px 12px;
+  color: var(--ink);
+  background: #fbfcff;
+  font: 700 15px 'IBM Plex Sans', sans-serif;
+}
+
+.settings-help {
+  margin: 8px 0 10px;
+  color: var(--ink-dim);
+  font-size: 12px;
+  text-transform: capitalize;
+}
+
+.color-settings-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 7px;
+}
+
+.color-setting {
+  appearance: none;
+  border: 2px solid transparent;
+  border-radius: 9px;
+  cursor: pointer;
+  min-height: 34px;
+  padding: 5px 3px;
+  font: 700 12px 'IBM Plex Sans', sans-serif;
+  text-transform: capitalize;
+  opacity: 0.38;
+}
+
+.color-setting-active {
+  border-color: var(--ink);
+  opacity: 1;
+}
+
+.add-profile {
+  display: flex;
+  gap: 8px;
+}
+
+.add-profile input {
+  flex: 1;
+  min-width: 0;
+}
+
+.add-profile .pill-btn-primary {
+  flex: none;
+  padding-inline: 14px;
+}
+
+/* Family account (cloud sync) */
+.cloud-account {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  border-radius: 16px;
+  background: #eaf4ff;
+  color: var(--ink);
+}
+
+.cloud-account p {
+  margin: -3px 0 2px;
+  color: var(--ink-dim);
+  font-size: 12px;
+}
+
+.cloud-account input {
+  border: 1px solid #cbdced;
+  border-radius: 9px;
+  padding: 9px 10px;
+  background: #fff;
+  color: var(--ink);
+  font: 14px 'IBM Plex Sans', sans-serif;
+}
+
+.cloud-account .pill-btn-primary {
+  flex: none;
+}
+
+.cloud-account-connected {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cloud-account-connected div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cloud-account-connected span,
+.cloud-message {
+  color: var(--ink-dim);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+/* First-visit welcome */
+.welcome-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(23, 26, 43, 0.35);
+}
+
+.welcome-card {
+  width: min(100%, 390px);
+  padding: 26px 22px 22px;
+  border-radius: 24px;
+  background: var(--card-bg);
+  box-shadow: 0 18px 44px rgba(23, 26, 43, 0.22);
+  text-align: center;
+}
+
+.welcome-emoji {
+  font-size: 40px;
+}
+
+.welcome-card h2 {
+  margin: 6px 0 10px;
+  font: 700 25px Fredoka, ui-rounded, system-ui, sans-serif;
+}
+
+.welcome-card p {
+  margin: 8px 0;
+  color: var(--ink-dim);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.welcome-card .pill-btn-primary {
+  margin-top: 14px;
+}
