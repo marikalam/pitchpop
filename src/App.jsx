@@ -730,7 +730,7 @@ export default function App() {
               <div className="melody-counter">
                 {melodyTaps} / {MELODY_SESSION_TAPS}
               </div>
-              <div className="melody-grid">
+              <div className={`melody-grid${profileColors.length > 4 ? ' melody-grid-2col' : ''}`}>
                 {profileColors.map((color) => (
                   <button
                     key={color.name}

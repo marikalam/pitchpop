@@ -799,11 +799,19 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+/* Buttons share whatever height is left under the header, so any number
+   of colors fits on one screen without scrolling. */
 .melody-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  margin-top: 8px;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-auto-rows: 1fr;
+  gap: 16px;
+}
+
+.melody-grid-2col {
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
 }
 
 .melody-btn {
@@ -811,7 +819,7 @@ body {
   border: none;
   cursor: pointer;
   border-radius: 32px;
-  min-height: 34vh;
+  min-height: 0;
   box-shadow: var(--shadow);
   transition: transform 0.08s ease;
   -webkit-tap-highlight-color: transparent;
