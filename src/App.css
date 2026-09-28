@@ -393,6 +393,57 @@ body {
   justify-content: center;
 }
 
+.streak-badge {
+  align-self: center;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #fff4e0, #ffe3d3);
+  color: #9a4a12;
+  font-size: 14px;
+  padding: 7px 16px 7px 12px;
+  border-radius: 999px;
+  box-shadow: var(--shadow-sm);
+  text-align: left;
+  line-height: 1.25;
+}
+
+.streak-badge strong {
+  font-family: 'Fredoka', ui-rounded, system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.streak-flame {
+  font-size: 20px;
+}
+
+.streak-hint {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #b0693a;
+}
+
+/* Today not done yet: same streak, softer so finishing a round "lights" it */
+.streak-badge-pending {
+  background: var(--card-bg);
+  color: #9a4a12;
+}
+
+.streak-badge-pending .streak-flame {
+  filter: grayscale(0.6);
+  opacity: 0.75;
+}
+
+.streak-badge-empty {
+  background: var(--card-bg);
+  color: var(--ink-dim);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 16px;
+}
+
 .tap-pill {
   align-self: center;
   background: var(--card-bg);

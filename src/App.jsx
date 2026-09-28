@@ -7,6 +7,7 @@ import { PlayerSettingsCard, AddPlayerForm, AccountButton, AccountScreen, SyncSt
 import NoteSpeller from './NoteSpeller.jsx';
 import { getUser, loadCloudProfiles, saveCloudProfile, deleteCloudProfile, onAuthEvent } from './cloud.js';
 import { PlayTriangleIcon, SpeakerIcon, CheckIcon, XIcon } from './icons.jsx';
+import { loadStreakDays, recordStreakDay, streakFor } from './streak.js';
 
 const COLORS = [
   { name: 'black', hex: '#232323', text: '#FFFFFF', notes: ['A', 'C', 'F'] },
@@ -180,6 +181,23 @@ function AppHeader({
   );
 }
 
+function StreakBadge({ streak }) {
+  if (streak.current === 0) {
+    return <div className="streak-badge streak-badge-empty">🔥 Finish a round to start a streak</div>;
+  }
+  return (
+    <div className={`streak-badge${streak.doneToday ? '' : ' streak-badge-pending'}`}>
+      <span className="streak-flame" aria-hidden="true">🔥</span>
+      <span>
+        <strong>
+          {streak.current} {streak.current === 1 ? 'day' : 'days'} in a row
+        </strong>
+        {!streak.doneToday && <span className="streak-hint">Finish a round today to keep it going</span>}
+      </span>
+    </div>
+  );
+}
+
 function ProgressDots({ current, total }) {
   const items = [];
   for (let i = 1; i <= total; i++) {
@@ -221,10 +239,12 @@ export default function App() {
   const [profile, setProfile] = useState(profiles[0].id);
   const [lastActiveProfile, setLastActiveProfile] = useState(initialSession.lastActiveProfile || profiles[0].id);
   const [progress, setProgress] = useState(loadProgress);
+  const [streakDays, setStreakDays] = useState(loadStreakDays);
 
   const currentProfile = profiles.find((p) => p.id === profile) || profiles[0];
   const lastProfile = profiles.find((p) => p.id === lastActiveProfile) || profiles[0];
   const profileColorNames = currentProfile.colors;
+  const streak = streakFor(streakDays[profile]);
 
   function colorsFor(id) {
     return (profiles.find((p) => p.id === id) || profiles[0]).colors;
@@ -498,6 +518,7 @@ export default function App() {
 
   function nextChord() {
     if (roundIndex + 1 >= SESSION_ROUNDS) {
+      setStreakDays(recordStreakDay(streakDays, profile));
       setView('play-complete');
       return;
     }
@@ -514,6 +535,7 @@ export default function App() {
   function melodyTap(color) {
     if (melodyTaps >= MELODY_SESSION_TAPS) return;
     exploreTap(color);
+    if (melodyTaps + 1 === MELODY_SESSION_TAPS) setStreakDays(recordStreakDay(streakDays, profile));
     setMelodyTaps((t) => t + 1);
     setMelodyColorCounts((prev) => ({ ...prev, [color.name]: (prev[color.name] || 0) + 1 }));
   }
@@ -712,6 +734,7 @@ export default function App() {
               <div className="complete-emoji">🌟</div>
               <h2 className="screen-title">Good job, {currentProfile.name}!</h2>
               <p className="screen-sub">You pressed the buttons {MELODY_SESSION_TAPS} times.</p>
+              <StreakBadge streak={streak} />
               <div className="progress-colors">
                 {profileColors.map((color) => (
                   <div key={color.name} className="progress-chip" style={{ background: color.hex, color: color.text }}>
@@ -727,6 +750,7 @@ export default function App() {
             </div>
           ) : (
             <>
+              <StreakBadge streak={streak} />
               <div className="melody-counter">
                 {melodyTaps} / {MELODY_SESSION_TAPS}
               </div>
@@ -801,6 +825,7 @@ export default function App() {
               showBack
               onBack={goHome}
             />
+            <StreakBadge streak={streak} />
             <ProgressDots current={roundIndex + 1} total={SESSION_ROUNDS} />
             <h2 className="screen-title">Listen to the chord</h2>
             <p className="screen-sub">Tap the rainbow to hear it</p>
@@ -964,6 +989,10 @@ export default function App() {
               <div className="stat-tile">
                 <div className="stat-number">{roundWrong}</div>
                 <div className="stat-label">Wrong</div>
+              </div>
+              <div className="stat-tile">
+                <div className="stat-number">🔥 {streak.current}</div>
+                <div className="stat-label">{streak.current === 1 ? 'Day' : 'Days'} in a row</div>
               </div>
             </div>
             <div className="feedback-actions">

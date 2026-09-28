@@ -70,6 +70,18 @@ function initialFor(user) {
   return (user?.email || '?').trim().charAt(0).toUpperCase();
 }
 
+function memberSince(user) {
+  if (!user?.created_at) return null;
+  const created = new Date(user.created_at);
+  if (Number.isNaN(created.getTime())) return null;
+  const startOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const days = Math.round((startOfDay(new Date()) - startOfDay(created)) / 86400000);
+  return {
+    date: created.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }),
+    ago: days <= 0 ? 'Joined today' : days === 1 ? 'Joined yesterday' : `${days.toLocaleString()} days with PitchPop`,
+  };
+}
+
 export function AccountButton({ user, onClick }) {
   if (user) {
     return (
@@ -191,6 +203,7 @@ export function AccountScreen({ user, playerCount, onSignedIn, onOpenPlayers, on
   }
 
   if (user) {
+    const since = memberSince(user);
     return (
       <div className="account-screen">
         <div className="account-profile">
@@ -201,6 +214,16 @@ export function AccountScreen({ user, playerCount, onSignedIn, onOpenPlayers, on
             Signed in
           </div>
         </div>
+
+        {since && (
+          <div className="account-section">
+            <div className="account-row">
+              <span className="account-row-label">Member since</span>
+              <span className="account-row-value">{since.date}</span>
+            </div>
+            <p className="account-row-help">{since.ago}</p>
+          </div>
+        )}
 
         <div className="account-section">
           <div className="account-row">
