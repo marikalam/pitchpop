@@ -1,29 +1,29 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { playCorrectChime, playWrongBuzz } from './piano.js';
+import { speakNoteName, speakResults } from './speech.js';
+import { LETTERS, buildNoteQueue } from './noteReading.js';
+import Staff from './Staff.jsx';
 
-// A separate ear-training mode from the color/chord game: instead of
-// hearing a chord and picking its color, the player sees a note's letter
-// name and has to find it among the keys by ear - tapping a key always
-// plays its sound, so wrong guesses are still a useful "that's not it,
-// but here's what it sounds like" moment.
-const NOTE_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
+// Note reading: a note is drawn on a treble or bass staff, the player
+// names it, and the app says the name and plays that exact pitch - so
+// every answer, right or wrong, links the written note to its name and
+// its sound.
 const SESSION_ROUNDS = 10;
+const CLEF_KEY = 'pitchpop-notespeller-clef-v1';
+const CLEF_MODES = [
+  { id: 'treble', label: 'Treble' },
+  { id: 'bass', label: 'Bass' },
+  { id: 'both', label: 'Both' },
+];
 
-function shuffle(list) {
-  const copy = [...list];
-  for (let i = copy.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [copy[i], copy[j]] = [copy[j], copy[i]];
+function loadClefMode() {
+  try {
+    const saved = localStorage.getItem(CLEF_KEY);
+    if (CLEF_MODES.some((m) => m.id === saved)) return saved;
+  } catch {
+    /* ignore */
   }
-  return copy;
-}
-
-function buildQueue(total) {
-  let queue = [];
-  while (queue.length < total) {
-    queue = queue.concat(shuffle(NOTE_LETTERS));
-  }
-  return queue.slice(0, total);
+  return 'treble';
 }
 
 function ProgressDots({ current, total }) {
@@ -44,29 +44,49 @@ function ProgressDots({ current, total }) {
   );
 }
 
-export default function NoteSpeller({ engine }) {
-  const [queue, setQueue] = useState(() => buildQueue(SESSION_ROUNDS));
+export default function NoteSpeller({ engine, onComplete }) {
+  const [clefMode, setClefMode] = useState(loadClefMode);
+  const [queue, setQueue] = useState(() => buildNoteQueue(clefMode, SESSION_ROUNDS));
   const [roundIndex, setRoundIndex] = useState(0);
-  const [keyOrder, setKeyOrder] = useState(() => shuffle(NOTE_LETTERS));
   const [answered, setAnswered] = useState(null);
   const [correctCount, setCorrectCount] = useState(0);
   const [done, setDone] = useState(false);
 
   const target = queue[roundIndex];
 
-  function playAgain() {
-    setQueue(buildQueue(SESSION_ROUNDS));
+  // Render this round's pitches ahead of time (offline rendering needs no
+  // tap), so the reveal plays instantly.
+  useEffect(() => {
+    queue.forEach((n) => engine.getPitchBuffer(n.letter, n.octave));
+  }, [queue, engine]);
+
+  function restart(mode = clefMode) {
+    setQueue(buildNoteQueue(mode, SESSION_ROUNDS));
     setRoundIndex(0);
-    setKeyOrder(shuffle(NOTE_LETTERS));
     setAnswered(null);
     setCorrectCount(0);
     setDone(false);
   }
 
-  function tapKey(letter) {
+  function chooseClef(mode) {
+    if (mode === clefMode) return;
+    setClefMode(mode);
+    try {
+      localStorage.setItem(CLEF_KEY, mode);
+    } catch {
+      /* ignore */
+    }
+    restart(mode);
+  }
+
+  async function sayAndPlay(note) {
+    await speakNoteName(note.letter);
+    engine.playPitch(note.letter, note.octave);
+  }
+
+  function answer(letter) {
     if (answered) return;
-    engine.playNoteSequence([letter]);
-    const correct = letter === target;
+    const correct = letter === target.letter;
     setAnswered({ picked: letter, correct });
     if (correct) {
       playCorrectChime();
@@ -74,51 +94,93 @@ export default function NoteSpeller({ engine }) {
     } else {
       playWrongBuzz();
     }
-    setTimeout(() => {
-      if (roundIndex + 1 >= SESSION_ROUNDS) {
-        setDone(true);
-      } else {
-        setRoundIndex((i) => i + 1);
-        setKeyOrder(shuffle(NOTE_LETTERS));
-        setAnswered(null);
-      }
-    }, 1100);
+    setTimeout(() => sayAndPlay(target), 350);
   }
+
+  function next() {
+    if (roundIndex + 1 >= SESSION_ROUNDS) {
+      setDone(true);
+      speakResults(correctCount, SESSION_ROUNDS);
+      onComplete?.();
+      return;
+    }
+    setRoundIndex((i) => i + 1);
+    setAnswered(null);
+  }
+
+  const clefPicker = (
+    <div className="clef-picker" role="radiogroup" aria-label="Clef">
+      {CLEF_MODES.map((m) => (
+        <button
+          key={m.id}
+          role="radio"
+          aria-checked={clefMode === m.id}
+          className={`clef-option${clefMode === m.id ? ' clef-option-active' : ''}`}
+          onClick={() => chooseClef(m.id)}
+        >
+          {m.label}
+        </button>
+      ))}
+    </div>
+  );
 
   if (done) {
     return (
-      <div className="complete-wrap">
-        <div className="complete-emoji">🎼</div>
-        <h2 className="screen-title">NoteSpeller complete!</h2>
-        <p className="screen-sub">
-          You got {correctCount} out of {SESSION_ROUNDS} right.
-        </p>
-        <button className="pill-btn-primary" onClick={playAgain}>
-          Play again →
-        </button>
-      </div>
+      <>
+        {clefPicker}
+        <div className="complete-wrap">
+          <div className="complete-emoji">🎼</div>
+          <h2 className="screen-title">NoteSpeller complete!</h2>
+          <p className="screen-sub">
+            You got {correctCount} out of {SESSION_ROUNDS} right.
+          </p>
+          <button className="pill-btn-primary" onClick={() => restart()}>
+            Play again →
+          </button>
+        </div>
+      </>
     );
   }
 
   return (
     <>
+      {clefPicker}
       <ProgressDots current={roundIndex + 1} total={SESSION_ROUNDS} />
-      <h2 className="screen-title">Which key is {target}?</h2>
-      <p className="screen-sub">Tap a key to hear it and find out</p>
-      <div className="notespeller-keys">
-        {keyOrder.map((letter) => {
+      <h2 className="screen-title">What note is this?</h2>
+      <div className="staff-card">
+        <Staff note={target} highlight={answered ? (answered.correct ? 'correct' : 'wrong') : null} />
+      </div>
+
+      <div className="note-answer-grid">
+        {LETTERS.map((letter) => {
           let cls = 'notespeller-key';
           if (answered) {
-            if (letter === target) cls += ' notespeller-key-correct';
+            if (letter === target.letter) cls += ' notespeller-key-correct';
             else if (letter === answered.picked) cls += ' notespeller-key-wrong';
           }
           return (
-            <button key={letter} className={cls} onClick={() => tapKey(letter)} disabled={!!answered}>
+            <button key={letter} className={cls} onClick={() => answer(letter)} disabled={!!answered}>
               {letter}
             </button>
           );
         })}
       </div>
+
+      {answered && (
+        <div className="note-feedback">
+          <p className={`note-feedback-text${answered.correct ? ' note-feedback-correct' : ''}`}>
+            {answered.correct ? `Yes! That's ${target.letter}.` : `That's ${target.letter}.`}
+          </p>
+          <div className="feedback-actions">
+            <button className="pill-btn-secondary" onClick={() => sayAndPlay(target)}>
+              🔊 Hear it
+            </button>
+            <button className="pill-btn-primary" onClick={next}>
+              {roundIndex + 1 >= SESSION_ROUNDS ? 'Finish' : 'Next'} →
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 }

@@ -175,6 +175,14 @@ export async function speakColorName(name) {
   await speak(name.charAt(0).toUpperCase() + name.slice(1));
 }
 
+// Spelled out so the voice says "Ay" and "Bee" rather than reading a
+// lone "A" as the word "a".
+const LETTER_SOUNDS = { A: 'Ay', B: 'Bee', C: 'See', D: 'Dee', E: 'Ee', F: 'Eff', G: 'Gee' };
+
+export async function speakNoteName(letter) {
+  await speak(`${LETTER_SOUNDS[letter] || letter}.`);
+}
+
 export async function speakResults(correct, total) {
   const wrong = total - correct;
   const text = correct === total ? `Perfect! You got all ${total} correct!` : `You got ${correct} correct and ${wrong} wrong.`;

@@ -157,6 +157,36 @@ async function renderNoteSequenceBuffer(notes) {
   return offline.startRendering();
 }
 
+// One note at an exact octave - for NoteSpeller, where the note on the
+// staff has a real pitch (the treble C is middle C, not whatever octave
+// buildVoicing would pick for a lone letter).
+async function renderPitchBuffer(note, octave) {
+  const noteDuration = 1.4;
+  const duration = 0.05 + noteDuration + 1.2;
+  const OfflineCtx = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+  const offline = new OfflineCtx(2, Math.ceil(SAMPLE_RATE * duration), SAMPLE_RATE);
+
+  const compressor = offline.createDynamicsCompressor();
+  compressor.threshold.value = -12;
+  compressor.knee.value = 18;
+  compressor.ratio.value = 4;
+  compressor.attack.value = 0.003;
+  compressor.release.value = 0.25;
+  compressor.connect(offline.destination);
+
+  const convolver = offline.createConvolver();
+  convolver.buffer = buildImpulse(offline, 2.0, 3.0);
+  const reverbSend = offline.createGain();
+  reverbSend.gain.value = 0.55;
+  reverbSend.connect(convolver);
+  convolver.connect(compressor);
+
+  const noiseBuffer = buildNoiseBuffer(offline, 0.08);
+  scheduleNote(offline, compressor, reverbSend, noiseBuffer, 0.05, freq(note, octave), noteDuration);
+
+  return offline.startRendering();
+}
+
 export class PianoEngine {
   constructor() {
     this.ctx = null;
@@ -223,6 +253,36 @@ export class PianoEngine {
     });
     this.pendingRenders.set(key, promise);
     return promise;
+  }
+
+  getPitchBuffer(note, octave) {
+    const key = `pitch:${note}${octave}`;
+    if (this.bufferCache.has(key)) return Promise.resolve(this.bufferCache.get(key));
+    if (this.pendingRenders.has(key)) return this.pendingRenders.get(key);
+
+    const promise = renderPitchBuffer(note, octave).then((buffer) => {
+      this.bufferCache.set(key, buffer);
+      this.pendingRenders.delete(key);
+      return buffer;
+    });
+    this.pendingRenders.set(key, promise);
+    return promise;
+  }
+
+  async playPitch(note, octave) {
+    const ctx = this.ensureAudio();
+    if (ctx.state === 'suspended') {
+      try {
+        await ctx.resume();
+      } catch {
+        /* ignore - will retry resuming on the next tap */
+      }
+    }
+    const buffer = await this.getPitchBuffer(note, octave);
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.connect(ctx.destination);
+    source.start();
   }
 
   async playNoteSequence(notes) {

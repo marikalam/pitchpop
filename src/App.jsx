@@ -677,7 +677,10 @@ export default function App() {
             showBack
             onBack={goHome}
           />
-          <NoteSpeller engine={engineRef.current} />
+          <NoteSpeller
+            engine={engineRef.current}
+            onComplete={() => setStreakDays(recordStreakDay(streakDays, profile))}
+          />
         </div>
       </div>
     );
