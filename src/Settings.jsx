@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { requestPasswordReset, signIn, signOut, signUp, updatePassword } from './cloud.js';
+import { deleteAccount, requestPasswordReset, signIn, signOut, signUp, updatePassword } from './cloud.js';
 import { firstDay, streakFor } from './streak.js';
 
 function formatDay(key) {
@@ -195,6 +195,26 @@ export function AccountScreen({ user, playerCount, onSignedIn, onOpenPlayers, on
     onSignedIn(null);
   }
 
+  async function handleDeleteAccount() {
+    if (
+      !window.confirm(`Delete the account for ${user.email}? Players saved to your account will be deleted.`) ||
+      !window.confirm('Are you really sure? This can’t be undone.')
+    ) {
+      return;
+    }
+    setBusy(true);
+    setError('');
+    try {
+      await deleteAccount();
+      onSignedIn(null);
+      setNotice('Your account has been deleted. Players on this device are still here.');
+    } catch (err) {
+      setError(`Couldn’t delete your account: ${err.message}`);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   if (recoveryMode) {
     return (
       <div className="account-screen">
@@ -267,6 +287,10 @@ export function AccountScreen({ user, playerCount, onSignedIn, onOpenPlayers, on
 
         <button className="account-signout" onClick={handleSignOut}>
           Sign out
+        </button>
+        {error && <div className="auth-error">{error}</div>}
+        <button className="account-delete" onClick={handleDeleteAccount} disabled={busy}>
+          {busy ? 'Deleting…' : 'Delete account'}
         </button>
       </div>
     );

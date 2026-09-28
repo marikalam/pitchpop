@@ -803,7 +803,7 @@ export default function App() {
               onOpenNoteSpeller={openNoteSpeller}
               hideProfile
             />
-            <div className="rainbow-slot intro-rainbow">
+            <div className="rainbow-slot">
               <Rainbow colors={COLORS} activeName={celebrate} visible />
             </div>
             <h2 className="intro-title">Every chord has a color</h2>

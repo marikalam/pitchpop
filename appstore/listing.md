@@ -1,0 +1,65 @@
+# PitchPop — App Store listing
+
+Copy these into App Store Connect (My Apps → PitchPop → App Store tab).
+Character limits are Apple's.
+
+## Name (30)
+PitchPop
+
+## Subtitle (30)
+Hear chords, learn by color
+
+## Promotional text (170, can change anytime without review)
+Every chord has its own color. Kids tap the rainbow, listen, and pick the matching color — a playful first step toward recognizing pitch by ear.
+
+## Description (4000)
+PitchPop is a playful ear-training game for kids. Every chord has its own color: red, yellow, blue and more. Kids listen to a chord, then pick the color that matches. Over time they learn to recognize chords by ear.
+
+HOW IT WORKS
+• Tap the rainbow to hear a chord
+• Pick the color you heard
+• Hear the chord's real notes after every answer, right or wrong
+• Start with a few colors and add more as they get easy
+
+MADE FOR FAMILIES
+• Separate players, each learning their own set of colors
+• Daily streaks to build a short practice habit
+• Explore mode: tap any color to hear its chord, anytime
+• Works offline, with a friendly voice built right into the app
+
+PRIVATE BY DESIGN
+No ads, no tracking, no analytics. You don't need an account to play. An optional account lets a family sync its players across devices, and you can delete it anytime from inside the app.
+
+## Keywords (100, comma-separated, no spaces needed)
+ear training,perfect pitch,chords,music,kids,piano,colors,listening,solfege,music game
+
+## URLs
+- Privacy Policy URL: https://marikalam.github.io/apps/pitchpop/privacy.html
+- Support URL: https://marikalam.github.io/
+- Marketing URL (optional): https://marikalam.github.io/apps/pitchpop/
+
+## Categories
+- Primary: Education
+- Secondary: Music
+
+## Age rating
+4+ (answer "None" to every content question in the questionnaire).
+Don't choose the "Made for Kids" category: it requires a parental gate in
+front of every link out of the app and the sign-in screen. PitchPop can
+still be rated 4+ and used by kids without it.
+
+## Screenshots
+`screenshots/` — five 1320×2868 images for the 6.9" iPhone display size.
+Apple scales these down for smaller iPhones automatically.
+
+## App Privacy ("nutrition label") answers
+Data collected: yes, only when someone creates an account.
+- Contact Info → Email Address: linked to the user, used for App
+  Functionality, not used for tracking.
+- User Content → Other User Content (player names and colors): linked to
+  the user, used for App Functionality, not used for tracking.
+Everything else: not collected. Tracking: No.
+
+## Review notes (App Review Information)
+No account is needed to use the app. To test sign-in, create an account from
+the Sign in button (top right); it can be deleted from the same screen.

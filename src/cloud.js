@@ -57,6 +57,16 @@ export async function updatePassword(newPassword) {
   if (error) throw error;
 }
 
+// Permanently deletes the signed-in account and its saved players (the
+// database side is supabase/delete_my_account.sql). Players saved on this
+// device stay, so the family can keep playing signed out.
+export async function deleteAccount() {
+  const { error } = await supabase.rpc('delete_my_account');
+  if (error) throw error;
+  // The account no longer exists, so only clear this device's session.
+  await supabase.auth.signOut({ scope: 'local' });
+}
+
 export function onAuthEvent(callback) {
   const {
     data: { subscription },

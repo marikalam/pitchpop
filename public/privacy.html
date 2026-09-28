@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PitchPop Privacy Policy</title>
+    <link rel="icon" href="favicon.png" />
+    <style>
+      :root {
+        --bg: #f2f4f9;
+        --card: #ffffff;
+        --ink: #171a2b;
+        --ink-dim: #5d6380;
+        --accent: #3b6fef;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #14161f;
+          --card: #1d2030;
+          --ink: #eef0f7;
+          --ink-dim: #a4a9c0;
+          --accent: #7ea0ff;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font: 16px/1.6 -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+        padding: max(24px, env(safe-area-inset-top)) 16px 48px;
+      }
+      main {
+        max-width: 680px;
+        margin: 0 auto;
+        background: var(--card);
+        border-radius: 20px;
+        padding: 28px 24px;
+      }
+      h1 {
+        font-size: 28px;
+        line-height: 1.2;
+        margin: 0 0 4px;
+      }
+      h2 {
+        font-size: 19px;
+        margin: 28px 0 6px;
+      }
+      p,
+      li {
+        margin: 6px 0;
+      }
+      ul {
+        padding-left: 22px;
+      }
+      .updated {
+        color: var(--ink-dim);
+        margin: 0 0 18px;
+        font-size: 14px;
+      }
+      a {
+        color: var(--accent);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>PitchPop Privacy Policy</h1>
+      <p class="updated">Last updated September 28, 2026</p>
+
+      <p>
+        PitchPop is an ear-training app for kids made by Marika Lam. It's designed to collect as little as
+        possible: no ads, no analytics, and no tracking. This policy covers the PitchPop iPhone app and the website
+        at marikalam.github.io/apps/pitchpop.
+      </p>
+
+      <h2>Using PitchPop without an account</h2>
+      <p>
+        You don't need an account to play. Without one, everything PitchPop saves stays on your device: player names,
+        which colors each player is learning, scores, and practice streaks. None of it is sent anywhere.
+      </p>
+
+      <h2>If you create an account</h2>
+      <p>An account is optional and lets a family sync its players across devices. When you create one, we store:</p>
+      <ul>
+        <li>your email address and password (the password is stored securely hashed, never readable),</li>
+        <li>each player's name and the colors they're learning.</li>
+      </ul>
+      <p>
+        Scores and streaks are not uploaded; they stay on each device. We use this information only to sign you in
+        and keep your players in sync. We never sell it, share it for advertising, or use it for anything else.
+      </p>
+      <p>
+        Accounts are stored with <a href="https://supabase.com/privacy">Supabase</a>, our hosting provider, which
+        also sends password-reset emails when you ask for one.
+      </p>
+
+      <h2>Children</h2>
+      <p>
+        PitchPop is made for kids to play, but accounts are meant to be created by a parent or guardian. A player
+        profile only needs a first name or nickname. We don't knowingly collect other personal information from
+        children, and kids don't need to enter any to play.
+      </p>
+
+      <h2>Speech and sounds</h2>
+      <p>
+        The voice that reads out color names is generated on your device. In the iPhone app, everything it needs is
+        built in. On the website, the voice files are downloaded the first time from public file hosts (Hugging Face
+        and jsDelivr), which, like any website, can see your IP address when your browser downloads from them. No text
+        you type is sent to them.
+      </p>
+
+      <h2>Deleting your data</h2>
+      <ul>
+        <li>
+          <strong>Delete your account:</strong> in PitchPop, open your account (the button at the top right), then tap
+          <em>Delete account</em>. This permanently deletes your email, password and synced players.
+        </li>
+        <li>
+          <strong>Delete data on a device:</strong> delete the PitchPop app, or clear the website's data in your
+          browser settings.
+        </li>
+        <li>
+          You can also email us and we'll delete your account for you.
+        </li>
+      </ul>
+
+      <h2>Changes</h2>
+      <p>If this policy changes, we'll update this page and the date at the top.</p>
+
+      <h2>Contact</h2>
+      <p>Questions or requests: <a href="mailto:marikaleelam@gmail.com">marikaleelam@gmail.com</a></p>
+    </main>
+  </body>
+</html>

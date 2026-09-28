@@ -764,12 +764,16 @@ body {
   opacity: 0.9;
 }
 
+/* Sized to the rainbow itself (which only fades in, never changes size), so
+   it can't spill over the title above it. */
 .rainbow-slot {
-  height: 60px;
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  margin-top: -8px;
+}
+
+.rainbow-slot .rainbow {
+  width: min(190px, 52vw);
 }
 
 .rainbow {
@@ -1077,15 +1081,6 @@ body {
 }
 
 /* First-visit intro: what PitchPop is, with every color playable */
-.intro-rainbow {
-  height: auto;
-  margin-top: 0;
-}
-
-.intro-rainbow .rainbow {
-  width: min(190px, 52vw);
-}
-
 .intro-cta {
   flex: none;
 }
@@ -1477,4 +1472,16 @@ body {
   background: #fff5f5;
   color: #bb3036;
   font: 700 14px 'IBM Plex Sans', sans-serif;
+}
+
+.account-delete {
+  appearance: none;
+  cursor: pointer;
+  align-self: center;
+  padding: 6px 10px;
+  border: none;
+  background: none;
+  color: var(--ink-dim);
+  font: 600 13px 'IBM Plex Sans', sans-serif;
+  text-decoration: underline;
 }
