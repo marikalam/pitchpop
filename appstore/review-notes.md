@@ -18,6 +18,8 @@ Replace everything in `[brackets]` before sending.
      to prove it works.
    - Put the email and password into App Store Connect → App Review
      Information → **Sign-in required: on**, User name / Password.
+     Only there: this repository is public, so never write the password in
+     this file or anywhere else in the repo.
 2. **Check the voice's license.** Open
    https://huggingface.co/rhasspy/piper-voices/blob/main/en/en_US/hfc_female/medium/MODEL_CARD
    and copy the dataset license into the `[license from its MODEL_CARD]`
@@ -69,8 +71,8 @@ intro screen to start playing.
 - Players & colors: "Playing as" menu → Players & colors.
 - Optional account (only syncs players and colors between devices): tap
   "Sign in" at the top right. Demo account:
-  - Email: [demo email]
-  - Password: [demo password]
+  the demo account's email and password are in the Sign-In Information
+  fields of this submission.
   Please feel free to create your own account as well. Account deletion is at
   Account (the circle at top right) → Delete account.
 
@@ -95,7 +97,7 @@ voice "en_US-hfc_female-medium" [license from its MODEL_CARD], and the
 Bravura music font's clef and note shapes (SIL Open Font License 1.1).
 
 Thank you!
-[Your name]
+Marika Lam
 
 ---
 
