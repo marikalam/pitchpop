@@ -1,3 +1,4 @@
+import { Capacitor } from '@capacitor/core';
 import { createClient } from '@supabase/supabase-js';
 
 // Publishable (client-side) key - safe to ship in the browser. Row-level
@@ -37,8 +38,14 @@ export async function signOut() {
 // Sends an email with a link back to this app; Supabase appends a recovery
 // token to the URL, which onAuthEvent() below picks up as a
 // PASSWORD_RECOVERY event so the app can show the "set a new password" form.
+// Inside the iOS app the page's own origin (capacitor://localhost) can't be
+// opened from an email, so the link goes to the website instead.
+const WEB_APP_URL = 'https://marikalam.github.io/apps/pitchpop/';
+
 export async function requestPasswordReset(email) {
-  const redirectTo = `${window.location.origin}${import.meta.env.BASE_URL}`;
+  const redirectTo = Capacitor.isNativePlatform()
+    ? WEB_APP_URL
+    : `${window.location.origin}${import.meta.env.BASE_URL}`;
   const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
   if (error) throw error;
 }

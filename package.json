@@ -10,15 +10,24 @@
     "preview": "vite preview",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist -r https://github.com/marikalam/apps.git -b gh-pages -e pitchpop --add",
-    "deploy:redirect": "gh-pages -d redirect -m \"Redirect to apps/pitchpop\""
+    "deploy:redirect": "gh-pages -d redirect -m \"Redirect to apps/pitchpop\"",
+    "build:ios": "vite build --mode ios && node scripts/copy-ios-assets.mjs && cap sync ios",
+    "open:ios": "cap open ios"
   },
   "dependencies": {
+    "@capacitor/core": "^8.5.2",
+    "@capacitor/ios": "^8.5.2",
+    "@fontsource/fredoka": "^5.3.0",
+    "@fontsource/ibm-plex-mono": "^5.3.0",
+    "@fontsource/ibm-plex-sans": "^5.3.0",
     "@mintplex-labs/piper-tts-web": "^1.0.5",
     "@supabase/supabase-js": "^2.117.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.5.2",
+    "@diffusionstudio/piper-wasm": "^1.0.0",
     "@vitejs/plugin-react": "^4.3.1",
     "gh-pages": "^6.2.0",
     "vite": "^5.4.0"
