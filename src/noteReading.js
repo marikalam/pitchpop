@@ -50,11 +50,11 @@ function shuffle(list) {
 
 const sameNote = (a, b) => a && b && a.clef === b.clef && a.letter === b.letter && a.octave === b.octave;
 
-// mode: 'treble', 'bass' or 'both'. Works through shuffled passes of the
-// whole pool so every note comes up before any repeats, and never shows
-// the same note twice in a row.
-export function buildNoteQueue(mode, total) {
-  const pool = mode === 'both' ? [...notesFor('treble'), ...notesFor('bass')] : notesFor(mode);
+// clef: 'treble' or 'bass'. Works through shuffled passes of the whole
+// pool so every note comes up before any repeats, and never shows the
+// same note twice in a row.
+export function buildNoteQueue(clef, total) {
+  const pool = notesFor(clef);
   const queue = [];
   while (queue.length < total) {
     let pass = shuffle(pool);

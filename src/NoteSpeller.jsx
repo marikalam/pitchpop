@@ -11,9 +11,8 @@ import Staff from './Staff.jsx';
 const SESSION_ROUNDS = 10;
 const CLEF_KEY = 'pitchpop-notespeller-clef-v1';
 const CLEF_MODES = [
-  { id: 'treble', label: 'Treble' },
-  { id: 'bass', label: 'Bass' },
-  { id: 'both', label: 'Both' },
+  { id: 'treble', label: 'Treble clef' },
+  { id: 'bass', label: 'Bass clef' },
 ];
 
 function loadClefMode() {
@@ -149,6 +148,9 @@ export default function NoteSpeller({ engine, onComplete }) {
       <h2 className="screen-title">What note is this?</h2>
       <div className="staff-card">
         <Staff note={target} highlight={answered ? (answered.correct ? 'correct' : 'wrong') : null} />
+        <button className="staff-play-btn" onClick={() => engine.playPitch(target.letter, target.octave)}>
+          🔊 Hear the note
+        </button>
       </div>
 
       <div className="note-answer-grid">
