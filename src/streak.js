@@ -38,6 +38,11 @@ export function recordStreakDay(allDays, profileId, today = dayKey()) {
   return next;
 }
 
+// The first day a player finished a round - their "playing since" date.
+export function firstDay(days = []) {
+  return days.length ? [...days].sort()[0] : null;
+}
+
 // current: consecutive days ending today, or ending yesterday if today
 // isn't done yet (the streak is still alive until today ends).
 // doneToday: whether today already counts. best: longest run ever.

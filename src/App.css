@@ -1012,6 +1012,23 @@ body {
   font: 700 15px 'IBM Plex Sans', sans-serif;
 }
 
+.player-history {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ink-dim);
+  line-height: 1.5;
+}
+
+.player-history strong {
+  color: var(--ink);
+}
+
+.player-history-streak {
+  display: block;
+  color: #9a4a12;
+  font-weight: 600;
+}
+
 .settings-help {
   margin: 8px 0 10px;
   color: var(--ink-dim);

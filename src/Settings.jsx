@@ -1,7 +1,29 @@
 import { useState } from 'react';
 import { requestPasswordReset, signIn, signOut, signUp, updatePassword } from './cloud.js';
+import { firstDay, streakFor } from './streak.js';
 
-export function PlayerSettingsCard({ profile, colors, onUpdate, onRemove, canRemove }) {
+function formatDay(key) {
+  const [y, m, d] = key.split('-').map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+}
+
+function PlayerHistory({ days }) {
+  const since = firstDay(days);
+  if (!since) return <p className="player-history">Hasn't finished a round yet</p>;
+  const { current, best } = streakFor(days);
+  return (
+    <p className="player-history">
+      Playing since <strong>{formatDay(since)}</strong>
+      <span className="player-history-streak">
+        {current > 0
+          ? `🔥 ${current} ${current === 1 ? 'day' : 'days'} in a row · best ${best}`
+          : `Best streak: ${best} ${best === 1 ? 'day' : 'days'}`}
+      </span>
+    </p>
+  );
+}
+
+export function PlayerSettingsCard({ profile, colors, onUpdate, onRemove, canRemove, playDays }) {
   function toggleColor(name) {
     const next = profile.colors.includes(name)
       ? profile.colors.filter((c) => c !== name)
@@ -22,6 +44,7 @@ export function PlayerSettingsCard({ profile, colors, onUpdate, onRemove, canRem
           Remove
         </button>
       </div>
+      <PlayerHistory days={playDays} />
       <p className="settings-help">
         Color {profile.colors.length}: {profile.colors.join(' / ')}
       </p>

@@ -697,6 +697,7 @@ export default function App() {
                 onUpdate={(changes) => updateDraftProfile(p.id, changes)}
                 onRemove={() => removePlayer(p.id)}
                 canRemove={draftProfiles.length > 1}
+                playDays={streakDays[p.id]}
               />
             ))}
           </div>
