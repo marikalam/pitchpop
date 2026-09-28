@@ -49,7 +49,10 @@ front of every link out of the app and the sign-in screen. PitchPop can
 still be rated 4+ and used by kids without it.
 
 ## Screenshots
-`screenshots/` — five 1320×2868 images for the 6.9" iPhone display size.
+- `screenshots/6.5-inch/` — 1284×2778, for the "iPhone 6.5" Display" slot
+  (the one App Store Connect asks for).
+- `screenshots/6.9-inch/` — 1320×2868, for the "iPhone 6.9" Display" slot
+  if it's offered.
 Apple scales these down for smaller iPhones automatically.
 
 ## App Privacy ("nutrition label") answers
