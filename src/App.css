@@ -32,8 +32,10 @@ body {
   width: 100%;
   background: var(--bg);
   color: var(--ink);
-  padding-inline: 16px;
-  padding-block: 20px 32px;
+  /* Keep clear of the notch / status bar and home indicator in the iOS app
+     and the home-screen web app (both draw edge to edge). */
+  padding-inline: max(16px, env(safe-area-inset-left)) max(16px, env(safe-area-inset-right));
+  padding-block: max(20px, env(safe-area-inset-top)) max(32px, env(safe-area-inset-bottom));
   display: flex;
   justify-content: center;
   overflow-y: auto;
