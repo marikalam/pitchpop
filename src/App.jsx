@@ -23,11 +23,9 @@ const COLORS = [
 
 // Used only until a player list has been saved on this device or in the
 // family's cloud account; after that the saved list is the source of truth.
-const DEFAULT_PROFILES = [
-  { id: 'maddie', name: 'Maddie', colors: COLORS.map((c) => c.name) },
-  { id: 'marcus', name: 'Marcus', colors: ['red', 'blue', 'black', 'yellow', 'orange', 'green', 'purple'] },
-  { id: 'melody', name: 'Melody', colors: ['red', 'yellow'] },
-];
+// A new visitor gets one generic player with a few colors, so the first
+// color test has real choices in it.
+const DEFAULT_PROFILES = [{ id: 'player-1', name: 'Player 1', colors: ['red', 'yellow', 'blue'] }];
 
 const SESSION_ROUNDS = 10;
 const MELODY_SESSION_TAPS = 20;
@@ -58,6 +56,16 @@ function buildOptions(correctName, colorNames) {
   const distractors = shuffle(pool).slice(0, 3);
   const names = shuffle([correctName, ...distractors]);
   return names.map((n) => COLORS.find((c) => c.name === n));
+}
+
+// A device that has never saved a player list is a first-time visitor -
+// they land on the intro screen instead of straight in a quiz.
+function isFirstVisit() {
+  try {
+    return localStorage.getItem(PROFILES_KEY) === null;
+  } catch {
+    return false;
+  }
 }
 
 function loadProfiles() {
@@ -121,6 +129,7 @@ function AppHeader({
   onOpenNoteSpeller,
   onBack,
   showBack,
+  hideProfile = false,
 }) {
   return (
     <>
@@ -166,7 +175,7 @@ function AppHeader({
             onOpenNoteSpeller={onOpenNoteSpeller}
           />
         </div>
-      ) : (
+      ) : hideProfile ? null : (
         <ProfileSwitcher
           profile={profile}
           profiles={profiles}
@@ -227,6 +236,10 @@ export default function App() {
     initialSessionRef.current = loadSession();
   }
   const initialSession = initialSessionRef.current;
+  const firstVisitRef = useRef(null);
+  if (firstVisitRef.current === null) {
+    firstVisitRef.current = isFirstVisit();
+  }
 
   const [profiles, setProfiles] = useState(loadProfiles);
   // Edits on the settings screen stay in this draft until "Save" is tapped.
@@ -260,6 +273,7 @@ export default function App() {
   const resumableSession = profileMismatch ? {} : initialSession;
 
   const [view, setView] = useState(() => {
+    if (firstVisitRef.current) return 'intro';
     // 'home' no longer exists (there's nothing to hub to - Play is the
     // whole app), so a session saved before this change falls back to Play.
     const savedView = initialSession.view === 'home' ? 'play-listen' : initialSession.view || 'play-listen';
@@ -776,6 +790,62 @@ export default function App() {
   return (
     <div className="page">
       <div className="app">
+        {view === 'intro' && (
+          <>
+            <AppHeader
+              profile={profile}
+              profiles={profiles}
+              onChangeProfile={changeProfile}
+              onOpenSettings={openSettings}
+              user={cloudUser}
+              onOpenAccount={openAccount}
+              onOpenExplore={openExplore}
+              onOpenNoteSpeller={openNoteSpeller}
+              hideProfile
+            />
+            <div className="rainbow-slot intro-rainbow">
+              <Rainbow colors={COLORS} activeName={celebrate} visible />
+            </div>
+            <h2 className="intro-title">Every chord has a color</h2>
+            <p className="screen-sub intro-sub">
+              PitchPop teaches kids to recognize chords by ear. Each chord gets its own color. Tap one to hear it!
+            </p>
+            <div className="grid intro-grid">
+              {COLORS.map((color) => (
+                <button
+                  key={color.name}
+                  className={`pad${justPlayed === color.name ? ' pad-played' : ''}`}
+                  style={{ background: color.hex, color: color.text }}
+                  aria-label={`Play ${color.name} chord`}
+                  onClick={() => exploreTap(color)}
+                >
+                  <div className="pad-name">{color.name}</div>
+                  <div className="pad-notes">{color.notes.join(' ')}</div>
+                </button>
+              ))}
+            </div>
+            <ol className="intro-steps">
+              <li>
+                <span aria-hidden="true">🎧</span>Hear a chord
+              </li>
+              <li>
+                <span aria-hidden="true">🎨</span>Pick its color
+              </li>
+              <li>
+                <span aria-hidden="true">🌈</span>Add colors as you learn
+              </li>
+            </ol>
+            <button className="pill-btn-primary pill-btn-full intro-cta" onClick={startPlay}>
+              Take the color test →
+            </button>
+            {!cloudUser && (
+              <button className="back-link back-link-center" onClick={openAccount}>
+                Have an account? Sign in
+              </button>
+            )}
+          </>
+        )}
+
         {view === 'explore' && (
           <>
             <AppHeader
@@ -1012,13 +1082,16 @@ export default function App() {
             <div className="welcome-card" role="dialog" aria-labelledby="welcome-title">
               <div className="welcome-emoji">🌈</div>
               <h2 id="welcome-title">Welcome to PitchPop!</h2>
-              <p>Start with one color, red. When it feels easy, add yellow, then more colors one at a time.</p>
               <p>
-                Choose a player to begin. An adult can open <strong>Players &amp; colors</strong> to change the color
-                order or add a new player.
+                A playful way for kids to train their ear. Every chord has its own color: hear a chord, then pick the
+                color that matches.
+              </p>
+              <p>
+                Start with a few colors and add more as they get easy. Sign in to save your family’s players on every
+                device.
               </p>
               <button className="pill-btn-primary pill-btn-full" onClick={dismissWelcome}>
-                Let’s start
+                Let’s go
               </button>
             </div>
           </div>

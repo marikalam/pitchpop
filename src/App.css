@@ -1074,6 +1074,71 @@ body {
   padding-inline: 14px;
 }
 
+/* First-visit intro: what PitchPop is, with every color playable */
+.intro-rainbow {
+  height: auto;
+  margin-top: 0;
+}
+
+.intro-rainbow .rainbow {
+  width: min(190px, 52vw);
+}
+
+.intro-cta {
+  flex: none;
+}
+
+.intro-title {
+  font-family: 'Fredoka', ui-rounded, system-ui, sans-serif;
+  font-weight: 700;
+  font-size: clamp(26px, 8vw, 32px);
+  text-align: center;
+  margin: -6px 0 0;
+  text-wrap: balance;
+}
+
+.intro-sub {
+  margin-top: -10px;
+  text-wrap: balance;
+}
+
+.intro-grid {
+  gap: 10px;
+}
+
+.intro-grid .pad {
+  min-height: 74px;
+  border-radius: 20px;
+}
+
+.intro-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.intro-steps li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 6px;
+  border-radius: 16px;
+  background: var(--card-bg);
+  box-shadow: var(--shadow-sm);
+  font-size: 12.5px;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.25;
+}
+
+.intro-steps li span {
+  font-size: 22px;
+}
+
 /* First-visit welcome */
 .welcome-backdrop {
   position: fixed;
