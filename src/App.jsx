@@ -24,10 +24,12 @@ const COLORS = [
   { name: 'brown', hex: '#7A5238', text: '#FFFFFF', notes: ['G', 'C', 'E'] },
 ];
 
-// Used only until a player list has been saved on this device or in the
-// family's cloud account; after that the saved list is the source of truth.
-// A new visitor gets one generic player with a few colors, so the first
-// color test has real choices in it.
+// Players come from one of two lists. Signed in, it's the family account's
+// players (cached on the device under PROFILES_KEY, which is also where
+// players were kept before accounts were required to see them). Signed
+// out, it's this device's own guest players (GUEST_PROFILES_KEY), which
+// start as one generic player with a few colors so the first color test
+// has real choices in it. A family's players never show while signed out.
 const DEFAULT_PROFILES = [{ id: 'player-1', name: 'Player 1', colors: ['red', 'yellow', 'blue'] }];
 
 const SESSION_ROUNDS = 10;
@@ -35,6 +37,7 @@ const MELODY_SESSION_TAPS = 20;
 const PROGRESS_KEY = 'pitchpop-progress-v1';
 const SESSION_KEY = 'pitchpop-session-v1';
 const PROFILES_KEY = 'pitchpop-profiles-v1';
+const GUEST_PROFILES_KEY = 'pitchpop-guest-profiles-v1';
 const WELCOME_KEY = 'pitchpop-welcome-seen-v1';
 
 function shuffle(list) {
@@ -65,25 +68,30 @@ function buildOptions(correctName, colorNames) {
 // they land on the intro screen instead of straight in a quiz.
 function isFirstVisit() {
   try {
-    return localStorage.getItem(PROFILES_KEY) === null;
+    return localStorage.getItem(PROFILES_KEY) === null && localStorage.getItem(GUEST_PROFILES_KEY) === null;
   } catch {
     return false;
   }
 }
 
-function loadProfiles() {
+// null when that list was never saved on this device.
+function loadSavedProfiles(key) {
   try {
-    const saved = JSON.parse(localStorage.getItem(PROFILES_KEY));
+    const saved = JSON.parse(localStorage.getItem(key));
     if (Array.isArray(saved) && saved.length) return saved;
   } catch {
     /* ignore */
   }
-  return DEFAULT_PROFILES;
+  return null;
 }
 
-function saveProfiles(profiles) {
+function loadGuestProfiles() {
+  return loadSavedProfiles(GUEST_PROFILES_KEY) || DEFAULT_PROFILES;
+}
+
+function saveProfiles(profiles, owner) {
   try {
-    localStorage.setItem(PROFILES_KEY, JSON.stringify(profiles));
+    localStorage.setItem(owner === 'account' ? PROFILES_KEY : GUEST_PROFILES_KEY, JSON.stringify(profiles));
   } catch {
     /* ignore */
   }
@@ -241,7 +249,9 @@ export default function App() {
     firstVisitRef.current = isFirstVisit();
   }
 
-  const [profiles, setProfiles] = useState(loadProfiles);
+  const [profiles, setProfiles] = useState(loadGuestProfiles);
+  // Which list `profiles` currently is: 'guest' or 'account'.
+  const [profileOwner, setProfileOwner] = useState('guest');
   // Edits on the settings screen stay in this draft until "Save" is tapped.
   const [draftProfiles, setDraftProfiles] = useState(profiles);
   const [cloudUser, setCloudUser] = useState(null);
@@ -321,20 +331,42 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    saveProfiles(profiles);
-  }, [profiles]);
+    saveProfiles(profiles, profileOwner);
+  }, [profiles, profileOwner]);
 
-  // A signed-in family account's player list wins over this device's copy.
+  // Switches between the guest and account player lists. If whoever is
+  // playing isn't in the new list, start fresh with its first player.
+  function showProfiles(list, owner) {
+    setProfiles(list);
+    setDraftProfiles(list);
+    setProfileOwner(owner);
+    setProfile((current) => {
+      if (list.some((p) => p.id === current)) return current;
+      setLastActiveProfile(list[0].id);
+      setSessionQueue(buildQueue(list[0].colors, SESSION_ROUNDS));
+      setRoundIndex(0);
+      setOptions([]);
+      setRoundResults({});
+      setRoundOutcomes({});
+      setView((v) => (v.startsWith('play-') ? 'play-listen' : v));
+      return list[0].id;
+    });
+  }
+
+  // Signed in on load: show the family account's players (or the copy
+  // cached on this device if the account can't be reached right now).
   useEffect(() => {
     let cancelled = false;
     Promise.all([getUser(), loadCloudProfiles()])
       .then(([user, cloudProfiles]) => {
-        if (cancelled) return;
+        if (cancelled || !user) return;
         setCloudUser(user);
         if (cloudProfiles?.length) {
-          setProfiles(cloudProfiles);
-          setDraftProfiles(cloudProfiles);
+          showProfiles(cloudProfiles, 'account');
           setCloudConnected(true);
+        } else {
+          const cached = loadSavedProfiles(PROFILES_KEY);
+          if (cached) showProfiles(cached, 'account');
         }
       })
       .catch((err) => console.error('PitchPop is using local profile settings', err));
@@ -613,14 +645,15 @@ export default function App() {
     setCloudUser(user);
     if (!user) {
       setCloudConnected(false);
+      showProfiles(loadGuestProfiles(), 'guest');
       return;
     }
     const cloudProfiles = await loadCloudProfiles();
     if (!cloudProfiles) return;
-    // A brand-new family account starts from the players on this device.
-    const next = cloudProfiles.length ? cloudProfiles : profiles;
-    setProfiles(next);
-    setDraftProfiles(next);
+    // A brand-new family account starts from the players this device had
+    // for the family (from before sign-in was required), else its guests.
+    const next = cloudProfiles.length ? cloudProfiles : loadSavedProfiles(PROFILES_KEY) || profiles;
+    showProfiles(next, 'account');
     setCloudConnected(true);
     if (!cloudProfiles.length) next.forEach(saveCloudProfile);
   }
