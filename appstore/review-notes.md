@@ -20,15 +20,13 @@ Replace everything in `[brackets]` before sending.
      Information → **Sign-in required: on**, User name / Password.
      Only there: this repository is public, so never write the password in
      this file or anywhere else in the repo.
-2. **Check the voice's license.** Open
-   https://huggingface.co/rhasspy/piper-voices/blob/main/en/en_US/hfc_female/medium/MODEL_CARD
-   and copy the dataset license into the `[license from its MODEL_CARD]`
-   spot in section 6 below. If it says non-commercial, that's fine for a free
-   app with no ads; if you ever charge for PitchPop, switch to a voice whose
-   license allows commercial use.
-3. **Check account deletion works.** Deletion needs the database function in
-   `supabase/delete_my_account.sql`. If you haven't already, open Supabase →
-   SQL Editor → New query, paste that file, Run. Then create a *throwaway*
+2. **Voice license (done).** The voice's MODEL_CARD lists its dataset
+   (Hi-Fi-CAPTAIN, NICT) as CC BY-NC-SA 4.0: non-commercial, with credit.
+   Fine for a free app with no ads; it's credited in the Credits section of
+   `public/privacy.html`. If PitchPop is ever paid or shows ads, switch to a
+   voice whose license allows commercial use.
+3. **Check account deletion works.** The database function from
+   `supabase/delete_my_account.sql` is installed (run on 2026-09-28). Create a *throwaway*
    account in the app, go to Account → **Delete account**, and confirm it
    signs you out and the account can no longer sign in. If this fails, Apple
    will reject under 5.1.1(v).
@@ -92,9 +90,13 @@ no features or content differ by region.
 **6. Regulated industry / third-party material**
 PitchPop does not operate in a regulated industry and contains no protected
 third-party material. Bundled open-source components are used under their
-licenses: the Piper text-to-speech engine and ONNX Runtime (MIT), the Piper
-voice "en_US-hfc_female-medium" [license from its MODEL_CARD], and the
-Bravura music font's clef and note shapes (SIL Open Font License 1.1).
+licenses: the Piper text-to-speech engine and ONNX Runtime (MIT); the Piper voice
+"en_US-hfc_female-medium", trained on the Hi-Fi-CAPTAIN dataset by NICT and
+used under CC BY-NC-SA 4.0 in this free, non-commercial app, with credit in
+the Credits section of our privacy policy
+(https://marikalam.github.io/apps/pitchpop/privacy.html); the Fredoka and
+IBM Plex fonts and the Bravura music font's clef and note shapes (SIL Open
+Font License 1.1). The piano sounds are synthesized by the app itself.
 
 Thank you!
 Marika Lam
