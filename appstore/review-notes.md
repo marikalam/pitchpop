@@ -43,7 +43,8 @@ Attached is a screen recording made on a physical iPhone running
 [iOS version, from Settings → General → About]. It starts at launch and shows
 the typical flow: the intro screen, a full round of the chord-color game
 (listening, a correct and an incorrect answer), Explore, the NoteSpeller
-note-reading game on treble and bass clefs, player settings, and account
+note-reading game on treble and bass clefs, the Piano, Practice Mode, the
+Music Theory glossary, player settings, and account
 creation, sign-in, sign-out and in-app account deletion. PitchPop has no
 user-generated content shared with other users and no paid content or
 in-app purchases.
@@ -54,18 +55,26 @@ together with a parent or teacher, and for beginners of any age. Each chord
 has a color; the player listens to a chord and picks its color, and after
 every answer the app plays the chord's real notes and says the color. A
 second game, NoteSpeller, shows a note on a treble or bass staff, lets the
-player hear it, and asks them to name it. It turns early ear training and
-note reading, which usually needs a piano and a teacher, into a short daily
-game. A family can set up separate players, each learning their own set of
+player hear it, and asks them to name it (easy, medium and hard levels).
+Alongside the games there is a playable on-screen Piano, a Practice Mode
+with a practice timer and a repetition counter, and a Music Theory picture
+glossary of basic terms. It turns early ear training and note reading,
+which usually needs a piano and a teacher, into a short daily game. A family can set up separate players, each learning their own set of
 colors, and see a daily practice streak.
 
 **3. How to use the main features**
 No account is needed. On first launch, tap "Take the color test" on the
 intro screen to start playing.
 - Chord game: tap the rainbow to hear a chord, pick a color, then Next.
-- Explore and NoteSpeller: open the "Playing as" menu (top right) and choose
-  "Explore sounds" or "NoteSpeller". In NoteSpeller, choose Treble clef or
-  Bass clef, tap "Hear the note", then pick the letter.
+- Everything else is in the "Playing as" menu (top right), grouped into
+  Play, Learn and Practice.
+- Explore sounds: tap any color to hear its chord.
+- Piano: turn the phone sideways to play; the keyboard appears in landscape.
+- NoteSpeller: choose Treble or Bass clef and a level, tap "Hear the note",
+  then pick the letter.
+- Music Theory: a picture glossary; the buttons at the top filter by topic.
+- Practice Mode: Start practice / End practice timer, and a +1 counter with
+  Reset to 0.
 - Players & colors: "Playing as" menu → Players & colors.
 - Optional account (only syncs players and colors between devices): tap
   "Sign in" at the top right. Demo account:
@@ -117,7 +126,11 @@ captured.
    incorrectly, show the feedback, finish or go a few rounds.
 4. Open **Explore sounds** and tap a few colors.
 5. Open **NoteSpeller**: answer a note on **Treble clef**, tap **Hear the
-   note**, switch to **Bass clef**, answer another.
+   note**, switch to **Bass clef** and **Easy**, answer another.
+5b. Open **Piano**, turn the phone sideways, play a few keys, tap **Done**.
+5c. Open **Music Theory** and scroll a little; tap one topic button.
+5d. Open **Practice Mode**: Start practice, tap **+1** a few times, End
+    practice.
 6. Open **Players & colors**, show adding a player, then cancel.
 7. **Account flows:** Sign in → Create account with a throwaway email (show
    the "check your email" message), then sign in with the **demo account**,
