@@ -656,6 +656,17 @@ export default function App() {
     showProfiles(next, 'account');
     setCloudConnected(true);
     if (!cloudProfiles.length) next.forEach(saveCloudProfile);
+
+    // Signing in is the start of a play session: go straight to a fresh
+    // color test for the selected player (or the account's first player).
+    const player = next.find((p) => p.id === profile) || next[0];
+    setProfile(player.id);
+    setSessionQueue(buildQueue(player.colors, SESSION_ROUNDS));
+    setRoundIndex(0);
+    setOptions([]);
+    setRoundResults({});
+    setRoundOutcomes({});
+    setView('play-listen');
   }
 
   function addPlayer(rawName) {
