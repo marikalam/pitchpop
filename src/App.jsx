@@ -753,7 +753,11 @@ export default function App() {
             showBack
             onBack={closeTool}
           />
-          {view === 'practice' ? <PracticeMode /> : <MusicTheory />}
+          {view === 'practice' ? (
+            <PracticeMode profileId={currentProfile.id} profileName={currentProfile.name} />
+          ) : (
+            <MusicTheory />
+          )}
         </div>
       </div>
     );

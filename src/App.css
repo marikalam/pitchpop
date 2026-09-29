@@ -1831,9 +1831,33 @@ body {
 
 .practice-time {
   text-align: center;
-  font: 700 clamp(48px, 16vw, 64px) 'Fredoka', ui-rounded, system-ui, sans-serif;
+  font: 700 clamp(32px, 10vw, 40px) 'Fredoka', ui-rounded, system-ui, sans-serif;
   font-variant-numeric: tabular-nums;
   line-height: 1.1;
+}
+
+.practice-status {
+  margin: -6px 0 0;
+  text-align: center;
+  color: var(--ink-dim);
+  font-size: 13px;
+}
+
+.practice-live-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 4px;
+  border-radius: 50%;
+  background: var(--accent-green);
+  vertical-align: 1px;
+  animation: practice-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes practice-pulse {
+  50% {
+    opacity: 0.3;
+  }
 }
 
 .practice-time-paused {
@@ -1857,16 +1881,6 @@ body {
 
 .practice-actions > * {
   flex: 1;
-}
-
-.practice-label-input {
-  width: 100%;
-  padding: 11px 14px;
-  border: 1px solid #dfe3ee;
-  border-radius: 12px;
-  background: #f8f9fc;
-  color: var(--ink);
-  font: 500 15px 'IBM Plex Sans', sans-serif;
 }
 
 .practice-count {
@@ -1904,6 +1918,54 @@ body {
   background: none;
   color: var(--accent-red);
   font: 700 14px 'IBM Plex Sans', sans-serif;
+}
+
+.practice-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.practice-stat {
+  padding: 10px 6px;
+  border-radius: 14px;
+  background: #f6f7fb;
+  text-align: center;
+}
+
+.practice-stat-value {
+  font: 700 17px 'Fredoka', ui-rounded, system-ui, sans-serif;
+}
+
+.practice-stat-label {
+  margin-top: 2px;
+  color: var(--ink-dim);
+  font-size: 12px;
+}
+
+.practice-total {
+  margin: 0;
+  color: var(--ink-dim);
+  font-size: 13px;
+  text-align: center;
+}
+
+.practice-history {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.practice-history li {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 2px;
+  border-top: 1px solid #edf0f6;
+  font-size: 14px;
+}
+
+.practice-history li span:last-child {
+  font-weight: 700;
 }
 
 .practice-reset:disabled {
