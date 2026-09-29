@@ -159,15 +159,34 @@ export default function PracticeMode({ profileId, profileName }) {
       </section>
 
       <section className="practice-card" aria-label="Repetition counter">
-        <div className="practice-card-title">🔁 Counter</div>
-        <div className="practice-count" aria-live="polite">
-          {practice.count}
+        <div className="practice-card-title">🔁 Repetition counter</div>
+        <p className="practice-counter-desc">
+          Keep track of how many times you’ve played something, like 5 times through your scales. Tap the number
+          each time you finish one.
+        </p>
+        <div className="practice-counter">
+          <button
+            className="practice-step"
+            onClick={() => update({ count: Math.max(0, practice.count - 1) })}
+            disabled={practice.count === 0}
+            aria-label="Decrease count"
+          >
+            −
+          </button>
+          <button
+            className="practice-count"
+            onClick={() => update({ count: practice.count + 1 })}
+            aria-label={`Count ${practice.count}. Tap to add one.`}
+          >
+            <span aria-live="polite">{practice.count}</span>
+            <span className="practice-count-hint">tap to add 1</span>
+          </button>
+          <button className="practice-step" onClick={() => update({ count: practice.count + 1 })} aria-label="Increase count">
+            +
+          </button>
         </div>
-        <button className="practice-plus" onClick={() => update({ count: practice.count + 1 })}>
-          +1
-        </button>
         <button className="practice-reset" onClick={() => update({ count: 0 })} disabled={practice.count === 0}>
-          Reset to 0
+          ↺ Start over
         </button>
       </section>
 
