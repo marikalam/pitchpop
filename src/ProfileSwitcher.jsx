@@ -1,7 +1,30 @@
 import { useState } from 'react';
 import Avatar from './Avatar.jsx';
 
-export default function ProfileSwitcher({ profile, profiles, colors, onChange, onOpenSettings, onOpenExplore, onOpenNoteSpeller }) {
+// Everything besides the color game, grouped the way a family uses it:
+// things to play with, things to learn, and practice-time tools.
+const MENU_SECTIONS = [
+  {
+    title: 'Play',
+    items: [
+      { id: 'explore', icon: '🎵', label: 'Explore sounds' },
+      { id: 'piano', icon: '🎹', label: 'Piano' },
+    ],
+  },
+  {
+    title: 'Learn',
+    items: [
+      { id: 'notespeller', icon: '🎼', label: 'NoteSpeller' },
+      { id: 'theory', icon: '📖', label: 'Music Theory' },
+    ],
+  },
+  {
+    title: 'Practice',
+    items: [{ id: 'practice', icon: '⏱️', label: 'Practice Mode' }],
+  },
+];
+
+export default function ProfileSwitcher({ profile, profiles, colors, onChange, onOpenSettings, onOpenTool }) {
   const [open, setOpen] = useState(false);
   const current = profiles.find((p) => p.id === profile) || profiles[0];
 
@@ -36,33 +59,34 @@ export default function ProfileSwitcher({ profile, profiles, colors, onChange, o
               </span>
             </button>
           ))}
-          <button
-            className="profile-settings-item"
-            onClick={() => {
-              onOpenExplore();
-              setOpen(false);
-            }}
-          >
-            🎵 <span>Explore sounds</span>
-          </button>
-          <button
-            className="profile-settings-item"
-            onClick={() => {
-              onOpenNoteSpeller();
-              setOpen(false);
-            }}
-          >
-            🎼 <span>NoteSpeller</span>
-          </button>
-          <button
-            className="profile-settings-item"
-            onClick={() => {
-              onOpenSettings();
-              setOpen(false);
-            }}
-          >
-            ⚙️ <span>Players &amp; colors</span>
-          </button>
+          {MENU_SECTIONS.map((section) => (
+            <div key={section.title} className="profile-menu-section">
+              <div className="profile-menu-heading">{section.title}</div>
+              {section.items.map((item) => (
+                <button
+                  key={item.id}
+                  className="profile-settings-item"
+                  onClick={() => {
+                    onOpenTool(item.id);
+                    setOpen(false);
+                  }}
+                >
+                  {item.icon} <span>{item.label}</span>
+                </button>
+              ))}
+            </div>
+          ))}
+          <div className="profile-menu-section">
+            <button
+              className="profile-settings-item"
+              onClick={() => {
+                onOpenSettings();
+                setOpen(false);
+              }}
+            >
+              ⚙️ <span>Players &amp; colors</span>
+            </button>
+          </div>
         </div>
       )}
     </div>

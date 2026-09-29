@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { playCorrectChime, playWrongBuzz } from './piano.js';
 import { speakNoteName, speakResults } from './speech.js';
-import { LETTERS, buildNoteQueue } from './noteReading.js';
+import { LEVELS, buildNoteQueue, lettersFor } from './noteReading.js';
 import Staff from './Staff.jsx';
 
 // Note reading: a note is drawn on a treble or bass staff, the player
@@ -10,6 +10,7 @@ import Staff from './Staff.jsx';
 // its sound.
 const SESSION_ROUNDS = 10;
 const CLEF_KEY = 'pitchpop-notespeller-clef-v1';
+const LEVEL_KEY = 'pitchpop-notespeller-level-v1';
 const CLEF_MODES = [
   { id: 'treble', label: 'Treble clef' },
   { id: 'bass', label: 'Bass clef' },
@@ -23,6 +24,16 @@ function loadClefMode() {
     /* ignore */
   }
   return 'treble';
+}
+
+function loadLevel() {
+  try {
+    const saved = localStorage.getItem(LEVEL_KEY);
+    if (LEVELS.some((l) => l.id === saved)) return saved;
+  } catch {
+    /* ignore */
+  }
+  return 'medium';
 }
 
 function ProgressDots({ current, total }) {
@@ -45,7 +56,8 @@ function ProgressDots({ current, total }) {
 
 export default function NoteSpeller({ engine, onComplete }) {
   const [clefMode, setClefMode] = useState(loadClefMode);
-  const [queue, setQueue] = useState(() => buildNoteQueue(clefMode, SESSION_ROUNDS));
+  const [level, setLevel] = useState(loadLevel);
+  const [queue, setQueue] = useState(() => buildNoteQueue(clefMode, SESSION_ROUNDS, level));
   const [roundIndex, setRoundIndex] = useState(0);
   const [answered, setAnswered] = useState(null);
   const [correctCount, setCorrectCount] = useState(0);
@@ -59,8 +71,8 @@ export default function NoteSpeller({ engine, onComplete }) {
     queue.forEach((n) => engine.getPitchBuffer(n.letter, n.octave));
   }, [queue, engine]);
 
-  function restart(mode = clefMode) {
-    setQueue(buildNoteQueue(mode, SESSION_ROUNDS));
+  function restart(mode = clefMode, lvl = level) {
+    setQueue(buildNoteQueue(mode, SESSION_ROUNDS, lvl));
     setRoundIndex(0);
     setAnswered(null);
     setCorrectCount(0);
@@ -76,6 +88,17 @@ export default function NoteSpeller({ engine, onComplete }) {
       /* ignore */
     }
     restart(mode);
+  }
+
+  function chooseLevel(lvl) {
+    if (lvl === level) return;
+    setLevel(lvl);
+    try {
+      localStorage.setItem(LEVEL_KEY, lvl);
+    } catch {
+      /* ignore */
+    }
+    restart(clefMode, lvl);
   }
 
   async function sayAndPlay(note) {
@@ -108,19 +131,34 @@ export default function NoteSpeller({ engine, onComplete }) {
   }
 
   const clefPicker = (
-    <div className="clef-picker" role="radiogroup" aria-label="Clef">
-      {CLEF_MODES.map((m) => (
-        <button
-          key={m.id}
-          role="radio"
-          aria-checked={clefMode === m.id}
-          className={`clef-option${clefMode === m.id ? ' clef-option-active' : ''}`}
-          onClick={() => chooseClef(m.id)}
-        >
-          {m.label}
-        </button>
-      ))}
-    </div>
+    <>
+      <div className="clef-picker" role="radiogroup" aria-label="Clef">
+        {CLEF_MODES.map((m) => (
+          <button
+            key={m.id}
+            role="radio"
+            aria-checked={clefMode === m.id}
+            className={`clef-option${clefMode === m.id ? ' clef-option-active' : ''}`}
+            onClick={() => chooseClef(m.id)}
+          >
+            {m.label}
+          </button>
+        ))}
+      </div>
+      <div className="clef-picker level-picker" role="radiogroup" aria-label="Level">
+        {LEVELS.map((l) => (
+          <button
+            key={l.id}
+            role="radio"
+            aria-checked={level === l.id}
+            className={`clef-option${level === l.id ? ' clef-option-active' : ''}`}
+            onClick={() => chooseLevel(l.id)}
+          >
+            {l.label}
+          </button>
+        ))}
+      </div>
+    </>
   );
 
   if (done) {
@@ -154,7 +192,7 @@ export default function NoteSpeller({ engine, onComplete }) {
       </div>
 
       <div className="note-answer-grid">
-        {LETTERS.map((letter) => {
+        {lettersFor(clefMode, level).map((letter) => {
           let cls = 'notespeller-key';
           if (answered) {
             if (letter === target.letter) cls += ' notespeller-key-correct';

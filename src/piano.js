@@ -1,4 +1,6 @@
-const NOTE_SEMITONE = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+// Sharps are for the Piano screen's black keys; everything else uses the
+// seven natural letters.
+const NOTE_SEMITONE = { C: 0, 'C#': 1, D: 2, 'D#': 3, E: 4, F: 5, 'F#': 6, G: 7, 'G#': 8, A: 9, 'A#': 10, B: 11 };
 const SAMPLE_RATE = 44100;
 
 function freq(note, octave) {
@@ -123,13 +125,15 @@ async function renderChordBuffer(notes) {
   return offline.startRendering();
 }
 
-// Same voicing/instrument as the real chord, but one note at a time - for
-// pairing a spoken note name with its actual pitch (e.g. "B" said, then the
-// real B note rings) instead of just naming letters with no pitch at all.
+// Same voicing/instrument as the real chord, broken up and then put back
+// together: each note on its own in quick succession (C, E, G), then all of
+// them at once, so the player hears how the separate notes make the chord.
 async function renderNoteSequenceBuffer(notes) {
-  const interval = 0.6;
+  const interval = 0.3;
   const noteDuration = 0.9;
-  const duration = 0.1 + (notes.length - 1) * interval + noteDuration + 1.2;
+  const chordStart = 0.1 + notes.length * interval + 0.15;
+  const chordDuration = 1.6;
+  const duration = chordStart + chordDuration + 1.2;
   const OfflineCtx = window.OfflineAudioContext || window.webkitOfflineAudioContext;
   const offline = new OfflineCtx(2, Math.ceil(SAMPLE_RATE * duration), SAMPLE_RATE);
 
@@ -150,8 +154,12 @@ async function renderNoteSequenceBuffer(notes) {
 
   const noiseBuffer = buildNoiseBuffer(offline, 0.08);
 
-  buildVoicing(notes).forEach(({ note, octave }, i) => {
+  const voicing = buildVoicing(notes);
+  voicing.forEach(({ note, octave }, i) => {
     scheduleNote(offline, compressor, reverbSend, noiseBuffer, 0.1 + i * interval, freq(note, octave), noteDuration);
+  });
+  voicing.forEach(({ note, octave }) => {
+    scheduleNote(offline, compressor, reverbSend, noiseBuffer, chordStart, freq(note, octave), chordDuration);
   });
 
   return offline.startRendering();

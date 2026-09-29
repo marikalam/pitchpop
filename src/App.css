@@ -1061,6 +1061,35 @@ body {
   width: 100%;
 }
 
+/* Menu groups (Play / Learn / Practice): one divider per group instead of
+   one per item. The menu scrolls if a family has many players. */
+.profile-menu {
+  max-height: min(72vh, 560px);
+  overflow-y: auto;
+}
+
+.profile-menu-section {
+  display: flex;
+  flex-direction: column;
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px solid #edf0f6;
+}
+
+.profile-menu-heading {
+  padding: 4px 10px 0;
+  color: var(--ink-dim);
+  font: 700 10.5px 'IBM Plex Sans', sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.profile-menu-section .profile-settings-item {
+  border-top: none;
+  margin-top: 0;
+  padding: 8px 10px;
+}
+
 .profile-settings-item {
   appearance: none;
   border: none;
@@ -1596,4 +1625,366 @@ body {
   color: var(--ink-dim);
   font: 600 13px 'IBM Plex Sans', sans-serif;
   text-decoration: underline;
+}
+
+/* NoteSpeller's level choice sits right under the clef choice, a size
+   smaller so the clef stays the main choice. */
+.level-picker {
+  margin-top: -10px;
+}
+
+.level-picker .clef-option {
+  padding: 6px 14px;
+  font-size: 13px;
+}
+
+/* ---------- Piano (full screen, landscape) ---------- */
+.piano-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: #1f2233;
+  padding: max(8px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right))
+    max(8px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.piano-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.piano-done,
+.piano-tool-btn {
+  appearance: none;
+  border: none;
+  cursor: pointer;
+  border-radius: 999px;
+  padding: 7px 14px;
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+  font: 700 13px 'IBM Plex Sans', sans-serif;
+}
+
+.piano-tool-btn:disabled {
+  opacity: 0.35;
+}
+
+.piano-octave {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.piano-range {
+  min-width: 72px;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.8);
+  font: 600 13px 'IBM Plex Mono', monospace;
+}
+
+.piano-keys {
+  position: relative;
+  flex: 1;
+  display: flex;
+  min-height: 0;
+  touch-action: none;
+}
+
+.piano-white {
+  appearance: none;
+  flex: 1;
+  margin: 0 1px;
+  border: none;
+  border-radius: 0 0 10px 10px;
+  background: linear-gradient(#ffffff 80%, #eef0f6);
+  box-shadow: inset 0 -6px 0 #d8dce8;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 12px;
+  cursor: pointer;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.piano-black {
+  appearance: none;
+  position: absolute;
+  top: 0;
+  height: 60%;
+  transform: translateX(-50%);
+  border: none;
+  border-radius: 0 0 7px 7px;
+  background: linear-gradient(#3a3d4d, #171a2b);
+  box-shadow: inset 0 -5px 0 #000000;
+  z-index: 1;
+  cursor: pointer;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.piano-white.piano-key-down {
+  background: #dfe8ff;
+  box-shadow: inset 0 -2px 0 #b9c7ee;
+}
+
+.piano-black.piano-key-down {
+  background: #3b6fef;
+  box-shadow: inset 0 -2px 0 #1f3f94;
+}
+
+.piano-label {
+  color: var(--ink-dim);
+  font: 700 15px 'Fredoka', ui-rounded, system-ui, sans-serif;
+  pointer-events: none;
+}
+
+.piano-label sub {
+  font-size: 10px;
+}
+
+.piano-rotate {
+  background: var(--bg);
+  align-items: flex-start;
+}
+
+.piano-rotate .piano-done {
+  background: var(--card-bg);
+  color: var(--ink-dim);
+  box-shadow: var(--shadow-sm);
+}
+
+.piano-rotate-body {
+  flex: 1;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 0 24px;
+  text-align: center;
+}
+
+.piano-rotate-phone {
+  font-size: 64px;
+  animation: piano-turn 2.4s ease-in-out infinite;
+}
+
+@keyframes piano-turn {
+  0%,
+  30% {
+    transform: rotate(0deg);
+  }
+  60%,
+  100% {
+    transform: rotate(-90deg);
+  }
+}
+
+/* ---------- Practice Mode ---------- */
+.practice-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px;
+  border-radius: 22px;
+  background: var(--card-bg);
+  box-shadow: var(--shadow);
+}
+
+.practice-card-title {
+  font: 700 15px 'IBM Plex Sans', sans-serif;
+  color: var(--ink-dim);
+}
+
+.practice-time {
+  text-align: center;
+  font: 700 clamp(48px, 16vw, 64px) 'Fredoka', ui-rounded, system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.practice-time-paused {
+  color: var(--ink-dim);
+}
+
+.practice-time-done {
+  color: var(--accent-green);
+}
+
+.practice-summary {
+  margin: 0;
+  text-align: center;
+  color: var(--ink-dim);
+}
+
+.practice-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.practice-actions > * {
+  flex: 1;
+}
+
+.practice-label-input {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1px solid #dfe3ee;
+  border-radius: 12px;
+  background: #f8f9fc;
+  color: var(--ink);
+  font: 500 15px 'IBM Plex Sans', sans-serif;
+}
+
+.practice-count {
+  text-align: center;
+  font: 700 clamp(64px, 24vw, 96px) 'Fredoka', ui-rounded, system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  color: var(--accent-blue);
+}
+
+.practice-plus {
+  appearance: none;
+  border: none;
+  cursor: pointer;
+  min-height: 84px;
+  border-radius: 20px;
+  background: var(--accent-blue);
+  color: #ffffff;
+  font: 700 34px 'Fredoka', ui-rounded, system-ui, sans-serif;
+  box-shadow: var(--shadow);
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.06s ease;
+}
+
+.practice-plus:active {
+  transform: scale(0.97);
+}
+
+.practice-reset {
+  appearance: none;
+  border: none;
+  cursor: pointer;
+  align-self: center;
+  padding: 6px 12px;
+  background: none;
+  color: var(--accent-red);
+  font: 700 14px 'IBM Plex Sans', sans-serif;
+}
+
+.practice-reset:disabled {
+  color: var(--ink-dim);
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* ---------- Music Theory glossary ---------- */
+.theory-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+
+.theory-chip {
+  appearance: none;
+  border: none;
+  cursor: pointer;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: var(--card-bg);
+  box-shadow: var(--shadow-sm);
+  color: var(--ink-dim);
+  font: 700 13px 'IBM Plex Sans', sans-serif;
+}
+
+.theory-chip-active {
+  background: var(--accent-blue);
+  color: #ffffff;
+}
+
+.theory-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.theory-section-title {
+  margin: 4px 0 0;
+  font: 700 18px 'Fredoka', ui-rounded, system-ui, sans-serif;
+}
+
+.theory-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px;
+  border-radius: 18px;
+  background: var(--card-bg);
+  box-shadow: var(--shadow-sm);
+}
+
+.theory-picture-box {
+  flex: none;
+  width: 112px;
+  height: 88px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: #f6f7fb;
+}
+
+.theory-picture {
+  width: 100px;
+  height: 76px;
+}
+
+.theory-staff-line {
+  stroke: #8a90a8;
+  stroke-width: 1.3;
+}
+
+.theory-glyph {
+  fill: var(--ink);
+}
+
+.theory-stroke {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.theory-text {
+  min-width: 0;
+}
+
+.theory-term {
+  margin: 0 0 2px;
+  font: 700 16px 'IBM Plex Sans', sans-serif;
+}
+
+.theory-also {
+  color: var(--ink-dim);
+  font-weight: 500;
+  font-size: 13px;
+}
+
+.theory-desc {
+  margin: 0;
+  color: var(--ink-dim);
+  font-size: 14px;
+  line-height: 1.4;
 }

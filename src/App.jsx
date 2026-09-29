@@ -5,6 +5,9 @@ import Rainbow from './Rainbow.jsx';
 import ProfileSwitcher from './ProfileSwitcher.jsx';
 import { PlayerSettingsCard, AddPlayerForm, AccountButton, AccountScreen, SyncStatus } from './Settings.jsx';
 import NoteSpeller from './NoteSpeller.jsx';
+import Piano from './Piano.jsx';
+import PracticeMode from './PracticeMode.jsx';
+import MusicTheory from './MusicTheory.jsx';
 import { getUser, loadCloudProfiles, saveCloudProfile, deleteCloudProfile, onAuthEvent } from './cloud.js';
 import { PlayTriangleIcon, SpeakerIcon, CheckIcon, XIcon } from './icons.jsx';
 import { loadStreakDays, recordStreakDay, streakFor } from './streak.js';
@@ -125,8 +128,7 @@ function AppHeader({
   onChangeProfile,
   onOpenSettings,
   onOpenAccount,
-  onOpenExplore,
-  onOpenNoteSpeller,
+  onOpenTool,
   onBack,
   showBack,
   hideProfile = false,
@@ -171,8 +173,7 @@ function AppHeader({
             colors={COLORS}
             onChange={onChangeProfile}
             onOpenSettings={onOpenSettings}
-            onOpenExplore={onOpenExplore}
-            onOpenNoteSpeller={onOpenNoteSpeller}
+            onOpenTool={onOpenTool}
           />
         </div>
       ) : hideProfile ? null : (
@@ -182,8 +183,7 @@ function AppHeader({
           colors={COLORS}
           onChange={onChangeProfile}
           onOpenSettings={onOpenSettings}
-          onOpenExplore={onOpenExplore}
-          onOpenNoteSpeller={onOpenNoteSpeller}
+          onOpenTool={onOpenTool}
         />
       )}
     </>
@@ -280,6 +280,7 @@ export default function App() {
     return profileMismatch && savedView.startsWith('play-') ? 'play-listen' : savedView;
   });
   const [preExploreView, setPreExploreView] = useState('play-listen');
+  const [preToolView, setPreToolView] = useState('play-listen');
   const [sessionQueue, setSessionQueue] = useState(
     () => resumableSession.sessionQueue || buildQueue(profileColorNames, SESSION_ROUNDS),
   );
@@ -567,6 +568,22 @@ export default function App() {
     setView('notespeller');
   }
 
+  // Piano, Practice Mode and Music Theory are side trips like Explore:
+  // closing one goes back to wherever the player was (a quiz in progress
+  // included) instead of restarting the color game.
+  const TOOL_VIEWS = ['piano', 'practice', 'theory'];
+
+  function openTool(id) {
+    if (id === 'explore') return openExplore();
+    if (id === 'notespeller') return openNoteSpeller();
+    if (!TOOL_VIEWS.includes(view)) setPreToolView(view);
+    setView(id);
+  }
+
+  function closeTool() {
+    setView(TOOL_VIEWS.includes(preToolView) ? 'play-listen' : preToolView);
+  }
+
   function openSettings() {
     setDraftProfiles(profiles);
     setView('settings');
@@ -641,8 +658,7 @@ export default function App() {
             onOpenSettings={openSettings}
             user={cloudUser}
             onOpenAccount={openAccount}
-            onOpenExplore={openExplore}
-            onOpenNoteSpeller={openNoteSpeller}
+            onOpenTool={openTool}
             showBack
             onBack={goHome}
           />
@@ -672,8 +688,7 @@ export default function App() {
             onOpenSettings={openSettings}
             user={cloudUser}
             onOpenAccount={openAccount}
-            onOpenExplore={openExplore}
-            onOpenNoteSpeller={openNoteSpeller}
+            onOpenTool={openTool}
             showBack
             onBack={goHome}
           />
@@ -681,6 +696,31 @@ export default function App() {
             engine={engineRef.current}
             onComplete={() => setStreakDays(recordStreakDay(streakDays, profile))}
           />
+        </div>
+      </div>
+    );
+  }
+
+  if (view === 'piano') {
+    return <Piano engine={engineRef.current} onClose={closeTool} />;
+  }
+
+  if (view === 'practice' || view === 'theory') {
+    return (
+      <div className="page">
+        <div className="app">
+          <AppHeader
+            profile={profile}
+            profiles={profiles}
+            onChangeProfile={changeProfile}
+            onOpenSettings={openSettings}
+            user={cloudUser}
+            onOpenAccount={openAccount}
+            onOpenTool={openTool}
+            showBack
+            onBack={closeTool}
+          />
+          {view === 'practice' ? <PracticeMode /> : <MusicTheory />}
         </div>
       </div>
     );
@@ -697,8 +737,7 @@ export default function App() {
             onOpenSettings={openSettings}
             user={cloudUser}
             onOpenAccount={openAccount}
-            onOpenExplore={openExplore}
-            onOpenNoteSpeller={openNoteSpeller}
+            onOpenTool={openTool}
             showBack
             onBack={goHome}
           />
@@ -742,8 +781,7 @@ export default function App() {
             onOpenSettings={openSettings}
             user={cloudUser}
             onOpenAccount={openAccount}
-            onOpenExplore={openExplore}
-            onOpenNoteSpeller={openNoteSpeller}
+            onOpenTool={openTool}
             showBack
             onBack={() => changeProfile(lastProfile.id)}
           />
@@ -802,8 +840,7 @@ export default function App() {
               onOpenSettings={openSettings}
               user={cloudUser}
               onOpenAccount={openAccount}
-              onOpenExplore={openExplore}
-              onOpenNoteSpeller={openNoteSpeller}
+              onOpenTool={openTool}
               hideProfile
             />
             <div className="rainbow-slot">
@@ -858,8 +895,7 @@ export default function App() {
               onOpenSettings={openSettings}
               user={cloudUser}
               onOpenAccount={openAccount}
-              onOpenExplore={openExplore}
-              onOpenNoteSpeller={openNoteSpeller}
+              onOpenTool={openTool}
               showBack
               onBack={closeExplore}
             />
@@ -894,8 +930,7 @@ export default function App() {
               onOpenSettings={openSettings}
               user={cloudUser}
               onOpenAccount={openAccount}
-              onOpenExplore={openExplore}
-              onOpenNoteSpeller={openNoteSpeller}
+              onOpenTool={openTool}
               showBack
               onBack={goHome}
             />
@@ -922,8 +957,7 @@ export default function App() {
               onOpenSettings={openSettings}
               user={cloudUser}
               onOpenAccount={openAccount}
-              onOpenExplore={openExplore}
-              onOpenNoteSpeller={openNoteSpeller}
+              onOpenTool={openTool}
               showBack
               onBack={goHome}
             />
@@ -951,8 +985,7 @@ export default function App() {
               onOpenSettings={openSettings}
               user={cloudUser}
               onOpenAccount={openAccount}
-              onOpenExplore={openExplore}
-              onOpenNoteSpeller={openNoteSpeller}
+              onOpenTool={openTool}
               showBack
               onBack={goHome}
             />
@@ -988,8 +1021,7 @@ export default function App() {
               onOpenSettings={openSettings}
               user={cloudUser}
               onOpenAccount={openAccount}
-              onOpenExplore={openExplore}
-              onOpenNoteSpeller={openNoteSpeller}
+              onOpenTool={openTool}
               showBack
               onBack={goHome}
             />
@@ -1043,8 +1075,7 @@ export default function App() {
               onOpenSettings={openSettings}
               user={cloudUser}
               onOpenAccount={openAccount}
-              onOpenExplore={openExplore}
-              onOpenNoteSpeller={openNoteSpeller}
+              onOpenTool={openTool}
               showBack
               onBack={goHome}
             />

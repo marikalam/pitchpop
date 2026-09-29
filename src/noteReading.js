@@ -11,15 +11,31 @@ function fromStep(s) {
   return { letter: LETTERS[((s % 7) + 7) % 7], octave: Math.floor(s / 7) };
 }
 
-// Each clef covers its five lines plus one ledger line above and below:
-// treble from middle C (C4) to A5, bass from E2 up to middle C (C4).
 export const CLEFS = {
-  treble: { label: 'Treble', bottomLine: step('E', 4), low: step('C', 4), high: step('A', 5) },
-  bass: { label: 'Bass', bottomLine: step('G', 2), low: step('E', 2), high: step('C', 4) },
+  treble: { label: 'Treble', bottomLine: step('E', 4) },
+  bass: { label: 'Bass', bottomLine: step('G', 2) },
 };
 
-export function notesFor(clef) {
-  const { low, high } = CLEFS[clef];
+// Which notes each level quizzes, per clef:
+// - easy: the five notes of middle C position (treble C4-G4, bass F3-C4),
+//   the first ones piano beginners read;
+// - medium: the five lines plus one ledger line above and below (treble
+//   middle C to A5, bass E2 to middle C) - NoteSpeller's original range;
+// - hard: two ledger lines above and below (treble A3-C6, bass C2-E4).
+export const LEVELS = [
+  { id: 'easy', label: 'Easy' },
+  { id: 'medium', label: 'Medium' },
+  { id: 'hard', label: 'Hard' },
+];
+
+const RANGES = {
+  easy: { treble: [step('C', 4), step('G', 4)], bass: [step('F', 3), step('C', 4)] },
+  medium: { treble: [step('C', 4), step('A', 5)], bass: [step('E', 2), step('C', 4)] },
+  hard: { treble: [step('A', 3), step('C', 6)], bass: [step('C', 2), step('E', 4)] },
+};
+
+export function notesFor(clef, level = 'medium') {
+  const [low, high] = RANGES[level][clef];
   const notes = [];
   for (let s = low; s <= high; s++) notes.push({ clef, ...fromStep(s) });
   return notes;
@@ -50,11 +66,18 @@ function shuffle(list) {
 
 const sameNote = (a, b) => a && b && a.clef === b.clef && a.letter === b.letter && a.octave === b.octave;
 
+// The answer buttons for a level: easy only offers the letters it can ask,
+// so beginners pick from five instead of seven.
+export function lettersFor(clef, level = 'medium') {
+  const inPool = new Set(notesFor(clef, level).map((n) => n.letter));
+  return LETTERS.filter((l) => inPool.has(l));
+}
+
 // clef: 'treble' or 'bass'. Works through shuffled passes of the whole
 // pool so every note comes up before any repeats, and never shows the
 // same note twice in a row.
-export function buildNoteQueue(clef, total) {
-  const pool = notesFor(clef);
+export function buildNoteQueue(clef, total, level = 'medium') {
+  const pool = notesFor(clef, level);
   const queue = [];
   while (queue.length < total) {
     let pass = shuffle(pool);

@@ -2,12 +2,12 @@ import { F_CLEF, G_CLEF, GLYPH_UNITS_PER_SPACE, WHOLE_NOTE } from './musicGlyphs
 import { ledgerLines, staffPosition } from './noteReading.js';
 
 // Drawing units: one staff space is SPACE wide/tall. The bottom line sits
-// low enough to leave room for the treble clef's top and a ledger note
-// above the staff.
+// low enough to leave room for the treble clef's top and two ledger lines
+// above the staff; HEIGHT leaves room for two ledger lines below it.
 const SPACE = 20;
 const BOTTOM = 7 * SPACE;
 const WIDTH = 13 * SPACE;
-const HEIGHT = BOTTOM + 2.4 * SPACE;
+const HEIGHT = BOTTOM + 3 * SPACE;
 const GLYPH_SCALE = SPACE / GLYPH_UNITS_PER_SPACE;
 const NOTE_X = 8.6 * SPACE;
 const NOTE_WIDTH = WHOLE_NOTE.width * GLYPH_SCALE;
