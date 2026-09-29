@@ -481,32 +481,6 @@ body {
   transform: scale(0.97);
 }
 
-.clef-picker {
-  align-self: center;
-  display: flex;
-  gap: 4px;
-  padding: 4px;
-  background: var(--card-bg);
-  border-radius: 999px;
-  box-shadow: var(--shadow-sm);
-}
-
-.clef-option {
-  appearance: none;
-  border: none;
-  cursor: pointer;
-  background: none;
-  color: var(--ink-dim);
-  font: 700 14px 'IBM Plex Sans', sans-serif;
-  padding: 8px 18px;
-  border-radius: 999px;
-}
-
-.clef-option-active {
-  background: var(--accent-blue);
-  color: #ffffff;
-}
-
 .staff-card {
   background: var(--card-bg);
   border-radius: 22px;
@@ -1627,15 +1601,65 @@ body {
   text-decoration: underline;
 }
 
-/* NoteSpeller's level choice sits right under the clef choice, a size
-   smaller so the clef stays the main choice. */
-.level-picker {
-  margin-top: -10px;
+/* NoteSpeller settings card: labelled Clef and Level rows, each an
+   equal-width segmented control. */
+.ns-settings {
+  display: flex;
+  flex-direction: column;
+  padding: 6px 14px 10px;
+  border-radius: 18px;
+  background: var(--card-bg);
+  box-shadow: var(--shadow-sm);
 }
 
-.level-picker .clef-option {
-  padding: 6px 14px;
-  font-size: 13px;
+.ns-setting-row {
+  display: grid;
+  grid-template-columns: 52px 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+}
+
+.ns-setting-row + .ns-setting-row {
+  border-top: 1px solid #edf0f6;
+}
+
+.ns-setting-label {
+  color: var(--ink-dim);
+  font: 700 13px 'IBM Plex Sans', sans-serif;
+}
+
+.ns-segmented {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 12px;
+  background: #eef1f7;
+}
+
+.ns-segment {
+  appearance: none;
+  flex: 1;
+  border: none;
+  cursor: pointer;
+  padding: 7px 6px;
+  border-radius: 9px;
+  background: none;
+  color: var(--ink-dim);
+  font: 700 14px 'IBM Plex Sans', sans-serif;
+}
+
+.ns-segment-active {
+  background: var(--card-bg);
+  color: var(--accent-blue);
+  box-shadow: 0 1px 4px rgba(23, 26, 43, 0.14);
+}
+
+.ns-level-hint {
+  margin: 0;
+  padding-left: 62px;
+  color: var(--ink-dim);
+  font-size: 12.5px;
 }
 
 /* ---------- Piano (full screen, landscape) ---------- */

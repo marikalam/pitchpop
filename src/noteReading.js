@@ -23,9 +23,9 @@ export const CLEFS = {
 //   middle C to A5, bass E2 to middle C) - NoteSpeller's original range;
 // - hard: two ledger lines above and below (treble A3-C6, bass C2-E4).
 export const LEVELS = [
-  { id: 'easy', label: 'Easy' },
-  { id: 'medium', label: 'Medium' },
-  { id: 'hard', label: 'Hard' },
+  { id: 'easy', label: 'Easy', hint: '5 notes around middle C' },
+  { id: 'medium', label: 'Medium', hint: 'The whole staff, plus one ledger line' },
+  { id: 'hard', label: 'Hard', hint: 'Up to two ledger lines above and below' },
 ];
 
 const RANGES = {

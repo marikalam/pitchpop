@@ -130,35 +130,47 @@ export default function NoteSpeller({ engine, onComplete }) {
     setAnswered(null);
   }
 
+  // Clef and level on one small card, each on its own labelled row.
   const clefPicker = (
-    <>
-      <div className="clef-picker" role="radiogroup" aria-label="Clef">
-        {CLEF_MODES.map((m) => (
-          <button
-            key={m.id}
-            role="radio"
-            aria-checked={clefMode === m.id}
-            className={`clef-option${clefMode === m.id ? ' clef-option-active' : ''}`}
-            onClick={() => chooseClef(m.id)}
-          >
-            {m.label}
-          </button>
-        ))}
+    <div className="ns-settings">
+      <div className="ns-setting-row">
+        <span className="ns-setting-label" id="ns-clef-label">
+          Clef
+        </span>
+        <div className="ns-segmented" role="radiogroup" aria-labelledby="ns-clef-label">
+          {CLEF_MODES.map((m) => (
+            <button
+              key={m.id}
+              role="radio"
+              aria-checked={clefMode === m.id}
+              className={`ns-segment${clefMode === m.id ? ' ns-segment-active' : ''}`}
+              onClick={() => chooseClef(m.id)}
+            >
+              {m.label}
+            </button>
+          ))}
+        </div>
       </div>
-      <div className="clef-picker level-picker" role="radiogroup" aria-label="Level">
-        {LEVELS.map((l) => (
-          <button
-            key={l.id}
-            role="radio"
-            aria-checked={level === l.id}
-            className={`clef-option${level === l.id ? ' clef-option-active' : ''}`}
-            onClick={() => chooseLevel(l.id)}
-          >
-            {l.label}
-          </button>
-        ))}
+      <div className="ns-setting-row">
+        <span className="ns-setting-label" id="ns-level-label">
+          Level
+        </span>
+        <div className="ns-segmented" role="radiogroup" aria-labelledby="ns-level-label">
+          {LEVELS.map((l) => (
+            <button
+              key={l.id}
+              role="radio"
+              aria-checked={level === l.id}
+              className={`ns-segment${level === l.id ? ' ns-segment-active' : ''}`}
+              onClick={() => chooseLevel(l.id)}
+            >
+              {l.label}
+            </button>
+          ))}
+        </div>
       </div>
-    </>
+      <p className="ns-level-hint">{LEVELS.find((l) => l.id === level).hint}</p>
+    </div>
   );
 
   if (done) {
