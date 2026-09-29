@@ -31,6 +31,11 @@ const COLORS = [
 // start as one generic player with a few colors so the first color test
 // has real choices in it. A family's players never show while signed out.
 const DEFAULT_PROFILES = [{ id: 'player-1', name: 'Player 1', colors: ['red', 'yellow', 'blue'] }];
+// Older versions shipped with these built-in players, and devices that ran
+// them still have them saved under PROFILES_KEY. They're sample players,
+// not the family's, so they never carry over into a new account. (Players
+// someone added themselves get a timestamped id, so a real "Maddie" stays.)
+const OLD_SAMPLE_PROFILE_IDS = new Set(['maddie', 'marcus', 'melody']);
 
 const SESSION_ROUNDS = 10;
 const MELODY_SESSION_TAPS = 20;
@@ -85,6 +90,13 @@ function loadSavedProfiles(key) {
   return null;
 }
 
+// The players this device kept for the family before accounts, minus the
+// old built-in sample players; null if that leaves none.
+function loadPreAccountProfiles() {
+  const kept = (loadSavedProfiles(PROFILES_KEY) || []).filter((p) => !OLD_SAMPLE_PROFILE_IDS.has(p.id));
+  return kept.length ? kept : null;
+}
+
 function loadGuestProfiles() {
   return loadSavedProfiles(GUEST_PROFILES_KEY) || DEFAULT_PROFILES;
 }
@@ -95,6 +107,12 @@ function saveProfiles(profiles, owner) {
   } catch {
     /* ignore */
   }
+}
+
+// `list` followed by any guest players it doesn't already have.
+function withGuests(list, guests) {
+  const ids = new Set(list.map((p) => p.id));
+  return [...list, ...guests.filter((p) => !ids.has(p.id))];
 }
 
 function loadProgress() {
@@ -365,7 +383,7 @@ export default function App() {
           showProfiles(cloudProfiles, 'account');
           setCloudConnected(true);
         } else {
-          const cached = loadSavedProfiles(PROFILES_KEY);
+          const cached = loadPreAccountProfiles();
           if (cached) showProfiles(cached, 'account');
         }
       })
@@ -637,8 +655,16 @@ export default function App() {
       draftProfiles.forEach(saveCloudProfile);
       profiles.filter((p) => !keptIds.has(p.id)).forEach((p) => deleteCloudProfile(p.id));
     }
-    if (!keptIds.has(profile)) setProfile(draftProfiles[0].id);
-    setView('home');
+    // Back to a fresh color test, built from the saved colors of whoever
+    // is playing (their colors may just have changed).
+    const player = draftProfiles.find((p) => p.id === profile) || draftProfiles[0];
+    setProfile(player.id);
+    setSessionQueue(buildQueue(player.colors, SESSION_ROUNDS));
+    setRoundIndex(0);
+    setOptions([]);
+    setRoundResults({});
+    setRoundOutcomes({});
+    setView('play-listen');
   }
 
   async function handleSignedIn(user) {
@@ -650,9 +676,10 @@ export default function App() {
     }
     const cloudProfiles = await loadCloudProfiles();
     if (!cloudProfiles) return;
-    // A brand-new family account starts from the players this device had
-    // for the family (from before sign-in was required), else its guests.
-    const next = cloudProfiles.length ? cloudProfiles : loadSavedProfiles(PROFILES_KEY) || profiles;
+    // A brand-new family account starts from the players made on this
+    // device: any kept for the family from before sign-in was required,
+    // plus the guest players (e.g. one added just before signing up).
+    const next = cloudProfiles.length ? cloudProfiles : withGuests(loadPreAccountProfiles() || [], profiles);
     showProfiles(next, 'account');
     setCloudConnected(true);
     if (!cloudProfiles.length) next.forEach(saveCloudProfile);
