@@ -30,7 +30,12 @@ Replace everything in `[brackets]` before sending.
    account in the app, go to Account → **Delete account**, and confirm it
    signs you out and the account can no longer sign in. If this fails, Apple
    will reject under 5.1.1(v).
-4. **Record the screen** on your iPhone (see the checklist at the bottom).
+4. **Use the newest build.** On the version page, under **Build**, remove
+   the old build and choose the newest TestFlight build (1.0 (8) or later,
+   uploaded automatically by GitHub Actions) before resubmitting, so the
+   reviewer sees what this reply describes.
+5. **Record the screen** on your iPhone (see the checklist at the bottom)
+   using that same build from TestFlight.
 
 ---
 
@@ -42,10 +47,11 @@ Hello, and thank you for reviewing PitchPop.
 Attached is a screen recording made on a physical iPhone running
 [iOS version, from Settings → General → About]. It starts at launch and shows
 the typical flow: the intro screen, a full round of the chord-color game
-(listening, a correct and an incorrect answer), Explore, the NoteSpeller
-note-reading game on treble and bass clefs, the Piano, Practice Mode, the
-Music Theory glossary, player settings, and account
-creation, sign-in, sign-out and in-app account deletion. PitchPop has no
+(listening, a correct and an incorrect answer), Explore, the Piano, Practice
+Mode (timer, metronome, repetition counter and practice tokens), then, signed
+in, the NoteSpeller note-reading game on treble and bass clefs, the Music
+Theory glossary, player settings, and account creation, sign-in, sign-out and
+in-app account deletion. PitchPop has no
 user-generated content shared with other users and no paid content or
 in-app purchases.
 
@@ -57,31 +63,39 @@ every answer the app plays the chord's real notes and says the color. A
 second game, NoteSpeller, shows a note on a treble or bass staff, lets the
 player hear it, and asks them to name it (easy, medium and hard levels).
 Alongside the games there is a playable on-screen Piano, a Practice Mode
-with a practice timer and a repetition counter, and a Music Theory picture
-glossary of basic terms. It turns early ear training and note reading,
+for real-instrument practice (a practice timer, a metronome, a repetition
+counter, and tokens the child collects for every 5 minutes practised), and a
+Music Theory picture glossary of basic terms. It turns early ear training and note reading,
 which usually needs a piano and a teacher, into a short daily game. A family can set up separate players, each learning their own set of
 colors, and see a daily practice streak.
 
 **3. How to use the main features**
-No account is needed. On first launch, tap "Take the color test" on the
-intro screen to start playing.
+No account is needed to play. On first launch, tap "Take the color test" on
+the intro screen to start playing.
+- Menu: the ☰ button at the top left opens every part of the app, grouped
+  into Play, Learn and Practice. "Color test" in that menu always returns
+  to the chord game.
 - Chord game: tap the rainbow to hear a chord, pick a color, then Next.
-- Everything else is in the "Playing as" menu (top right), grouped into
-  Play, Learn and Practice.
 - Explore sounds: tap any color to hear its chord.
 - Piano: turn the phone sideways to play; the keyboard appears in landscape.
-- NoteSpeller: choose Treble or Bass clef and a level, tap "Hear the note",
-  then pick the letter.
-- Music Theory: a picture glossary; the buttons at the top filter by topic.
-- Practice Mode: Start practice / End practice timer, and a +1 counter with
-  Reset to 0.
-- Players & colors: "Playing as" menu → Players & colors.
-- Optional account (only syncs players and colors between devices): tap
-  "Sign in" at the top right. Demo account:
-  the demo account's email and password are in the Sign-In Information
-  fields of this submission.
-  Please feel free to create your own account as well. Account deletion is at
-  Account (the circle at top right) → Delete account.
+  Tap Done to return.
+- Practice Mode: Start practice / End practice timer (practices of 5 minutes
+  or more are saved and earn one token per 5 minutes); a metronome (Start,
+  − / + or the slider for tempo); and a repetition counter (tap the number
+  to count, − / + to adjust, Start over to reset).
+- "Playing as" (top right) switches between the family's players.
+- Signed in, the menu also shows Learn, and "Playing as" also shows
+  Players & colors:
+  - NoteSpeller: choose Treble or Bass clef and a level, tap "Hear", then
+    pick the letter.
+  - Music Theory: a picture glossary; the buttons at the top filter by topic.
+  - Players & colors: add players and choose the colors each one learns.
+- Account: tap "Sign in" at the top right. Please use the demo account
+  whose email and password are in the Sign-In Information fields of this
+  submission, or create your own (a confirmation email is sent). The
+  account syncs the family's players and colors between devices. Account
+  deletion is at Account (the circle at the top right) → Delete account; it
+  deletes the account and its players.
 
 **4. External services**
 - Supabase (supabase.com): email/password sign-in and storage of each
@@ -125,16 +139,17 @@ captured.
 3. Play the **chord game**: tap the rainbow, answer one correctly and one
    incorrectly, show the feedback, finish or go a few rounds.
 4. Open **Explore sounds** and tap a few colors.
-5. Open **NoteSpeller**: answer a note on **Treble clef**, tap **Hear the
-   note**, switch to **Bass clef** and **Easy**, answer another.
-5b. Open **Piano**, turn the phone sideways, play a few keys, tap **Done**.
-5c. Open **Music Theory** and scroll a little; tap one topic button.
-5d. Open **Practice Mode**: Start practice, tap **+1** a few times, End
-    practice.
-6. Open **Players & colors**, show adding a player, then cancel.
+5. Open **Piano** (☰ menu), turn the phone sideways, play a few keys, tap
+   **Done**.
+6. Open **Practice Mode** (☰ menu): Start practice, start and stop the
+   **metronome**, tap the counter number a few times, End practice.
 7. **Account flows:** Sign in → Create account with a throwaway email (show
-   the "check your email" message), then sign in with the **demo account**,
-   show the Account screen, **Sign out**.
+   the "check your email" message), then sign in with the **demo account**.
+   Signed in, open **NoteSpeller** (☰ → Learn): answer a note on **Treble
+   clef**, tap **Hear**, switch to **Bass clef**, answer another. Open
+   **Music Theory** and tap a topic button. Open **Players & colors**
+   ("Playing as" menu), show adding a player, then Cancel. Show the Account
+   screen and **Sign out**.
 8. **Account deletion:** sign in with a throwaway account that's already
    confirmed, go to Account → **Delete account**, confirm, and show that
    you're signed out.
