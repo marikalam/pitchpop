@@ -2,6 +2,45 @@ import { useState } from 'react';
 import { deleteAccount, requestPasswordReset, signIn, signOut, signUp, updatePassword } from './cloud.js';
 import { firstDay, streakFor } from './streak.js';
 
+// A password input with an eye button that shows or hides what's typed.
+function PasswordField({ label, value, onChange, autoComplete, placeholder }) {
+  const [visible, setVisible] = useState(false);
+  return (
+    <label className="auth-field">
+      <span>{label}</span>
+      <span className="password-wrap">
+        <input
+          type={visible ? 'text' : 'password'}
+          autoComplete={autoComplete}
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          minLength={6}
+          required
+        />
+        <button
+          type="button"
+          className="password-toggle"
+          onClick={() => setVisible((v) => !v)}
+          aria-label={visible ? 'Hide password' : 'Show password'}
+          aria-pressed={visible}
+        >
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" />
+            <circle cx="12" cy="12" r="3" />
+            {visible && <path d="M4 4l16 16" />}
+          </svg>
+        </button>
+      </span>
+    </label>
+  );
+}
+
+const PASSWORDS_DIFFER = 'The two passwords don’t match. Please type them again.';
+
 function formatDay(key) {
   const [y, m, d] = key.split('-').map(Number);
   return new Date(y, m - 1, d).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
@@ -142,7 +181,9 @@ export function SyncStatus({ user, onOpenAccount }) {
 export function AccountScreen({ user, playerCount, onSignedIn, onOpenPlayers, onDone, recoveryMode, onPasswordUpdated }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
   const [mode, setMode] = useState('sign-in');
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
@@ -150,9 +191,13 @@ export function AccountScreen({ user, playerCount, onSignedIn, onOpenPlayers, on
 
   async function handleSubmit(e) {
     e.preventDefault();
-    setBusy(true);
     setError('');
     setNotice('');
+    if (mode === 'sign-up' && password !== confirmPassword) {
+      setError(PASSWORDS_DIFFER);
+      return;
+    }
+    setBusy(true);
     try {
       if (mode === 'reset-request') {
         await requestPasswordReset(email);
@@ -163,6 +208,7 @@ export function AccountScreen({ user, playerCount, onSignedIn, onOpenPlayers, on
       if (signedIn) {
         await onSignedIn(signedIn);
         setPassword('');
+        setConfirmPassword('');
       } else {
         setNotice(`We sent a confirmation link to ${email}. Open it, then sign in here.`);
         setMode('sign-in');
@@ -176,11 +222,16 @@ export function AccountScreen({ user, playerCount, onSignedIn, onOpenPlayers, on
 
   async function handleResetPassword(e) {
     e.preventDefault();
-    setBusy(true);
     setError('');
+    if (newPassword !== confirmNewPassword) {
+      setError(PASSWORDS_DIFFER);
+      return;
+    }
+    setBusy(true);
     try {
       await updatePassword(newPassword);
       setNewPassword('');
+      setConfirmNewPassword('');
       onPasswordUpdated();
       setNotice('Your password has been updated.');
     } catch (err) {
@@ -222,18 +273,20 @@ export function AccountScreen({ user, playerCount, onSignedIn, onOpenPlayers, on
           <h2 className="auth-title">Choose a new password</h2>
           <p className="auth-sub">Enter a new password for {user?.email || 'your account'}.</p>
           <form className="auth-form" onSubmit={handleResetPassword}>
-            <label className="auth-field">
-              <span>New password</span>
-              <input
-                type="password"
-                autoComplete="new-password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="At least 6 characters"
-                minLength={6}
-                required
-              />
-            </label>
+            <PasswordField
+              label="New password"
+              autoComplete="new-password"
+              value={newPassword}
+              onChange={setNewPassword}
+              placeholder="At least 6 characters"
+            />
+            <PasswordField
+              label="Confirm new password"
+              autoComplete="new-password"
+              value={confirmNewPassword}
+              onChange={setConfirmNewPassword}
+              placeholder="Type it again"
+            />
             {error && <div className="auth-error">{error}</div>}
             {notice && <div className="auth-notice">{notice}</div>}
             <button className="pill-btn-primary pill-btn-full" type="submit" disabled={busy}>
@@ -379,18 +432,22 @@ export function AccountScreen({ user, playerCount, onSignedIn, onOpenPlayers, on
               required
             />
           </label>
-          <label className="auth-field">
-            <span>Password</span>
-            <input
-              type="password"
-              autoComplete={mode === 'sign-in' ? 'current-password' : 'new-password'}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder={mode === 'sign-in' ? 'Your password' : 'At least 6 characters'}
-              minLength={6}
-              required
+          <PasswordField
+            label="Password"
+            autoComplete={mode === 'sign-in' ? 'current-password' : 'new-password'}
+            value={password}
+            onChange={setPassword}
+            placeholder={mode === 'sign-in' ? 'Your password' : 'At least 6 characters'}
+          />
+          {mode === 'sign-up' && (
+            <PasswordField
+              label="Confirm password"
+              autoComplete="new-password"
+              value={confirmPassword}
+              onChange={setConfirmPassword}
+              placeholder="Type it again"
             />
-          </label>
+          )}
           {mode === 'sign-in' && (
             <button
               type="button"

@@ -1471,6 +1471,40 @@ body {
   box-shadow: 0 0 0 3px rgba(59, 111, 239, 0.15);
 }
 
+.password-wrap {
+  position: relative;
+  display: flex;
+}
+
+.password-wrap input {
+  flex: 1;
+  min-width: 0;
+  padding-right: 52px;
+}
+
+.password-toggle {
+  appearance: none;
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 10px;
+  background: none;
+  color: var(--ink-dim);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.password-toggle[aria-pressed='true'] {
+  color: var(--accent-blue);
+}
+
 .auth-forgot-link {
   align-self: flex-end;
   background: none;
