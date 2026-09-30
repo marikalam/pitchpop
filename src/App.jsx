@@ -178,8 +178,19 @@ function AppHeader({
   return (
     <>
       <div className="brand-row">
-        {showBack ? (
-          <button className="logo-btn" onClick={onBack}>
+        <div className="brand-left">
+          <MainMenu signedIn={signedIn} onOpen={onOpenTool} />
+          {showBack ? (
+            <button className="logo-btn" onClick={onBack}>
+              <h1 className="logo">
+                <img className="logo-mark" src={`${import.meta.env.BASE_URL}icon-192.png`} alt="" />
+                <span className="ink">Pitch</span>
+                <span className="pop-blue">P</span>
+                <span className="pop-red">o</span>
+                <span className="pop-green">p</span>
+              </h1>
+            </button>
+          ) : (
             <h1 className="logo">
               <img className="logo-mark" src={`${import.meta.env.BASE_URL}icon-192.png`} alt="" />
               <span className="ink">Pitch</span>
@@ -187,18 +198,9 @@ function AppHeader({
               <span className="pop-red">o</span>
               <span className="pop-green">p</span>
             </h1>
-          </button>
-        ) : (
-          <h1 className="logo">
-            <img className="logo-mark" src={`${import.meta.env.BASE_URL}icon-192.png`} alt="" />
-            <span className="ink">Pitch</span>
-            <span className="pop-blue">P</span>
-            <span className="pop-red">o</span>
-            <span className="pop-green">p</span>
-          </h1>
-        )}
+          )}
+        </div>
         <div className="brand-actions">
-          <MainMenu signedIn={signedIn} onOpen={onOpenTool} />
           <AccountButton user={user} onClick={onOpenAccount} />
         </div>
       </div>

@@ -1305,8 +1305,16 @@ body {
   gap: 8px;
 }
 
-/* The ☰ menu next to Sign in: the rest of the app (color test, explore,
-   piano, learn, practice). It opens under the button, right-aligned. */
+/* The ☰ menu at the left of the header, before the logo: the rest of the
+   app (color test, explore, piano, learn, practice). It opens under the
+   button, left-aligned. */
+.brand-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
 .main-menu {
   position: relative;
 }
@@ -1332,8 +1340,8 @@ body {
 }
 
 .main-menu-panel {
-  left: auto;
-  right: 0;
+  left: 0;
+  right: auto;
   z-index: 10;
   min-width: 210px;
 }
