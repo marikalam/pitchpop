@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { playCorrectChime, playWrongBuzz } from './piano.js';
 import { speakNoteName, speakResults } from './speech.js';
+import { isCurrent, later, newSound } from './soundBus.js';
 import { LEVELS, buildNoteQueue, lettersFor } from './noteReading.js';
 import Staff from './Staff.jsx';
 
@@ -101,8 +102,11 @@ export default function NoteSpeller({ engine, onComplete }) {
     restart(clefMode, lvl);
   }
 
-  async function sayAndPlay(note) {
+  // Says the letter, then plays the note - unless another sound has started
+  // meanwhile (see soundBus.js).
+  async function sayAndPlay(note, soundId = newSound()) {
     await speakNoteName(note.letter);
+    if (!isCurrent(soundId)) return;
     engine.playPitch(note.letter, note.octave);
   }
 
@@ -110,16 +114,18 @@ export default function NoteSpeller({ engine, onComplete }) {
     if (answered) return;
     const correct = letter === target.letter;
     setAnswered({ picked: letter, correct });
+    const soundId = newSound();
     if (correct) {
       playCorrectChime();
       setCorrectCount((c) => c + 1);
     } else {
       playWrongBuzz();
     }
-    setTimeout(() => sayAndPlay(target), 350);
+    later(() => sayAndPlay(target, soundId), 350);
   }
 
   function next() {
+    newSound();
     if (roundIndex + 1 >= SESSION_ROUNDS) {
       setDone(true);
       speakResults(correctCount, SESSION_ROUNDS);
@@ -203,7 +209,10 @@ export default function NoteSpeller({ engine, onComplete }) {
         <Staff note={target} highlight={answered ? (answered.correct ? 'correct' : 'wrong') : null} />
         <button
           className="staff-play-btn ns-play-btn"
-          onClick={() => engine.playPitch(target.letter, target.octave)}
+          onClick={() => {
+            newSound();
+            engine.playPitch(target.letter, target.octave);
+          }}
           aria-label="Hear the note"
         >
           🔊 Hear

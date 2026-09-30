@@ -1,3 +1,5 @@
+import { playBuffer } from './soundBus.js';
+
 let audioCtx = null;
 
 function ensureAudio() {
@@ -148,31 +150,15 @@ export function prewarmVoices() {
   COLOR_NAMES.forEach((name) => loadClip(`color-${name}`).catch(() => {}));
 }
 
-let currentSource = null;
-
-// Resolves once playback actually finishes, so callers can chain something
-// after the spoken words end (e.g. playing the real notes right after the
-// color name, so "Blue" is followed by the actual B-D-G pitches instead of
-// spoken letters with no real connection to the chord's pitch).
+// Resolves once playback actually finishes (or is cut off by a newer
+// sound), so callers can chain something after the spoken words end (e.g.
+// playing the real notes right after the color name, so "Blue" is followed
+// by the actual B-D-G pitches instead of spoken letters with no real
+// connection to the chord's pitch).
 async function speakClip(name, fallbackText) {
   try {
     const buffer = await loadClip(name);
-    const ctx = ensureAudio();
-    if (currentSource) {
-      try {
-        currentSource.stop();
-      } catch {
-        /* already stopped */
-      }
-    }
-    const source = ctx.createBufferSource();
-    source.buffer = buffer;
-    source.connect(ctx.destination);
-    currentSource = source;
-    await new Promise((resolve) => {
-      source.onended = resolve;
-      source.start();
-    });
+    await playBuffer(ensureAudio(), buffer);
   } catch (err) {
     console.warn('Voice clip unavailable, using the built-in voice', err);
     await speakWithWebSpeechAPI(fallbackText);

@@ -1,3 +1,5 @@
+import { playBuffer, soundOutput } from './soundBus.js';
+
 // Sharps are for the Piano screen's black keys; everything else uses the
 // seven natural letters.
 const NOTE_SEMITONE = { C: 0, 'C#': 1, D: 2, 'D#': 3, E: 4, F: 5, 'F#': 6, G: 7, 'G#': 8, A: 9, 'A#': 10, B: 11 };
@@ -243,10 +245,7 @@ export class PianoEngine {
       }
     }
     const buffer = await this.getChordBuffer(notes);
-    const source = ctx.createBufferSource();
-    source.buffer = buffer;
-    source.connect(ctx.destination);
-    source.start();
+    playBuffer(ctx, buffer);
   }
 
   getNoteSequenceBuffer(notes) {
@@ -287,10 +286,7 @@ export class PianoEngine {
       }
     }
     const buffer = await this.getPitchBuffer(note, octave);
-    const source = ctx.createBufferSource();
-    source.buffer = buffer;
-    source.connect(ctx.destination);
-    source.start();
+    playBuffer(ctx, buffer);
   }
 
   async playNoteSequence(notes) {
@@ -303,10 +299,7 @@ export class PianoEngine {
       }
     }
     const buffer = await this.getNoteSequenceBuffer(notes);
-    const source = ctx.createBufferSource();
-    source.buffer = buffer;
-    source.connect(ctx.destination);
-    source.start();
+    playBuffer(ctx, buffer);
   }
 }
 
@@ -320,7 +313,7 @@ function ensureChimeAudio() {
   return chimeCtx;
 }
 
-function chimeTone(ctx, freqHz, startTime, duration, peak) {
+function chimeTone(ctx, out, freqHz, startTime, duration, peak) {
   const osc = ctx.createOscillator();
   osc.type = 'sine';
   osc.frequency.value = freqHz;
@@ -328,17 +321,20 @@ function chimeTone(ctx, freqHz, startTime, duration, peak) {
   gain.gain.setValueAtTime(0.0001, startTime);
   gain.gain.linearRampToValueAtTime(peak, startTime + 0.01);
   gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
-  osc.connect(gain).connect(ctx.destination);
+  osc.connect(gain).connect(out);
   osc.start(startTime);
   osc.stop(startTime + duration + 0.02);
+  return osc;
 }
 
 export function playCorrectChime() {
   const ctx = ensureChimeAudio();
   const now = ctx.currentTime + 0.01;
-  chimeTone(ctx, 523.25, now, 0.16, 0.18);
-  chimeTone(ctx, 659.25, now + 0.09, 0.22, 0.18);
-  chimeTone(ctx, 783.99, now + 0.18, 0.3, 0.18);
+  const oscs = [];
+  const out = soundOutput(ctx, oscs, now + 0.5);
+  oscs.push(chimeTone(ctx, out, 523.25, now, 0.16, 0.18));
+  oscs.push(chimeTone(ctx, out, 659.25, now + 0.09, 0.22, 0.18));
+  oscs.push(chimeTone(ctx, out, 783.99, now + 0.18, 0.3, 0.18));
 }
 
 export function playWrongBuzz() {
@@ -352,7 +348,7 @@ export function playWrongBuzz() {
   gain.gain.setValueAtTime(0.0001, now);
   gain.gain.linearRampToValueAtTime(0.1, now + 0.015);
   gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.3);
-  osc.connect(gain).connect(ctx.destination);
+  osc.connect(gain).connect(soundOutput(ctx, [osc], now + 0.32));
   osc.start(now);
   osc.stop(now + 0.32);
 }
