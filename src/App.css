@@ -1180,60 +1180,188 @@ body {
   padding-inline: 14px;
 }
 
-/* First-visit intro: what PitchPop is, with every color playable */
-.intro-cta {
-  flex: none;
-}
-
-.intro-title {
-  font-family: 'Fredoka', ui-rounded, system-ui, sans-serif;
-  font-weight: 700;
-  font-size: clamp(26px, 8vw, 32px);
-  text-align: center;
-  margin: -6px 0 0;
-  text-wrap: balance;
-}
-
-.intro-sub {
-  margin-top: -10px;
-  text-wrap: balance;
-}
-
-.intro-grid {
-  gap: 10px;
-}
-
-.intro-grid .pad {
-  min-height: 74px;
-  border-radius: 20px;
-}
-
-.intro-steps {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-}
-
-.intro-steps li {
+/* Home page: what PitchPop is and every part of the app, as big cards */
+.home-hero {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  padding: 10px 6px;
-  border-radius: 16px;
-  background: var(--card-bg);
-  box-shadow: var(--shadow-sm);
-  font-size: 12.5px;
-  font-weight: 600;
+  gap: 6px;
+  padding: 16px 18px 18px;
+  border-radius: 28px;
+  background: radial-gradient(120% 90% at 50% 0%, #fff7e8 0%, #fdeff7 45%, #eef3ff 100%);
+  box-shadow: var(--shadow);
   text-align: center;
-  line-height: 1.25;
+  overflow: hidden;
 }
 
-.intro-steps li span {
+.home-hero-rainbow .rainbow {
+  width: min(190px, 52vw);
+}
+
+/* Full-strength colors here (elsewhere unplayed bands are dimmed). */
+.home-hero-rainbow .rainbow-band {
+  opacity: 1;
+}
+
+.home-hello {
+  margin: 2px 0 0;
+  font: 700 clamp(24px, 7.5vw, 30px) 'Fredoka', ui-rounded, system-ui, sans-serif;
+  text-wrap: balance;
+}
+
+.home-tagline {
+  margin: 0;
+  max-width: 320px;
+  color: var(--ink-dim);
+  font-size: 14.5px;
+  line-height: 1.4;
+  text-wrap: balance;
+}
+
+.home-stats {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.home-stat {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: var(--shadow-sm);
+  font: 700 13px 'IBM Plex Sans', sans-serif;
+  color: var(--ink);
+}
+
+.home-cta {
+  appearance: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 16px 18px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, #e5484d 0%, #f5a524 30%, #2fb36c 62%, #3b6fef 100%);
+  color: #fff;
+  box-shadow: 0 14px 28px -14px rgba(59, 111, 239, 0.7);
+  text-align: left;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.08s ease;
+}
+
+.home-cta:active {
+  transform: scale(0.98);
+}
+
+.home-cta-icon {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.home-cta-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.home-cta-title {
+  font: 700 22px 'Fredoka', ui-rounded, system-ui, sans-serif;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
+}
+
+.home-cta-sub {
+  font: 600 13.5px 'IBM Plex Sans', sans-serif;
+  opacity: 0.95;
+}
+
+.home-cta-arrow {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.home-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.home-card {
+  appearance: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  min-height: 118px;
+  padding: 14px;
+  border-radius: 22px;
+  background: linear-gradient(145deg, var(--card-from), var(--card-to));
+  color: #fff;
+  box-shadow: 0 12px 22px -14px var(--card-to);
+  text-align: left;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.08s ease;
+}
+
+.home-card:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+  min-height: 0;
+}
+
+.home-card:active {
+  transform: scale(0.97);
+}
+
+.home-card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  margin-bottom: 4px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.25);
   font-size: 22px;
+}
+
+.home-card-title {
+  font: 700 17px 'Fredoka', ui-rounded, system-ui, sans-serif;
+  line-height: 1.15;
+}
+
+.home-card-sub {
+  font: 600 12.5px 'IBM Plex Sans', sans-serif;
+  line-height: 1.3;
+  opacity: 0.92;
+}
+
+.home-card-account {
+  --card-from: #ffffff;
+  --card-to: #ffffff;
+  color: var(--ink);
+  box-shadow: var(--shadow);
+}
+
+.home-card-account .home-card-icon {
+  background: #eef2fd;
+}
+
+.home-card-account .home-card-sub {
+  color: var(--ink-dim);
+  opacity: 1;
 }
 
 /* First-visit welcome */
@@ -1971,33 +2099,6 @@ body {
 }
 
 /* ---------- Practice Mode ---------- */
-.token-card {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 14px 18px;
-  border-radius: 22px;
-  background: linear-gradient(135deg, #fff6d6, #ffe9a8);
-  box-shadow: var(--shadow);
-}
-
-.token-coin {
-  font-size: 40px;
-  line-height: 1;
-}
-
-.token-count {
-  font: 700 26px 'Fredoka', ui-rounded, system-ui, sans-serif;
-  color: #6b4a00;
-  line-height: 1.1;
-}
-
-.token-hint {
-  margin-top: 2px;
-  font-size: 13px;
-  color: #8a6a1c;
-}
-
 .token-earned {
   align-self: center;
   display: flex;
@@ -2408,4 +2509,301 @@ body {
   color: var(--ink-dim);
   font-size: 14px;
   line-height: 1.4;
+}
+
+/* ---------- Practice Mode: one tool per tab, fits one screen ---------- */
+.practice-screen {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.practice-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.practice-title {
+  text-align: left;
+}
+
+.token-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #fff6d6, #ffe9a8);
+  color: #6b4a00;
+  font: 700 17px 'Fredoka', ui-rounded, system-ui, sans-serif;
+  box-shadow: var(--shadow-sm);
+}
+
+.practice-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  padding: 4px;
+  border-radius: 18px;
+  background: #e8ecf5;
+}
+
+.practice-tab {
+  appearance: none;
+  position: relative;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 2px 7px;
+  border-radius: 14px;
+  background: none;
+  color: var(--ink-dim);
+  font: 700 11.5px 'IBM Plex Sans', sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.practice-tab-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.practice-tab-active {
+  background: var(--card-bg);
+  color: var(--accent-blue);
+  box-shadow: 0 1px 5px rgba(23, 26, 43, 0.14);
+}
+
+.practice-tab-live {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-green);
+  animation: practice-pulse 1.4s ease-in-out infinite;
+}
+
+/* The open tool fills the rest of the screen, content centered; a long
+   history scrolls inside its card rather than the page. */
+.practice-screen .practice-card {
+  flex: 1;
+  min-height: 0;
+  justify-content: center;
+  overflow-y: auto;
+}
+
+.practice-screen .practice-card[hidden] {
+  display: none;
+}
+
+.practice-screen .practice-card-title {
+  text-align: center;
+}
+
+/* ---------- Home page and Explore fit one screen ---------- */
+.home-fit .home-hero {
+  flex: none;
+  justify-content: center;
+  padding: 10px 16px 14px;
+}
+
+.home-fit .home-hero-rainbow .rainbow {
+  width: auto;
+  height: clamp(44px, 11vh, 96px);
+}
+
+.home-fit .home-hello {
+  font-size: clamp(21px, 6.5vw, 28px);
+}
+
+.home-fit .home-tagline {
+  font-size: 13.5px;
+}
+
+.home-fit .home-cta {
+  flex: none;
+  padding: 12px 16px;
+}
+
+.home-fit .home-grid {
+  flex: 1 1 auto;
+  min-height: 0;
+  grid-auto-rows: 1fr;
+  gap: 10px;
+}
+
+.home-fit .home-card {
+  min-height: 0;
+  padding: 10px 12px;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.home-fit .home-card-icon {
+  width: 34px;
+  height: 34px;
+  font-size: 19px;
+  border-radius: 11px;
+  margin-bottom: 2px;
+}
+
+.home-fit .home-card-title {
+  font-size: 16px;
+}
+
+.home-fit .home-card-sub {
+  font-size: 12px;
+}
+
+.explore-fit .rainbow-slot {
+  flex: none;
+}
+
+.explore-fit .rainbow-slot .rainbow {
+  width: auto;
+  height: clamp(36px, 8vh, 80px);
+}
+
+.explore-fit .grid {
+  flex: 1;
+  min-height: 0;
+  grid-auto-rows: 1fr;
+  gap: 10px;
+}
+
+.explore-fit .pad {
+  min-height: 0;
+}
+
+/* Shorter screens (e.g. iPhone SE, or Safari with its toolbars): drop the
+   tagline and card subtitles, and lay cards out icon-left so their text
+   never gets cut off. */
+@media (max-height: 720px) {
+  .home-fit .home-tagline {
+    display: none;
+  }
+
+  .home-fit .home-hero {
+    gap: 4px;
+    padding: 8px 14px 10px;
+  }
+
+  .home-fit .home-card {
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .home-fit .home-card-icon {
+    flex: none;
+    margin-bottom: 0;
+  }
+
+  .home-fit .home-card-sub {
+    display: none;
+  }
+}
+
+.home-stat-link {
+  appearance: none;
+  border: none;
+  cursor: pointer;
+  color: var(--accent-blue);
+}
+
+/* ---------- About the Eguchi method ---------- */
+.method {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.method-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 18px;
+  border-radius: 22px;
+  background: var(--card-bg);
+  box-shadow: var(--shadow);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.method-card p {
+  margin: 0;
+}
+
+.method-lead {
+  font-size: 16px;
+}
+
+.method-heading {
+  margin: 0;
+  font: 700 18px 'Fredoka', ui-rounded, system-ui, sans-serif;
+}
+
+.method-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.method-family {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  align-items: center;
+  gap: 8px;
+}
+
+.method-family-name {
+  color: var(--ink-dim);
+  font: 700 12.5px 'IBM Plex Sans', sans-serif;
+}
+
+.method-chips {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.method-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 7px 4px;
+  border-radius: 12px;
+  line-height: 1.2;
+}
+
+.method-chip-name {
+  font: 700 13px 'IBM Plex Sans', sans-serif;
+  text-transform: capitalize;
+}
+
+.method-chip-notes {
+  font: 600 11px 'IBM Plex Mono', ui-monospace, monospace;
+  letter-spacing: 0.1em;
+  opacity: 0.9;
+}
+
+.method-note {
+  color: var(--ink-dim);
+  font-size: 14px;
+}
+
+.method-tips {
+  margin: 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }

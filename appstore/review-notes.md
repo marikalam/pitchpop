@@ -46,7 +46,7 @@ Hello, and thank you for reviewing PitchPop.
 **1. Screen recording**
 Attached is a screen recording made on a physical iPhone running
 [iOS version, from Settings → General → About]. It starts at launch and shows
-the typical flow: the intro screen, a full round of the chord-color game
+the typical flow: the home page, a full round of the chord-color game
 (listening, a correct and an incorrect answer), Explore, the Piano, Practice
 Mode (timer, metronome, repetition counter and practice tokens), then, signed
 in, the NoteSpeller note-reading game on treble and bass clefs, the Music
@@ -70,11 +70,12 @@ which usually needs a piano and a teacher, into a short daily game. A family can
 colors, and see a daily practice streak.
 
 **3. How to use the main features**
-No account is needed to play. On first launch, tap "Take the color test" on
-the intro screen to start playing.
-- Menu: the ☰ button at the top left opens every part of the app, grouped
-  into Play, Learn and Practice. "Color test" in that menu always returns
-  to the chord game.
+No account is needed to play. PitchPop opens on its home page, which has a
+button for every part of the app: tap "Pitch Practice" to start playing.
+- Menu: the ☰ button at the top left also opens every part of the app,
+  grouped into Play, Learn and Practice, with "Home" and "Pitch Practice" first.
+- About: "How it works" on the home page (or ☰ → About) explains the
+  Eguchi method the chord game is based on.
 - Chord game: tap the rainbow to hear a chord, pick a color, then Next.
 - Explore sounds: tap any color to hear its chord.
 - Piano: turn the phone sideways to play; the keyboard appears in landscape.
@@ -135,7 +136,7 @@ captured.
 
 1. Start recording from the Home Screen, then **launch PitchPop** (the video
    must begin with the launch).
-2. Show the **intro** screen and tap **Take the color test**.
+2. Show the **home page**, then tap **Pitch Practice**.
 3. Play the **chord game**: tap the rainbow, answer one correctly and one
    incorrectly, show the feedback, finish or go a few rounds.
 4. Open **Explore sounds** and tap a few colors.

@@ -19,6 +19,26 @@ import Metronome from './Metronome.jsx';
 // counter belong to one player (profileId); picking another player starts
 // them over.
 const PRACTICE_KEY = 'pitchpop-practice-v1';
+const TAB_KEY = 'pitchpop-practice-tab-v1';
+// One tool at a time, so Practice Mode fits on a phone screen without
+// scrolling. Every panel stays mounted (just hidden), so the timer and the
+// metronome keep going while another tab is open.
+const TABS = [
+  { id: 'timer', icon: '⏱️', label: 'Timer' },
+  { id: 'metronome', icon: '🎵', label: 'Metronome' },
+  { id: 'counter', icon: '🔁', label: 'Counter' },
+  { id: 'history', icon: '📅', label: 'History' },
+];
+
+function loadTab() {
+  try {
+    const saved = localStorage.getItem(TAB_KEY);
+    if (TABS.some((t) => t.id === saved)) return saved;
+  } catch {
+    /* ignore */
+  }
+  return 'timer';
+}
 const STATUSES = ['idle', 'running', 'paused', 'tooShort', 'saved'];
 const EMPTY = { status: 'idle', startedAt: null, elapsedBefore: 0, count: 0, profileId: null };
 
@@ -46,6 +66,17 @@ export default function PracticeMode({ profileId, profileName, ready = true }) {
   const [practice, setPractice] = useState(loadPractice);
   const [log, setLog] = useState(loadPracticeLog);
   const [now, setNow] = useState(Date.now);
+  const [tab, setTab] = useState(loadTab);
+  const [metronomeOn, setMetronomeOn] = useState(false);
+
+  function chooseTab(id) {
+    setTab(id);
+    try {
+      localStorage.setItem(TAB_KEY, id);
+    } catch {
+      /* ignore */
+    }
+  }
 
   useEffect(() => {
     try {
@@ -121,23 +152,36 @@ export default function PracticeMode({ profileId, profileName, ready = true }) {
   const earning = tokensFor(minutes);
   const tokenWord = (n) => (n === 1 ? 'token' : 'tokens');
 
+  const live = { timer: practice.status === 'running', metronome: metronomeOn };
+
   return (
-    <>
-      <h2 className="screen-title">Practice Mode</h2>
-
-      <section className="token-card" aria-label={`${profileName}'s tokens`}>
-        <span className="token-coin" aria-hidden="true">
-          🪙
-        </span>
-        <div>
-          <div className="token-count">
-            {stats.tokens} {tokenWord(stats.tokens)}
-          </div>
-          <div className="token-hint">1 token for every {TOKEN_MINUTES} minutes of practice</div>
+    <div className="practice-screen">
+      <div className="practice-head">
+        <h2 className="screen-title practice-title">Practice Mode</h2>
+        <div className="token-chip" aria-label={`${profileName} has ${stats.tokens} ${tokenWord(stats.tokens)}`}>
+          <span aria-hidden="true">🪙</span> {stats.tokens}
         </div>
-      </section>
+      </div>
 
-      <section className="practice-card" aria-label="Practice timer">
+      <div className="practice-tabs" role="tablist" aria-label="Practice tools">
+        {TABS.map((t) => (
+          <button
+            key={t.id}
+            role="tab"
+            aria-selected={tab === t.id}
+            className={`practice-tab${tab === t.id ? ' practice-tab-active' : ''}`}
+            onClick={() => chooseTab(t.id)}
+          >
+            <span className="practice-tab-icon" aria-hidden="true">
+              {t.icon}
+            </span>
+            <span className="practice-tab-label">{t.label}</span>
+            {live[t.id] && <span className="practice-tab-live" aria-label="running" />}
+          </button>
+        ))}
+      </div>
+
+      <section className="practice-card" aria-label="Practice timer" hidden={tab !== 'timer'}>
         <div className="practice-card-title">⏱️ Practice timer</div>
 
         {practice.status === 'saved' && (
@@ -181,7 +225,8 @@ export default function PracticeMode({ profileId, profileName, ready = true }) {
               {formatMinutes(minutes)}
             </div>
             <p className="practice-status">
-              {practice.status === 'idle' && `Practices of ${MIN_PRACTICE_MINUTES} minutes or more are saved`}
+              {practice.status === 'idle' &&
+                `Practices of ${MIN_PRACTICE_MINUTES}+ minutes are saved · 🪙 1 token per ${TOKEN_MINUTES} minutes`}
               {practice.status === 'running' && (
                 <>
                   <span className="practice-live-dot" aria-hidden="true" /> Practicing
@@ -214,9 +259,9 @@ export default function PracticeMode({ profileId, profileName, ready = true }) {
         )}
       </section>
 
-      <Metronome />
+      <Metronome hidden={tab !== 'metronome'} onRunningChange={setMetronomeOn} />
 
-      <section className="practice-card" aria-label="Repetition counter">
+      <section className="practice-card" aria-label="Repetition counter" hidden={tab !== 'counter'}>
         <div className="practice-card-title">🔁 Repetition counter</div>
         <p className="practice-counter-desc">
           Keep track of how many times you’ve played something, like 5 times through your scales. Tap the number
@@ -248,7 +293,7 @@ export default function PracticeMode({ profileId, profileName, ready = true }) {
         </button>
       </section>
 
-      <section className="practice-card" aria-label={`${profileName}'s practice`}>
+      <section className="practice-card" aria-label={`${profileName}'s practice`} hidden={tab !== 'history'}>
         <div className="practice-card-title">📅 {profileName}’s practice</div>
         <div className="practice-stats">
           <div className="practice-stat">
@@ -286,6 +331,6 @@ export default function PracticeMode({ profileId, profileName, ready = true }) {
           <p className="practice-total">No saved practices yet. Practice {MIN_PRACTICE_MINUTES} minutes or more to start a streak!</p>
         )}
       </section>
-    </>
+    </div>
   );
 }
