@@ -2807,3 +2807,38 @@ body {
   flex-direction: column;
   gap: 8px;
 }
+
+/* ---------- Practice pill in the header (practice timer on) ---------- */
+.practice-badge {
+  appearance: none;
+  border: none;
+  cursor: pointer;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: #e7f7ee;
+  color: #1c7a47;
+  box-shadow: var(--shadow-sm);
+  font: 700 14px 'IBM Plex Sans', sans-serif;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.practice-badge .practice-live-dot {
+  margin-right: 0;
+  vertical-align: 0;
+}
+
+.practice-badge-paused {
+  background: #eef1f7;
+  color: var(--ink-dim);
+}
+
+.nav-row-home .profile-menu {
+  left: 0;
+  right: auto;
+}
