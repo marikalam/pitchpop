@@ -178,7 +178,7 @@ export function SyncStatus({ user, onOpenAccount }) {
   );
 }
 
-export function AccountScreen({ user, playerCount, onSignedIn, onOpenPlayers, onDone, recoveryMode, onPasswordUpdated }) {
+export function AccountScreen({ user, playerCount, onSignedIn, onAccountDeleted, onOpenPlayers, onDone, recoveryMode, onPasswordUpdated }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -252,7 +252,7 @@ export function AccountScreen({ user, playerCount, onSignedIn, onOpenPlayers, on
 
   async function handleDeleteAccount() {
     if (
-      !window.confirm(`Delete the account for ${user.email}? Players saved to your account will be deleted.`) ||
+      !window.confirm(`Delete the account for ${user.email}? All players and their progress will be deleted.`) ||
       !window.confirm('Are you really sure? This can’t be undone.')
     ) {
       return;
@@ -261,8 +261,8 @@ export function AccountScreen({ user, playerCount, onSignedIn, onOpenPlayers, on
     setError('');
     try {
       await deleteAccount();
-      onSignedIn(null);
-      setNotice('Your account has been deleted. Players on this device are still here.');
+      onAccountDeleted();
+      setNotice('Your account and its players have been deleted.');
     } catch (err) {
       setError(`Couldn’t delete your account: ${err.message}`);
     } finally {
