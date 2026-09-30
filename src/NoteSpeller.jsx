@@ -45,7 +45,7 @@ function ProgressDots({ current, total }) {
     }
   }
   return (
-    <div className="progress-wrap">
+    <div className="progress-wrap ns-progress">
       <div className="progress-dots">{items}</div>
       <span className="progress-count">
         {current} / {total}
@@ -162,6 +162,7 @@ export default function NoteSpeller({ engine, onComplete }) {
               role="radio"
               aria-checked={level === l.id}
               className={`ns-segment${level === l.id ? ' ns-segment-active' : ''}`}
+              title={l.hint}
               onClick={() => chooseLevel(l.id)}
             >
               {l.label}
@@ -169,7 +170,6 @@ export default function NoteSpeller({ engine, onComplete }) {
           ))}
         </div>
       </div>
-      <p className="ns-level-hint">{LEVELS.find((l) => l.id === level).hint}</p>
     </div>
   );
 
@@ -191,48 +191,52 @@ export default function NoteSpeller({ engine, onComplete }) {
     );
   }
 
+  // Everything fits on one screen, no scrolling: the staff takes whatever
+  // height is left, and once a note is answered the feedback and Next
+  // replace the letter keys in the same spot.
   return (
-    <>
+    <div className="ns-screen">
       {clefPicker}
       <ProgressDots current={roundIndex + 1} total={SESSION_ROUNDS} />
-      <h2 className="screen-title">What note is this?</h2>
-      <div className="staff-card">
+      <h2 className="screen-title ns-title">What note is this?</h2>
+      <div className="staff-card ns-staff-card">
         <Staff note={target} highlight={answered ? (answered.correct ? 'correct' : 'wrong') : null} />
-        <button className="staff-play-btn" onClick={() => engine.playPitch(target.letter, target.octave)}>
-          🔊 Hear the note
+        <button
+          className="staff-play-btn ns-play-btn"
+          onClick={() => engine.playPitch(target.letter, target.octave)}
+          aria-label="Hear the note"
+        >
+          🔊 Hear
         </button>
       </div>
 
-      <div className="note-answer-grid">
-        {lettersFor(clefMode, level).map((letter) => {
-          let cls = 'notespeller-key';
-          if (answered) {
-            if (letter === target.letter) cls += ' notespeller-key-correct';
-            else if (letter === answered.picked) cls += ' notespeller-key-wrong';
-          }
-          return (
-            <button key={letter} className={cls} onClick={() => answer(letter)} disabled={!!answered}>
-              {letter}
-            </button>
-          );
-        })}
-      </div>
-
-      {answered && (
-        <div className="note-feedback">
-          <p className={`note-feedback-text${answered.correct ? ' note-feedback-correct' : ''}`}>
-            {answered.correct ? `Yes! That's ${target.letter}.` : `That's ${target.letter}.`}
-          </p>
-          <div className="feedback-actions">
-            <button className="pill-btn-secondary" onClick={() => sayAndPlay(target)}>
-              🔊 Hear it
-            </button>
-            <button className="pill-btn-primary" onClick={next}>
-              {roundIndex + 1 >= SESSION_ROUNDS ? 'Finish' : 'Next'} →
-            </button>
+      <div className="ns-answer">
+        {answered ? (
+          <div className="note-feedback">
+            <p className={`note-feedback-text${answered.correct ? ' note-feedback-correct' : ''}`}>
+              {answered.correct
+                ? `Yes! That's ${target.letter}.`
+                : `You picked ${answered.picked}. That's ${target.letter}.`}
+            </p>
+            <div className="feedback-actions">
+              <button className="pill-btn-secondary" onClick={() => sayAndPlay(target)}>
+                🔊 Hear it
+              </button>
+              <button className="pill-btn-primary" onClick={next}>
+                {roundIndex + 1 >= SESSION_ROUNDS ? 'Finish' : 'Next'} →
+              </button>
+            </div>
           </div>
-        </div>
-      )}
-    </>
+        ) : (
+          <div className="note-answer-grid">
+            {lettersFor(clefMode, level).map((letter) => (
+              <button key={letter} className="notespeller-key" onClick={() => answer(letter)}>
+                {letter}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

@@ -799,8 +799,8 @@ export default function App() {
 
   if (view === 'notespeller') {
     return (
-      <div className="page">
-        <div className="app">
+      <div className="page page-fit">
+        <div className="app app-fit">
           <AppHeader
             profile={profile}
             profiles={profiles}
