@@ -1725,6 +1725,92 @@ body {
   font-size: 12.5px;
 }
 
+/* ---------- NoteSpeller fits on one screen ----------
+   The page is exactly the visible screen height and doesn't scroll. The
+   staff card takes whatever height is left after the fixed parts, and the
+   answer area keeps one height whether it shows letter keys or feedback. */
+.page-fit {
+  overflow: hidden;
+  padding-bottom: max(14px, env(safe-area-inset-bottom));
+}
+
+.app-fit {
+  min-height: 0;
+  gap: 10px;
+}
+
+.ns-screen {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ns-screen .ns-settings {
+  padding: 2px 12px;
+}
+
+.ns-screen .ns-setting-row {
+  padding: 5px 0;
+}
+
+.ns-screen .ns-segment {
+  padding: 5px 6px;
+  font-size: 13px;
+}
+
+.ns-progress {
+  flex-direction: row;
+  justify-content: center;
+  gap: 10px;
+}
+
+.ns-title {
+  font-size: clamp(18px, 5vw, 22px);
+}
+
+.ns-staff-card {
+  position: relative;
+  flex: 1;
+  min-height: 110px;
+  justify-content: center;
+  padding: 6px 10px;
+}
+
+.ns-staff-card .staff {
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  max-height: none;
+}
+
+.ns-play-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  margin: 0;
+  padding: 6px 12px;
+  font-size: 13px;
+}
+
+.ns-answer {
+  flex: none;
+  height: 124px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.ns-answer .note-answer-grid .notespeller-key {
+  min-height: 56px;
+  font-size: 22px;
+}
+
+.ns-answer .note-feedback-text {
+  font-size: 18px;
+}
+
 /* ---------- Piano (full screen, landscape) ---------- */
 .piano-screen {
   position: fixed;

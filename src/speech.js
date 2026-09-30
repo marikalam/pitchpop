@@ -142,7 +142,9 @@ let currentSource = null;
 // after the spoken words end (e.g. playing the real notes right after the
 // color name, so "Blue" is followed by the actual B-D-G pitches instead of
 // spoken letters with no real connection to the chord's pitch).
-async function speak(text) {
+// `fallbackText`, when given, is what the built-in voice says instead: the
+// two voices need different spellings for some words (see speakNoteName).
+async function speak(text, fallbackText = text) {
   try {
     const { synthesizeSpeech } = await getPiperModule();
     const blob = await synthesizeSpeech(text);
@@ -167,7 +169,7 @@ async function speak(text) {
     });
   } catch (err) {
     console.warn('Piper TTS unavailable, falling back to the built-in voice', err);
-    await speakWithWebSpeechAPI(text);
+    await speakWithWebSpeechAPI(fallbackText);
   }
 }
 
@@ -175,12 +177,15 @@ export async function speakColorName(name) {
   await speak(name.charAt(0).toUpperCase() + name.slice(1));
 }
 
-// Spelled out so the voice says "Ay" and "Bee" rather than reading a
-// lone "A" as the word "a".
+// Piper reads a capital letter on its own as the letter name ("A." is
+// /eɪ/), but reads spellings like "Ay" as the word "aye" - which sounds
+// like "I" - and "Eff" as "E-F-F". So Piper gets the plain letter. The
+// built-in voice can read a lone "A" as the word "a", so it gets these
+// spelled-out names instead.
 const LETTER_SOUNDS = { A: 'Ay', B: 'Bee', C: 'See', D: 'Dee', E: 'Ee', F: 'Eff', G: 'Gee' };
 
 export async function speakNoteName(letter) {
-  await speak(`${LETTER_SOUNDS[letter] || letter}.`);
+  await speak(`${letter}.`, `${LETTER_SOUNDS[letter] || letter}.`);
 }
 
 export async function speakResults(correct, total) {
