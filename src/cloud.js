@@ -45,7 +45,11 @@ export async function signUp(email, password) {
     options: { emailRedirectTo: emailLinkUrl() },
   });
   if (error) throw error;
-  return data.user;
+  // With email confirmation on, Supabase returns a user but no session -
+  // both for a new email (until it's confirmed) and for one that already
+  // has an account (so sign-up can't be used to find out which emails are
+  // registered). Only a session means someone is actually signed in.
+  return data.session ? data.user : null;
 }
 
 export async function signOut() {
