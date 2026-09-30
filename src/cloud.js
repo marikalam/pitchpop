@@ -19,6 +19,17 @@ export async function getUser() {
   }
 }
 
+// Where links in PitchPop's emails (confirm sign-up, reset password) lead.
+// Inside the iOS app the page's own origin (capacitor://localhost) can't be
+// opened from an email, so the link goes to the website instead. Supabase
+// only follows URLs on its Redirect URLs list (Authentication -> URL
+// Configuration); anything else falls back to the Site URL.
+const WEB_APP_URL = 'https://marikalam.github.io/apps/pitchpop/';
+
+function emailLinkUrl() {
+  return Capacitor.isNativePlatform() ? WEB_APP_URL : `${window.location.origin}${import.meta.env.BASE_URL}`;
+}
+
 export async function signIn(email, password) {
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) throw error;
@@ -26,7 +37,13 @@ export async function signIn(email, password) {
 }
 
 export async function signUp(email, password) {
-  const { data, error } = await supabase.auth.signUp({ email, password });
+  // Without emailRedirectTo, the confirmation link goes to the project's
+  // Site URL setting instead of back to PitchPop.
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: { emailRedirectTo: emailLinkUrl() },
+  });
   if (error) throw error;
   return data.user;
 }
@@ -38,15 +55,8 @@ export async function signOut() {
 // Sends an email with a link back to this app; Supabase appends a recovery
 // token to the URL, which onAuthEvent() below picks up as a
 // PASSWORD_RECOVERY event so the app can show the "set a new password" form.
-// Inside the iOS app the page's own origin (capacitor://localhost) can't be
-// opened from an email, so the link goes to the website instead.
-const WEB_APP_URL = 'https://marikalam.github.io/apps/pitchpop/';
-
 export async function requestPasswordReset(email) {
-  const redirectTo = Capacitor.isNativePlatform()
-    ? WEB_APP_URL
-    : `${window.location.origin}${import.meta.env.BASE_URL}`;
-  const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+  const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: emailLinkUrl() });
   if (error) throw error;
 }
 
