@@ -44,6 +44,18 @@ const SESSION_KEY = 'pitchpop-session-v1';
 const PROFILES_KEY = 'pitchpop-profiles-v1';
 const GUEST_PROFILES_KEY = 'pitchpop-guest-profiles-v1';
 const WELCOME_KEY = 'pitchpop-welcome-seen-v1';
+// Everything this device keeps about players: their lists, progress,
+// streaks and practice. Cleared when the account is deleted. (App-wide
+// preferences like the NoteSpeller clef or piano labels stay.)
+const PLAYER_DATA_KEYS = [
+  PROFILES_KEY,
+  GUEST_PROFILES_KEY,
+  PROGRESS_KEY,
+  SESSION_KEY,
+  'pitchpop-streak-days-v1',
+  'pitchpop-practice-v1',
+  'pitchpop-practice-log-v1',
+];
 
 function shuffle(list) {
   const copy = [...list];
@@ -693,6 +705,23 @@ export default function App() {
     setView('play-listen');
   }
 
+  // Deleting the account also wipes its players from this device, so the
+  // app starts over with one fresh generic player.
+  function handleAccountDeleted() {
+    PLAYER_DATA_KEYS.forEach((key) => {
+      try {
+        localStorage.removeItem(key);
+      } catch {
+        /* ignore */
+      }
+    });
+    setCloudUser(null);
+    setCloudConnected(false);
+    setProgress({});
+    setStreakDays({});
+    showProfiles(DEFAULT_PROFILES, 'guest');
+  }
+
   function addPlayer(rawName) {
     const name = rawName.trim();
     if (!name) return;
@@ -735,6 +764,7 @@ export default function App() {
             user={cloudUser}
             playerCount={profiles.length}
             onSignedIn={handleSignedIn}
+            onAccountDeleted={handleAccountDeleted}
             onOpenPlayers={openSettings}
             onDone={goHome}
             recoveryMode={passwordRecovery}
