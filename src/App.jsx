@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { PianoEngine, playCorrectChime, playWrongBuzz } from './piano.js';
 import { speakColorName, speakResults, prewarmVoices, unlockAudio } from './speech.js';
 import { isCurrent, later, newSound } from './soundBus.js';
@@ -171,6 +171,51 @@ function saveSession(data) {
   }
 }
 
+// The "PitchPop" word next to the logo. When hidden it stays measurable
+// (see useCompactLogo) but takes no room.
+function LogoWord({ hidden }) {
+  return (
+    <span className={`logo-word${hidden ? ' logo-word-hidden' : ''}`} aria-hidden={hidden || undefined}>
+      <span className="ink">Pitch</span>
+      <span className="pop-blue">P</span>
+      <span className="pop-red">o</span>
+      <span className="pop-green">p</span>
+    </span>
+  );
+}
+
+// On a narrow phone the header can't fit the ☰ menu, the logo word, the
+// player pill and the account button in one row; then the word is hidden
+// and just the app icon shows. Measured, since the pill and account
+// button change width with the player's name and signing in.
+function useCompactLogo(rowRef) {
+  const [compact, setCompact] = useState(false);
+  useLayoutEffect(() => {
+    const row = rowRef.current;
+    if (!row) return undefined;
+    const check = () => {
+      const left = row.querySelector('.brand-left');
+      const right = row.querySelector('.brand-actions');
+      const word = row.querySelector('.logo-word');
+      if (!left || !right || !word) return;
+      // The left side's width with the word showing, whether or not it is.
+      const wordWidth = word.getBoundingClientRect().width;
+      const leftWithWord = word.classList.contains('logo-word-hidden')
+        ? left.getBoundingClientRect().width + wordWidth
+        : left.getBoundingClientRect().width;
+      setCompact(leftWithWord + right.getBoundingClientRect().width + 12 > row.clientWidth);
+    };
+    check();
+    const observer = new ResizeObserver(check);
+    observer.observe(row);
+    observer.observe(row.querySelector('.brand-actions'));
+    // The word changes width when the logo font finishes loading.
+    observer.observe(row.querySelector('.logo-word'));
+    return () => observer.disconnect();
+  }, [rowRef]);
+  return compact;
+}
+
 function AppHeader({
   profile,
   profiles,
@@ -185,32 +230,38 @@ function AppHeader({
   hideProfile = false,
 }) {
   const signedIn = !!user;
+  const rowRef = useRef(null);
+  const compact = useCompactLogo(rowRef);
   return (
     <>
-      <div className="brand-row">
+      <div className="brand-row" ref={rowRef}>
         <div className="brand-left">
           <MainMenu signedIn={signedIn} onOpen={onOpenTool} />
           {showBack ? (
             <button className="logo-btn" onClick={onBack}>
               <h1 className="logo">
                 <img className="logo-mark" src={`${import.meta.env.BASE_URL}icon-192.png`} alt="" />
-                <span className="ink">Pitch</span>
-                <span className="pop-blue">P</span>
-                <span className="pop-red">o</span>
-                <span className="pop-green">p</span>
+                <LogoWord hidden={compact} />
               </h1>
             </button>
           ) : (
             <h1 className="logo">
               <img className="logo-mark" src={`${import.meta.env.BASE_URL}icon-192.png`} alt="" />
-              <span className="ink">Pitch</span>
-              <span className="pop-blue">P</span>
-              <span className="pop-red">o</span>
-              <span className="pop-green">p</span>
+              <LogoWord hidden={compact} />
             </h1>
           )}
         </div>
         <div className="brand-actions">
+          {!hideProfile && (
+            <ProfileSwitcher
+              profile={profile}
+              profiles={profiles}
+              colors={COLORS}
+              signedIn={signedIn}
+              onChange={onChangeProfile}
+              onOpenSettings={onOpenSettings}
+            />
+          )}
           <AccountButton user={user} onClick={onOpenAccount} />
         </div>
       </div>
@@ -220,27 +271,13 @@ function AppHeader({
             ← Back
           </button>
           {onOpenPractice && <PracticeBadge onOpen={onOpenPractice} />}
-          <ProfileSwitcher
-            profile={profile}
-            profiles={profiles}
-            colors={COLORS}
-            signedIn={signedIn}
-            onChange={onChangeProfile}
-            onOpenSettings={onOpenSettings}
-          />
         </div>
-      ) : hideProfile ? null : (
-        <div className="nav-row nav-row-home">
-          <ProfileSwitcher
-            profile={profile}
-            profiles={profiles}
-            colors={COLORS}
-            signedIn={signedIn}
-            onChange={onChangeProfile}
-            onOpenSettings={onOpenSettings}
-          />
-          {onOpenPractice && <PracticeBadge onOpen={onOpenPractice} />}
-        </div>
+      ) : (
+        onOpenPractice && (
+          <div className="nav-row nav-row-home">
+            <PracticeBadge onOpen={onOpenPractice} />
+          </div>
+        )
       )}
     </>
   );

@@ -1,22 +1,36 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Avatar from './Avatar.jsx';
 
-// "Playing as": picks which player is playing. Signed in, it also leads to
-// the family's Players & colors settings. The rest of the app lives in the
-// ☰ menu (MainMenu).
+// "Playing as": the player pill in the header, next to the account button,
+// picks which player is playing. Signed in, it also leads to the family's
+// Players & colors settings. The rest of the app lives in the ☰ menu
+// (MainMenu).
 export default function ProfileSwitcher({ profile, profiles, colors, signedIn, onChange, onOpenSettings }) {
   const [open, setOpen] = useState(false);
+  const ref = useRef(null);
   const current = profiles.find((p) => p.id === profile) || profiles[0];
 
+  // Tapping anywhere outside the menu closes it.
+  useEffect(() => {
+    if (!open) return undefined;
+    const close = (e) => {
+      if (!ref.current?.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('pointerdown', close);
+    return () => document.removeEventListener('pointerdown', close);
+  }, [open]);
+
   return (
-    <div className="profile-switcher">
-      <button className="profile-pill" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
-        <Avatar profile={profile} size={28} />
-        <span className="profile-pill-text">
-          <span className="profile-pill-label">Playing as</span>
-          <span className="profile-pill-name">{current.name}</span>
-        </span>
-        <span className="profile-pill-chevron">▾</span>
+    <div className="profile-switcher" ref={ref}>
+      <button
+        className="profile-pill"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        aria-label={`Playing as ${current.name}. Change player.`}
+      >
+        <Avatar profile={profile} size={26} />
+        <span className="profile-pill-name">{current.name}</span>
+        <span className="profile-pill-chevron" aria-hidden="true">▾</span>
       </button>
       {open && (
         <div className="profile-menu">
