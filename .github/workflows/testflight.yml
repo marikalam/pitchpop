@@ -25,6 +25,7 @@ on:
       - 'package-lock.json'
       - 'capacitor.config.json'
       - '.github/workflows/testflight.yml'
+      - '.github/scripts/**'
 
 # One upload at a time; a newer push waits rather than racing it.
 concurrency:
@@ -85,6 +86,16 @@ jobs:
           with open(sys.argv[1], 'w') as f:
               f.write(pem)
           PY
+
+      # Each build's Mac makes a new development certificate that can't be
+      # reused once the machine is gone; Apple allows only a few, so clear
+      # out the earlier builds' ones first (see the script).
+      - name: Revoke development certificates left by earlier builds
+        continue-on-error: true
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: python3 .github/scripts/revoke_ci_dev_certs.py "$RUNNER_TEMP/keys/AuthKey.p8"
 
       - name: Archive
         env:

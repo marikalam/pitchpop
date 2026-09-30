@@ -24,8 +24,9 @@ function loadBpm() {
 }
 
 // One tick, like a mechanical metronome: a very short burst of noise
-// through a band-pass filter gives the woody "tok", and a tiny high sine
-// on top gives it a crisp edge. Both die away within about 30 ms.
+// through a band-pass filter gives the woody "tok", and a short sine under
+// it gives it a clear pitch. Both are kept fairly low (around 1 kHz and
+// below) so the click isn't shrill, and die away within about 40 ms.
 function noiseBuffer(ctx) {
   const buffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.05), ctx.sampleRate);
   const data = buffer.getChannelData(0);
@@ -38,26 +39,26 @@ function scheduleClick(ctx, time, noise) {
   src.buffer = noise;
   const band = ctx.createBiquadFilter();
   band.type = 'bandpass';
-  band.frequency.value = 2600;
-  band.Q.value = 3;
+  band.frequency.value = 1100;
+  band.Q.value = 4;
   const body = ctx.createGain();
   body.gain.setValueAtTime(0.0001, time);
-  body.gain.exponentialRampToValueAtTime(2.4, time + 0.001);
-  body.gain.exponentialRampToValueAtTime(0.0001, time + 0.03);
+  body.gain.exponentialRampToValueAtTime(3, time + 0.001);
+  body.gain.exponentialRampToValueAtTime(0.0001, time + 0.04);
   src.connect(band).connect(body).connect(ctx.destination);
   src.start(time);
   src.stop(time + 0.05);
 
   const edge = ctx.createOscillator();
   edge.type = 'sine';
-  edge.frequency.value = 3400;
+  edge.frequency.value = 800;
   const edgeGain = ctx.createGain();
   edgeGain.gain.setValueAtTime(0.0001, time);
-  edgeGain.gain.exponentialRampToValueAtTime(0.25, time + 0.001);
-  edgeGain.gain.exponentialRampToValueAtTime(0.0001, time + 0.012);
+  edgeGain.gain.exponentialRampToValueAtTime(0.4, time + 0.002);
+  edgeGain.gain.exponentialRampToValueAtTime(0.0001, time + 0.035);
   edge.connect(edgeGain).connect(ctx.destination);
   edge.start(time);
-  edge.stop(time + 0.02);
+  edge.stop(time + 0.045);
 }
 
 export default function Metronome({ hidden = false, onRunningChange }) {
