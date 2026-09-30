@@ -15,14 +15,16 @@ export default function PracticeBadge({ onOpen }) {
 
   if (timer.status !== 'running' && timer.status !== 'paused') return null;
   const running = timer.status === 'running';
+  // Paused because nobody tapped for a while: ask instead of the minutes.
+  const label = timer.idlePaused ? 'Still there?' : `${timer.minutes} min`;
   return (
     <button
       className={`practice-badge${running ? '' : ' practice-badge-paused'}`}
       onClick={onOpen}
-      aria-label={`${running ? 'Practicing' : 'Practice paused'}, ${timer.minutes} minutes. Open the practice timer.`}
+      aria-label={`${running ? 'Practicing' : 'Practice paused'}, ${timer.minutes} minutes.${timer.idlePaused ? ' Are you still practicing?' : ''} Open the practice timer.`}
     >
       {running ? <span className="practice-live-dot" aria-hidden="true" /> : <span aria-hidden="true">⏸</span>}
-      {timer.minutes} min
+      {label}
     </button>
   );
 }
