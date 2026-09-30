@@ -210,7 +210,11 @@ export function AccountScreen({ user, playerCount, onSignedIn, onOpenPlayers, on
         setPassword('');
         setConfirmPassword('');
       } else {
-        setNotice(`We sent a confirmation link to ${email}. Open it, then sign in here.`);
+        setNotice(
+          mode === 'sign-up'
+            ? `Check ${email} for a link to confirm your account, then sign in here. Already have an account? Just sign in.`
+            : `We sent a confirmation link to ${email}. Open it, then sign in here.`,
+        );
         setMode('sign-in');
       }
     } catch (err) {
