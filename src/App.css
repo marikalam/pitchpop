@@ -1033,6 +1033,9 @@ body {
 /* Players & colors settings */
 .pill-btn-full {
   width: 100%;
+  /* .pill-btn-primary grows (flex: 1) to share a row with other buttons;
+     a full-width button in a column would grow tall instead. */
+  flex: none;
 }
 
 /* Menu groups (Play / Learn / Practice): one divider per group instead of
