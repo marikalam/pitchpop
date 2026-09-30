@@ -75,7 +75,8 @@ export default function MethodInfo({ colors, signedIn }) {
             ten chords.
           </li>
           <li>
-            <strong>Start with two or three colors</strong> and add more as your child is ready (see below).
+            <strong>Start with one color</strong>, red (C–E–G), and add the next one when your child is ready (see
+            below).
             {signedIn
               ? ' Choose each player’s colors in Players & colors.'
               : ' With a family account, you choose each player’s colors in Players & colors.'}
