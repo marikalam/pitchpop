@@ -9,7 +9,7 @@ export const MIN_PRACTICE_MINUTES = 5;
 // Players collect a token for every TOKEN_MINUTES of a saved practice.
 // Tokens are worked out from the saved practices rather than stored, so
 // practices saved before tokens existed count too.
-export const TOKEN_MINUTES = 10;
+export const TOKEN_MINUTES = 5;
 
 export function tokensFor(minutes) {
   return Math.floor(minutes / TOKEN_MINUTES);

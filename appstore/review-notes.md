@@ -62,7 +62,7 @@ second game, NoteSpeller, shows a note on a treble or bass staff, lets the
 player hear it, and asks them to name it (easy, medium and hard levels).
 Alongside the games there is a playable on-screen Piano, a Practice Mode
 for real-instrument practice (a practice timer, a metronome, a repetition
-counter, and tokens the child collects for every 10 minutes practised), and a
+counter, and tokens the child collects for every 5 minutes practised), and a
 Music Theory picture glossary of basic terms. It turns early ear training and note reading,
 which usually needs a piano and a teacher, into a short daily game. A family can set up separate players, each learning their own set of
 colors, and see a daily practice streak.
@@ -79,7 +79,7 @@ button for every part of the app: tap "Pitch Practice" to start playing.
 - Piano: turn the phone sideways to play; the keyboard appears in landscape.
   Tap Done to return.
 - Practice Mode: Start practice / End practice timer (practices of 5 minutes
-  or more are saved and earn one token per 10 minutes); a metronome (Start,
+  or more are saved and earn one token per 5 minutes); a metronome (Start,
   − / + or the slider for tempo); and a repetition counter (tap the number
   to count, − / + to adjust, Start over to reset).
 - "Playing as" (top right) switches between the family's players.
