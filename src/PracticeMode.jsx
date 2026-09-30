@@ -1,5 +1,13 @@
 import { useEffect, useLayoutEffect, useState } from 'react';
-import { MIN_PRACTICE_MINUTES, formatMinutes, loadPracticeLog, practiceStats, recordPractice } from './practiceLog.js';
+import {
+  MIN_PRACTICE_MINUTES,
+  TOKEN_MINUTES,
+  formatMinutes,
+  loadPracticeLog,
+  practiceStats,
+  recordPractice,
+  tokensFor,
+} from './practiceLog.js';
 
 // A practice companion: a timer for the whole session, a tap counter for
 // repetitions ("5 times scales, then 5 times Hanon"), and each player's
@@ -109,10 +117,24 @@ export default function PracticeMode({ profileId, profileName, ready = true }) {
 
   const minutes = wholeMinutes(elapsedMs(practice, now));
   const stats = practiceStats(log[profileId]);
+  const earning = tokensFor(minutes);
+  const tokenWord = (n) => (n === 1 ? 'token' : 'tokens');
 
   return (
     <>
       <h2 className="screen-title">Practice Mode</h2>
+
+      <section className="token-card" aria-label={`${profileName}'s tokens`}>
+        <span className="token-coin" aria-hidden="true">
+          🪙
+        </span>
+        <div>
+          <div className="token-count">
+            {stats.tokens} {tokenWord(stats.tokens)}
+          </div>
+          <div className="token-hint">1 token for every {TOKEN_MINUTES} minutes of practice</div>
+        </div>
+      </section>
 
       <section className="practice-card" aria-label="Practice timer">
         <div className="practice-card-title">⏱️ Practice timer</div>
@@ -121,6 +143,14 @@ export default function PracticeMode({ profileId, profileName, ready = true }) {
           <>
             <div className="practice-time practice-time-done">{formatMinutes(minutes)}</div>
             <p className="practice-summary">Saved! Great practice, {profileName}.</p>
+            {earning > 0 && (
+              <div className="token-earned" role="status">
+                <span className="token-earned-coin" aria-hidden="true">
+                  🪙
+                </span>
+                You earned {earning} {tokenWord(earning)}!
+              </div>
+            )}
             <button className="pill-btn-primary pill-btn-full" onClick={newPractice}>
               Start a new practice
             </button>
@@ -154,6 +184,7 @@ export default function PracticeMode({ profileId, profileName, ready = true }) {
               {practice.status === 'running' && (
                 <>
                   <span className="practice-live-dot" aria-hidden="true" /> Practicing
+                  {earning > 0 && ` · 🪙 ${earning} ${tokenWord(earning)} so far`}
                 </>
               )}
               {practice.status === 'paused' && 'Paused'}
@@ -240,7 +271,10 @@ export default function PracticeMode({ profileId, profileName, ready = true }) {
               {stats.recent.map((entry) => (
                 <li key={entry.endedAt}>
                   <span>{formatDay(entry.day)}</span>
-                  <span>{formatMinutes(entry.minutes)}</span>
+                  <span>
+                    {formatMinutes(entry.minutes)}
+                    {tokensFor(entry.minutes) > 0 && <span className="practice-history-tokens"> · 🪙 {tokensFor(entry.minutes)}</span>}
+                  </span>
                 </li>
               ))}
             </ul>
