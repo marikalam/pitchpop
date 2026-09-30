@@ -12,6 +12,7 @@ import MusicTheory from './MusicTheory.jsx';
 import { getUser, loadCloudProfiles, saveCloudProfile, deleteCloudProfile, onAuthEvent } from './cloud.js';
 import { PlayTriangleIcon, SpeakerIcon, CheckIcon, XIcon } from './icons.jsx';
 import { loadStreakDays, recordStreakDay, streakFor } from './streak.js';
+import { loadPracticeLog, practiceStats } from './practiceLog.js';
 
 const COLORS = [
   { name: 'black', hex: '#232323', text: '#FFFFFF', notes: ['A', 'C', 'F'] },
@@ -31,7 +32,8 @@ const COLORS = [
 // out, it's this device's own guest players (GUEST_PROFILES_KEY), which
 // start as one generic player with a few colors so the first color test
 // has real choices in it. A family's players never show while signed out.
-const DEFAULT_PROFILES = [{ id: 'player-1', name: 'Player 1', colors: ['red', 'yellow', 'blue'] }];
+const DEFAULT_PROFILES = [{ id: 'player-1', name: 'Guest Player', colors: ['red', 'yellow', 'blue'] }];
+const GUEST_NAME = 'Guest Player';
 // Older versions shipped with these built-in players, and devices that ran
 // them still have them saved under PROFILES_KEY. They're sample players,
 // not the family's, so they never carry over into a new account. (Players
@@ -39,6 +41,14 @@ const DEFAULT_PROFILES = [{ id: 'player-1', name: 'Player 1', colors: ['red', 'y
 const OLD_SAMPLE_PROFILE_IDS = new Set(['maddie', 'marcus', 'melody']);
 
 const SESSION_ROUNDS = 10;
+// The home page's feature cards (the color test has its own big button).
+const HOME_CARDS = [
+  { id: 'explore', icon: '🎵', title: 'Explore sounds', sub: 'Tap a color, hear its chord', from: '#4f8df7', to: '#3b6fef' },
+  { id: 'piano', icon: '🎹', title: 'Piano', sub: 'Play a real keyboard', from: '#9b6ef3', to: '#7a4fd6' },
+  { id: 'practice', icon: '⏱️', title: 'Practice Mode', sub: 'Timer, metronome, tokens', from: '#f7a24f', to: '#e8792f' },
+  { id: 'notespeller', icon: '🎼', title: 'NoteSpeller', sub: 'Read notes on the staff', from: '#3fbf7f', to: '#2a9d63', signedInOnly: true },
+  { id: 'theory', icon: '📖', title: 'Music Theory', sub: 'Picture glossary', from: '#f06f9a', to: '#d94f7e', signedInOnly: true },
+];
 const MELODY_SESSION_TAPS = 20;
 const PROGRESS_KEY = 'pitchpop-progress-v1';
 const SESSION_KEY = 'pitchpop-session-v1';
@@ -84,16 +94,6 @@ function buildOptions(correctName, colorNames) {
   return names.map((n) => COLORS.find((c) => c.name === n));
 }
 
-// A device that has never saved a player list is a first-time visitor -
-// they land on the intro screen instead of straight in a quiz.
-function isFirstVisit() {
-  try {
-    return localStorage.getItem(PROFILES_KEY) === null && localStorage.getItem(GUEST_PROFILES_KEY) === null;
-  } catch {
-    return false;
-  }
-}
-
 // null when that list was never saved on this device.
 function loadSavedProfiles(key) {
   try {
@@ -112,8 +112,14 @@ function loadPreAccountProfiles() {
   return kept.length ? kept : null;
 }
 
+// Signed out, there's exactly one player, always called "Guest Player" -
+// never a family member's name. An older device may have several guest
+// players saved; keep the first one's id and colors (so its progress
+// stays) under the guest name.
 function loadGuestProfiles() {
-  return loadSavedProfiles(GUEST_PROFILES_KEY) || DEFAULT_PROFILES;
+  const saved = loadSavedProfiles(GUEST_PROFILES_KEY);
+  if (!saved) return DEFAULT_PROFILES;
+  return [{ ...saved[0], name: GUEST_NAME }];
 }
 
 function saveProfiles(profiles, owner) {
@@ -278,10 +284,6 @@ export default function App() {
     initialSessionRef.current = loadSession();
   }
   const initialSession = initialSessionRef.current;
-  const firstVisitRef = useRef(null);
-  if (firstVisitRef.current === null) {
-    firstVisitRef.current = isFirstVisit();
-  }
 
   const [profiles, setProfiles] = useState(loadGuestProfiles);
   // Which list `profiles` currently is: 'guest' or 'account'.
@@ -318,15 +320,13 @@ export default function App() {
   const profileMismatch = initialSession.profile !== undefined && initialSession.profile !== profiles[0].id;
   const resumableSession = profileMismatch ? {} : initialSession;
 
-  const [view, setView] = useState(() => {
-    if (firstVisitRef.current) return 'intro';
-    // 'home' no longer exists (there's nothing to hub to - Play is the
-    // whole app), so a session saved before this change falls back to Play.
-    const savedView = initialSession.view === 'home' ? 'play-listen' : initialSession.view || 'play-listen';
-    return profileMismatch && savedView.startsWith('play-') ? 'play-listen' : savedView;
-  });
-  const [preExploreView, setPreExploreView] = useState('play-listen');
-  const [preToolView, setPreToolView] = useState('play-listen');
+  // PitchPop always opens on the home page, which shows every part of the
+  // app. (A first visit also gets the welcome card on top of it.)
+  const [view, setView] = useState('home');
+  const [preExploreView, setPreExploreView] = useState('home');
+  const [preToolView, setPreToolView] = useState('home');
+  // Read fresh each render so tokens earned in Practice Mode show at once.
+  const homeTokens = view === 'home' ? practiceStats(loadPracticeLog()[profile]).tokens : 0;
   const [sessionQueue, setSessionQueue] = useState(
     () => resumableSession.sessionQueue || buildQueue(profileColorNames, SESSION_ROUNDS),
   );
@@ -516,9 +516,8 @@ export default function App() {
     setProfile(next);
   }
 
-  // There's no home menu anymore - "back" just means "back to playing".
   function goHome() {
-    startPlay();
+    setView('home');
   }
 
   function startPlay() {
@@ -656,7 +655,8 @@ export default function App() {
 
   function openTool(id) {
     // Already in a color test: keep the round going rather than restart it.
-    if (id === 'color-test') return view.startsWith('play-') ? undefined : goHome();
+    if (id === 'home') return goHome();
+    if (id === 'color-test') return view.startsWith('play-') ? undefined : startPlay();
     if (id === 'explore') return openExplore();
     if (id === 'notespeller') return openNoteSpeller();
     if (!TOOL_VIEWS.includes(view)) setPreToolView(view);
@@ -711,8 +711,9 @@ export default function App() {
     if (!cloudProfiles) return;
     // A brand-new family account starts from the players made on this
     // device: any kept for the family from before sign-in was required,
-    // plus the guest players (e.g. one added just before signing up).
-    const next = cloudProfiles.length ? cloudProfiles : withGuests(loadPreAccountProfiles() || [], profiles);
+    // plus the guest player, renamed "Player 1" for the family to rename.
+    const guests = profiles.map((p) => (p.name === GUEST_NAME ? { ...p, name: 'Player 1' } : p));
+    const next = cloudProfiles.length ? cloudProfiles : withGuests(loadPreAccountProfiles() || [], guests);
     showProfiles(next, 'account');
     setCloudConnected(true);
     if (!cloudProfiles.length) next.forEach(saveCloudProfile);
@@ -957,7 +958,7 @@ export default function App() {
   return (
     <div className="page">
       <div className="app">
-        {view === 'intro' && (
+        {view === 'home' && (
           <>
             <AppHeader
               profile={profile}
@@ -967,48 +968,65 @@ export default function App() {
               user={cloudUser}
               onOpenAccount={openAccount}
               onOpenTool={openTool}
-              hideProfile
             />
-            <div className="rainbow-slot">
-              <Rainbow colors={COLORS} activeName={celebrate} visible />
-            </div>
-            <h2 className="intro-title">Every chord has a color</h2>
-            <p className="screen-sub intro-sub">
-              PitchPop teaches kids to recognize chords by ear. Each chord gets its own color. Tap one to hear it!
-            </p>
-            <div className="grid intro-grid">
-              {COLORS.map((color) => (
+            <section className="home-hero">
+              <div className="home-hero-rainbow">
+                <Rainbow colors={COLORS} activeName={null} visible pretty />
+              </div>
+              <h2 className="home-hello">
+                {cloudUser ? `Hi, ${currentProfile.name}!` : 'Every chord has a color'}
+              </h2>
+              <p className="home-tagline">
+                {cloudUser
+                  ? 'What would you like to play today?'
+                  : 'Hear a chord, pick its color, and train your ear one game at a time.'}
+              </p>
+              <div className="home-stats">
+                <span className="home-stat">
+                  🔥 {streak.current ? `${streak.current} ${streak.current === 1 ? 'day' : 'days'} in a row` : 'Start a streak'}
+                </span>
+                <span className="home-stat">🪙 {homeTokens} {homeTokens === 1 ? 'token' : 'tokens'}</span>
+              </div>
+            </section>
+
+            <button className="home-cta" onClick={startPlay}>
+              <span className="home-cta-icon" aria-hidden="true">
+                <PlayTriangleIcon />
+              </span>
+              <span className="home-cta-text">
+                <span className="home-cta-title">Color test</span>
+                <span className="home-cta-sub">Hear a chord, pick its color</span>
+              </span>
+              <span className="home-cta-arrow" aria-hidden="true">
+                →
+              </span>
+            </button>
+
+            <div className="home-grid">
+              {HOME_CARDS.filter((card) => cloudUser || !card.signedInOnly).map((card) => (
                 <button
-                  key={color.name}
-                  className={`pad${justPlayed === color.name ? ' pad-played' : ''}`}
-                  style={{ background: color.hex, color: color.text }}
-                  aria-label={`Play ${color.name} chord`}
-                  onClick={() => exploreTap(color)}
+                  key={card.id}
+                  className="home-card"
+                  style={{ '--card-from': card.from, '--card-to': card.to }}
+                  onClick={() => openTool(card.id)}
                 >
-                  <div className="pad-name">{color.name}</div>
-                  <div className="pad-notes">{color.notes.join(' ')}</div>
+                  <span className="home-card-icon" aria-hidden="true">
+                    {card.icon}
+                  </span>
+                  <span className="home-card-title">{card.title}</span>
+                  <span className="home-card-sub">{card.sub}</span>
                 </button>
               ))}
+              {!cloudUser && (
+                <button className="home-card home-card-account" onClick={openAccount}>
+                  <span className="home-card-icon" aria-hidden="true">
+                    👨‍👩‍👧
+                  </span>
+                  <span className="home-card-title">Family account</span>
+                  <span className="home-card-sub">Save players on every device</span>
+                </button>
+              )}
             </div>
-            <ol className="intro-steps">
-              <li>
-                <span aria-hidden="true">🎧</span>Hear a chord
-              </li>
-              <li>
-                <span aria-hidden="true">🎨</span>Pick its color
-              </li>
-              <li>
-                <span aria-hidden="true">🌈</span>Add colors as you learn
-              </li>
-            </ol>
-            <button className="pill-btn-primary pill-btn-full intro-cta" onClick={startPlay}>
-              Take the color test →
-            </button>
-            {!cloudUser && (
-              <button className="back-link back-link-center" onClick={openAccount}>
-                Have an account? Sign in
-              </button>
-            )}
           </>
         )}
 
