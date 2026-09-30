@@ -841,7 +841,7 @@ export default function App() {
             onBack={closeTool}
           />
           {view === 'practice' ? (
-            <PracticeMode profileId={currentProfile.id} profileName={currentProfile.name} />
+            <PracticeMode profileId={currentProfile.id} profileName={currentProfile.name} ready={authChecked} />
           ) : (
             <MusicTheory />
           )}

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useState } from 'react';
 import { MIN_PRACTICE_MINUTES, formatMinutes, loadPracticeLog, practiceStats, recordPractice } from './practiceLog.js';
 
 // A practice companion: a timer for the whole session, a tap counter for
@@ -6,10 +6,12 @@ import { MIN_PRACTICE_MINUTES, formatMinutes, loadPracticeLog, practiceStats, re
 // practice history. The timer and counter are saved as they change, and
 // the timer is kept as timestamps rather than ticks, so locking the phone
 // or switching apps doesn't lose time. A practice is only saved to the
-// history if it lasted at least MIN_PRACTICE_MINUTES.
+// history if it lasted at least MIN_PRACTICE_MINUTES. The timer and
+// counter belong to one player (profileId); picking another player starts
+// them over.
 const PRACTICE_KEY = 'pitchpop-practice-v1';
 const STATUSES = ['idle', 'running', 'paused', 'tooShort', 'saved'];
-const EMPTY = { status: 'idle', startedAt: null, elapsedBefore: 0, count: 0 };
+const EMPTY = { status: 'idle', startedAt: null, elapsedBefore: 0, count: 0, profileId: null };
 
 function loadPractice() {
   try {
@@ -31,7 +33,7 @@ function formatDay(key) {
   return new Date(y, m - 1, d).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
 }
 
-export default function PracticeMode({ profileId, profileName }) {
+export default function PracticeMode({ profileId, profileName, ready = true }) {
   const [practice, setPractice] = useState(loadPractice);
   const [log, setLog] = useState(loadPracticeLog);
   const [now, setNow] = useState(Date.now);
@@ -51,6 +53,28 @@ export default function PracticeMode({ profileId, profileName }) {
   }, [practice.status]);
 
   const update = (changes) => setPractice((p) => ({ ...p, ...changes }));
+
+  // A different player: start their timer and counter from zero. If the
+  // previous player had practiced long enough, that practice goes into
+  // their history first, as if they'd tapped End practice. (Layout effect,
+  // so the previous player's numbers never flash on screen.)
+  // Waits for `ready`: while a signed-in family's players are still loading,
+  // profileId is briefly the guest player, which isn't a real switch.
+  useLayoutEffect(() => {
+    if (!ready || practice.profileId === profileId) return;
+    if (!practice.profileId) {
+      // Saved before practices belonged to a player: it's this player's.
+      update({ profileId });
+      return;
+    }
+    const t = Date.now();
+    const minutes = wholeMinutes(elapsedMs(practice, t));
+    if (['running', 'paused'].includes(practice.status) && minutes >= MIN_PRACTICE_MINUTES) {
+      setLog((prev) => recordPractice(prev, practice.profileId, minutes, new Date(t)));
+    }
+    setNow(t);
+    setPractice({ ...EMPTY, profileId });
+  }, [ready, profileId, practice.profileId]);
 
   function start() {
     setNow(Date.now());
