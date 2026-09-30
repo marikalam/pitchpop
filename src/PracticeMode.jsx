@@ -8,6 +8,7 @@ import {
   recordPractice,
   tokensFor,
 } from './practiceLog.js';
+import Metronome from './Metronome.jsx';
 
 // A practice companion: a timer for the whole session, a tap counter for
 // repetitions ("5 times scales, then 5 times Hanon"), and each player's
@@ -212,6 +213,8 @@ export default function PracticeMode({ profileId, profileName, ready = true }) {
           </>
         )}
       </section>
+
+      <Metronome />
 
       <section className="practice-card" aria-label="Repetition counter">
         <div className="practice-card-title">🔁 Repetition counter</div>
