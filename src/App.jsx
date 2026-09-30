@@ -829,9 +829,12 @@ export default function App() {
   }
 
   if (view === 'practice' || view === 'theory') {
+    // Practice Mode fits on one screen (its tools are tabs); the Music
+    // Theory glossary is a long list and scrolls.
+    const fit = view === 'practice';
     return (
-      <div className="page">
-        <div className="app">
+      <div className={fit ? 'page page-fit' : 'page'}>
+        <div className={fit ? 'app app-fit' : 'app'}>
           <AppHeader
             profile={profile}
             profiles={profiles}
@@ -898,9 +901,11 @@ export default function App() {
 
   if (profile === 'melody') {
     const melodyDone = melodyTaps >= MELODY_SESSION_TAPS;
-    return (
-      <div className="page">
-        <div className="app">
+    // The home page and Explore fit on one phone screen, no scrolling.
+  const fitClass = view === 'home' ? ' home-fit' : view === 'explore' ? ' explore-fit' : '';
+  return (
+    <div className={fitClass ? 'page page-fit' : 'page'}>
+      <div className={`app${fitClass ? ' app-fit' : ''}${fitClass}`}>
           <AppHeader
             profile={profile}
             profiles={profiles}
@@ -955,9 +960,11 @@ export default function App() {
     );
   }
 
+  // The home page and Explore fit on one phone screen, no scrolling.
+  const fitClass = view === 'home' ? ' home-fit' : view === 'explore' ? ' explore-fit' : '';
   return (
-    <div className="page">
-      <div className="app">
+    <div className={fitClass ? 'page page-fit' : 'page'}>
+      <div className={`app${fitClass ? ' app-fit' : ''}${fitClass}`}>
         {view === 'home' && (
           <>
             <AppHeader
@@ -994,7 +1001,7 @@ export default function App() {
                 <PlayTriangleIcon />
               </span>
               <span className="home-cta-text">
-                <span className="home-cta-title">Color test</span>
+                <span className="home-cta-title">Pitch Practice</span>
                 <span className="home-cta-sub">Hear a chord, pick its color</span>
               </span>
               <span className="home-cta-arrow" aria-hidden="true">
@@ -1048,8 +1055,10 @@ export default function App() {
             <div className="rainbow-slot">
               <Rainbow colors={COLORS} activeName={celebrate} visible={!!celebrate} />
             </div>
+            {/* Every color, for everyone - Explore is for hearing them all,
+                not just the ones this player is learning. */}
             <div className="grid">
-              {profileColors.map((color) => (
+              {COLORS.map((color) => (
                 <button
                   key={color.name}
                   className={`pad${justPlayed === color.name ? ' pad-played' : ''}`}

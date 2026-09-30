@@ -23,26 +23,49 @@ function loadBpm() {
   return DEFAULT_BPM;
 }
 
-// A short wood-block style click.
-function scheduleClick(ctx, time) {
-  const osc = ctx.createOscillator();
-  osc.type = 'triangle';
-  osc.frequency.setValueAtTime(1600, time);
-  osc.frequency.exponentialRampToValueAtTime(800, time + 0.03);
-  const gain = ctx.createGain();
-  gain.gain.setValueAtTime(0.0001, time);
-  gain.gain.exponentialRampToValueAtTime(0.6, time + 0.002);
-  gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.06);
-  osc.connect(gain).connect(ctx.destination);
-  osc.start(time);
-  osc.stop(time + 0.07);
+// One tick, like a mechanical metronome: a very short burst of noise
+// through a band-pass filter gives the woody "tok", and a tiny high sine
+// on top gives it a crisp edge. Both die away within about 30 ms.
+function noiseBuffer(ctx) {
+  const buffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.05), ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+  return buffer;
 }
 
-export default function Metronome() {
+function scheduleClick(ctx, time, noise) {
+  const src = ctx.createBufferSource();
+  src.buffer = noise;
+  const band = ctx.createBiquadFilter();
+  band.type = 'bandpass';
+  band.frequency.value = 2600;
+  band.Q.value = 3;
+  const body = ctx.createGain();
+  body.gain.setValueAtTime(0.0001, time);
+  body.gain.exponentialRampToValueAtTime(2.4, time + 0.001);
+  body.gain.exponentialRampToValueAtTime(0.0001, time + 0.03);
+  src.connect(band).connect(body).connect(ctx.destination);
+  src.start(time);
+  src.stop(time + 0.05);
+
+  const edge = ctx.createOscillator();
+  edge.type = 'sine';
+  edge.frequency.value = 3400;
+  const edgeGain = ctx.createGain();
+  edgeGain.gain.setValueAtTime(0.0001, time);
+  edgeGain.gain.exponentialRampToValueAtTime(0.25, time + 0.001);
+  edgeGain.gain.exponentialRampToValueAtTime(0.0001, time + 0.012);
+  edge.connect(edgeGain).connect(ctx.destination);
+  edge.start(time);
+  edge.stop(time + 0.02);
+}
+
+export default function Metronome({ hidden = false, onRunningChange }) {
   const [bpm, setBpm] = useState(loadBpm);
   const [running, setRunning] = useState(false);
   const [beat, setBeat] = useState(0); // bumps on every click, for the flash
   const ctxRef = useRef(null);
+  const noiseRef = useRef(null);
   const bpmRef = useRef(bpm);
   const nextRef = useRef(0);
   const flashTimers = useRef([]);
@@ -57,13 +80,17 @@ export default function Metronome() {
   }, [bpm]);
 
   useEffect(() => {
+    onRunningChange?.(running);
+  }, [running, onRunningChange]);
+
+  useEffect(() => {
     if (!running) return undefined;
     const ctx = ctxRef.current;
     nextRef.current = ctx.currentTime + 0.05;
     const id = setInterval(() => {
       while (nextRef.current < ctx.currentTime + LOOKAHEAD_S) {
         const at = nextRef.current;
-        scheduleClick(ctx, at);
+        scheduleClick(ctx, at, noiseRef.current);
         const delay = Math.max(0, (at - ctx.currentTime) * 1000);
         flashTimers.current.push(setTimeout(() => setBeat((b) => b + 1), delay));
         // A tempo change takes effect from the next click.
@@ -93,13 +120,14 @@ export default function Metronome() {
     // Created on the tap itself: phones only allow audio started by a tap.
     if (!ctxRef.current) ctxRef.current = new (window.AudioContext || window.webkitAudioContext)();
     if (ctxRef.current.state === 'suspended') await ctxRef.current.resume();
+    if (!noiseRef.current) noiseRef.current = noiseBuffer(ctxRef.current);
     setRunning(true);
   }
 
   const change = (delta) => setBpm((b) => clampBpm(b + delta));
 
   return (
-    <section className="practice-card" aria-label="Metronome">
+    <section className="practice-card" aria-label="Metronome" hidden={hidden}>
       <div className="practice-card-title">🎵 Metronome</div>
       <div className="metronome-row">
         <button className="practice-step" onClick={() => change(-1)} disabled={bpm <= MIN_BPM} aria-label="Slower">

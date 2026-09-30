@@ -71,9 +71,9 @@ colors, and see a daily practice streak.
 
 **3. How to use the main features**
 No account is needed to play. PitchPop opens on its home page, which has a
-button for every part of the app: tap "Color test" to start playing.
+button for every part of the app: tap "Pitch Practice" to start playing.
 - Menu: the ☰ button at the top left also opens every part of the app,
-  grouped into Play, Learn and Practice, with "Home" and "Color test" first.
+  grouped into Play, Learn and Practice, with "Home" and "Pitch Practice" first.
 - Chord game: tap the rainbow to hear a chord, pick a color, then Next.
 - Explore sounds: tap any color to hear its chord.
 - Piano: turn the phone sideways to play; the keyboard appears in landscape.
@@ -134,7 +134,7 @@ captured.
 
 1. Start recording from the Home Screen, then **launch PitchPop** (the video
    must begin with the launch).
-2. Show the **home page**, then tap **Color test**.
+2. Show the **home page**, then tap **Pitch Practice**.
 3. Play the **chord game**: tap the rainbow, answer one correctly and one
    incorrectly, show the feedback, finish or go a few rounds.
 4. Open **Explore sounds** and tap a few colors.

@@ -2099,33 +2099,6 @@ body {
 }
 
 /* ---------- Practice Mode ---------- */
-.token-card {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 14px 18px;
-  border-radius: 22px;
-  background: linear-gradient(135deg, #fff6d6, #ffe9a8);
-  box-shadow: var(--shadow);
-}
-
-.token-coin {
-  font-size: 40px;
-  line-height: 1;
-}
-
-.token-count {
-  font: 700 26px 'Fredoka', ui-rounded, system-ui, sans-serif;
-  color: #6b4a00;
-  line-height: 1.1;
-}
-
-.token-hint {
-  margin-top: 2px;
-  font-size: 13px;
-  color: #8a6a1c;
-}
-
 .token-earned {
   align-self: center;
   display: flex;
@@ -2536,4 +2509,205 @@ body {
   color: var(--ink-dim);
   font-size: 14px;
   line-height: 1.4;
+}
+
+/* ---------- Practice Mode: one tool per tab, fits one screen ---------- */
+.practice-screen {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.practice-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.practice-title {
+  text-align: left;
+}
+
+.token-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #fff6d6, #ffe9a8);
+  color: #6b4a00;
+  font: 700 17px 'Fredoka', ui-rounded, system-ui, sans-serif;
+  box-shadow: var(--shadow-sm);
+}
+
+.practice-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  padding: 4px;
+  border-radius: 18px;
+  background: #e8ecf5;
+}
+
+.practice-tab {
+  appearance: none;
+  position: relative;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 2px 7px;
+  border-radius: 14px;
+  background: none;
+  color: var(--ink-dim);
+  font: 700 11.5px 'IBM Plex Sans', sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.practice-tab-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.practice-tab-active {
+  background: var(--card-bg);
+  color: var(--accent-blue);
+  box-shadow: 0 1px 5px rgba(23, 26, 43, 0.14);
+}
+
+.practice-tab-live {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-green);
+  animation: practice-pulse 1.4s ease-in-out infinite;
+}
+
+/* The open tool fills the rest of the screen, content centered; a long
+   history scrolls inside its card rather than the page. */
+.practice-screen .practice-card {
+  flex: 1;
+  min-height: 0;
+  justify-content: center;
+  overflow-y: auto;
+}
+
+.practice-screen .practice-card[hidden] {
+  display: none;
+}
+
+.practice-screen .practice-card-title {
+  text-align: center;
+}
+
+/* ---------- Home page and Explore fit one screen ---------- */
+.home-fit .home-hero {
+  flex: none;
+  justify-content: center;
+  padding: 10px 16px 14px;
+}
+
+.home-fit .home-hero-rainbow .rainbow {
+  width: auto;
+  height: clamp(44px, 11vh, 96px);
+}
+
+.home-fit .home-hello {
+  font-size: clamp(21px, 6.5vw, 28px);
+}
+
+.home-fit .home-tagline {
+  font-size: 13.5px;
+}
+
+.home-fit .home-cta {
+  flex: none;
+  padding: 12px 16px;
+}
+
+.home-fit .home-grid {
+  flex: 1 1 auto;
+  min-height: 0;
+  grid-auto-rows: 1fr;
+  gap: 10px;
+}
+
+.home-fit .home-card {
+  min-height: 0;
+  padding: 10px 12px;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.home-fit .home-card-icon {
+  width: 34px;
+  height: 34px;
+  font-size: 19px;
+  border-radius: 11px;
+  margin-bottom: 2px;
+}
+
+.home-fit .home-card-title {
+  font-size: 16px;
+}
+
+.home-fit .home-card-sub {
+  font-size: 12px;
+}
+
+.explore-fit .rainbow-slot {
+  flex: none;
+}
+
+.explore-fit .rainbow-slot .rainbow {
+  width: auto;
+  height: clamp(36px, 8vh, 80px);
+}
+
+.explore-fit .grid {
+  flex: 1;
+  min-height: 0;
+  grid-auto-rows: 1fr;
+  gap: 10px;
+}
+
+.explore-fit .pad {
+  min-height: 0;
+}
+
+/* Shorter screens (e.g. iPhone SE, or Safari with its toolbars): drop the
+   tagline and card subtitles, and lay cards out icon-left so their text
+   never gets cut off. */
+@media (max-height: 720px) {
+  .home-fit .home-tagline {
+    display: none;
+  }
+
+  .home-fit .home-hero {
+    gap: 4px;
+    padding: 8px 14px 10px;
+  }
+
+  .home-fit .home-card {
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .home-fit .home-card-icon {
+    flex: none;
+    margin-bottom: 0;
+  }
+
+  .home-fit .home-card-sub {
+    display: none;
+  }
 }

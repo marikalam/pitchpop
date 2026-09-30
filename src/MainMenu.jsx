@@ -1,14 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 
 // The ☰ menu: every part of the app besides picking a player, grouped the
-// way a family uses it. Home and the color test come first, so there's a
-// way back to them from anywhere. Learn needs an account.
+// way a family uses it. Home and Pitch Practice (the color game) come
+// first, so there's a way back to them from anywhere. Learn needs an
+// account.
 const MENU_SECTIONS = [
   {
     title: 'Play',
     items: [
       { id: 'home', icon: '🏠', label: 'Home' },
-      { id: 'color-test', icon: '🌈', label: 'Color test' },
+      { id: 'color-test', icon: '🌈', label: 'Pitch Practice' },
       { id: 'explore', icon: '🎵', label: 'Explore sounds' },
       { id: 'piano', icon: '🎹', label: 'Piano' },
     ],
