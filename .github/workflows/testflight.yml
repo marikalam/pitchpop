@@ -61,12 +61,35 @@ jobs:
       - name: Build the web app and copy it into the iOS project
         run: npm run build:ios
 
+      # Pasting the key (especially on a phone) can join its lines, add
+      # spaces or smart characters. Rebuild a clean PEM from whatever base64
+      # is in the secret: drop the BEGIN/END lines and anything that isn't
+      # base64, then wrap at 64 characters. Prints only sizes, never the key.
       - name: Write the API key
         env:
           ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
         run: |
           mkdir -p "$RUNNER_TEMP/keys"
-          printf '%s\n' "$ASC_KEY_P8" > "$RUNNER_TEMP/keys/AuthKey.p8"
+          python3 - "$RUNNER_TEMP/keys/AuthKey.p8" <<'PY'
+          import base64, os, re, sys, textwrap
+          raw = os.environ.get('ASC_KEY_P8', '')
+          had_begin = 'BEGIN PRIVATE KEY' in raw
+          had_end = 'END PRIVATE KEY' in raw
+          body = re.sub(r'-----(BEGIN|END) PRIVATE KEY-----', '', raw)
+          body = re.sub(r'[^A-Za-z0-9+/=]', '', body)
+          try:
+              der = base64.b64decode(body, validate=True)
+          except Exception as err:
+              der = b''
+              print(f'Key is not valid base64: {err}')
+          print(f'Secret length {len(raw)}, BEGIN line {had_begin}, END line {had_end}, '
+                f'base64 chars {len(body)}, decoded bytes {len(der)} (expect about 138)')
+          if len(der) < 100:
+              sys.exit('ASC_KEY_P8 does not look like a complete .p8 key. Paste the whole file again.')
+          pem = '-----BEGIN PRIVATE KEY-----\n' + '\n'.join(textwrap.wrap(body, 64)) + '\n-----END PRIVATE KEY-----\n'
+          with open(sys.argv[1], 'w') as f:
+              f.write(pem)
+          PY
 
       - name: Archive
         env:
