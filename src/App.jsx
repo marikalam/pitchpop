@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { PianoEngine, playCorrectChime, playWrongBuzz } from './piano.js';
 import { speakColorName, speakResults, prewarmVoices, unlockAudio } from './speech.js';
+import { isCurrent, later, newSound } from './soundBus.js';
 import Rainbow from './Rainbow.jsx';
 import ProfileSwitcher from './ProfileSwitcher.jsx';
 import MainMenu from './MainMenu.jsx';
@@ -486,12 +487,15 @@ export default function App() {
   useEffect(() => {
     if (view !== 'play-complete') return;
     const correct = Object.values(roundOutcomes).filter(Boolean).length;
+    newSound();
     speakResults(correct, SESSION_ROUNDS);
   }, [view]);
 
   const currentColor = sessionQueue.length ? COLORS.find((c) => c.name === sessionQueue[roundIndex]) : null;
 
+  // Each new sound replaces whatever is still playing (see soundBus.js).
   function playChord(color) {
+    newSound();
     engineRef.current.playChord(color.notes);
     if (navigator.vibrate) navigator.vibrate(20);
   }
@@ -499,8 +503,11 @@ export default function App() {
   // Says the color name, then plays its real notes one at a time right
   // after - so "Blue" is followed by the actual B, D, G pitches instead of
   // a voice just naming letters with no real connection to the chord.
-  async function announceColor(color) {
+  // `soundId` ties the steps together: if anything else starts playing
+  // meanwhile, the notes don't follow.
+  async function announceColor(color, soundId) {
     await speakColorName(color.name);
+    if (!isCurrent(soundId)) return;
     engineRef.current.playNoteSequence(color.notes);
   }
 
@@ -524,6 +531,7 @@ export default function App() {
   }
 
   function goHome() {
+    newSound();
     setView('home');
   }
 
@@ -598,15 +606,11 @@ export default function App() {
       return next;
     });
 
-    if (correct) {
-      playCorrectChime();
-      setTimeout(() => announceColor(currentColor), 350);
-      setView('play-feedback');
-    } else {
-      playWrongBuzz();
-      setTimeout(() => announceColor(currentColor), 350);
-      setView('play-feedback');
-    }
+    const soundId = newSound();
+    if (correct) playCorrectChime();
+    else playWrongBuzz();
+    later(() => announceColor(currentColor, soundId), 350);
+    setView('play-feedback');
   }
 
   function hearAgainFromFeedback() {
@@ -615,10 +619,12 @@ export default function App() {
   }
 
   function chooseDifferentAnswer() {
+    newSound();
     setView('play-question');
   }
 
   function nextChord() {
+    newSound();
     if (roundIndex + 1 >= SESSION_ROUNDS) {
       setStreakDays(recordStreakDay(streakDays, profile));
       setView('play-complete');
@@ -671,6 +677,7 @@ export default function App() {
         };
 
   function openTool(id) {
+    newSound();
     // Already in a color test: keep the round going rather than restart it.
     if (id === 'home') return goHome();
     if (id === 'color-test') return view.startsWith('play-') ? undefined : startPlay();
