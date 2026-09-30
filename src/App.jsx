@@ -7,7 +7,8 @@ import MainMenu from './MainMenu.jsx';
 import { PlayerSettingsCard, AddPlayerForm, AccountButton, AccountScreen, SyncStatus } from './Settings.jsx';
 import NoteSpeller from './NoteSpeller.jsx';
 import Piano from './Piano.jsx';
-import PracticeMode from './PracticeMode.jsx';
+import PracticeMode, { showTimerTab } from './PracticeMode.jsx';
+import PracticeBadge from './PracticeBadge.jsx';
 import MusicTheory from './MusicTheory.jsx';
 import MethodInfo from './MethodInfo.jsx';
 import { getUser, loadCloudProfiles, saveCloudProfile, deleteCloudProfile, onAuthEvent } from './cloud.js';
@@ -177,6 +178,7 @@ function AppHeader({
   onOpenSettings,
   onOpenAccount,
   onOpenTool,
+  onOpenPractice,
   onBack,
   showBack,
   hideProfile = false,
@@ -216,6 +218,7 @@ function AppHeader({
           <button className="back-link" onClick={onBack}>
             ← Back
           </button>
+          {onOpenPractice && <PracticeBadge onOpen={onOpenPractice} />}
           <ProfileSwitcher
             profile={profile}
             profiles={profiles}
@@ -226,14 +229,17 @@ function AppHeader({
           />
         </div>
       ) : hideProfile ? null : (
-        <ProfileSwitcher
-          profile={profile}
-          profiles={profiles}
-          colors={COLORS}
-          signedIn={signedIn}
-          onChange={onChangeProfile}
-          onOpenSettings={onOpenSettings}
-        />
+        <div className="nav-row nav-row-home">
+          <ProfileSwitcher
+            profile={profile}
+            profiles={profiles}
+            colors={COLORS}
+            signedIn={signedIn}
+            onChange={onChangeProfile}
+            onOpenSettings={onOpenSettings}
+          />
+          {onOpenPractice && <PracticeBadge onOpen={onOpenPractice} />}
+        </div>
       )}
     </>
   );
@@ -654,6 +660,16 @@ export default function App() {
   // included) instead of restarting the color game.
   const TOOL_VIEWS = ['piano', 'practice', 'theory', 'method'];
 
+  // The header's practice pill: back to the timer, from anywhere but
+  // Practice Mode itself (whose Timer tab already shows it).
+  const openPracticeFromBadge =
+    view === 'practice'
+      ? undefined
+      : () => {
+          showTimerTab();
+          openTool('practice');
+        };
+
   function openTool(id) {
     // Already in a color test: keep the round going rather than restart it.
     if (id === 'home') return goHome();
@@ -782,6 +798,7 @@ export default function App() {
             user={cloudUser}
             onOpenAccount={openAccount}
             onOpenTool={openTool}
+            onOpenPractice={openPracticeFromBadge}
             showBack
             onBack={goHome}
           />
@@ -813,6 +830,7 @@ export default function App() {
             user={cloudUser}
             onOpenAccount={openAccount}
             onOpenTool={openTool}
+            onOpenPractice={openPracticeFromBadge}
             showBack
             onBack={goHome}
           />
@@ -845,6 +863,7 @@ export default function App() {
             user={cloudUser}
             onOpenAccount={openAccount}
             onOpenTool={openTool}
+            onOpenPractice={openPracticeFromBadge}
             showBack
             onBack={closeTool}
           />
@@ -872,6 +891,7 @@ export default function App() {
             user={cloudUser}
             onOpenAccount={openAccount}
             onOpenTool={openTool}
+            onOpenPractice={openPracticeFromBadge}
             showBack
             onBack={goHome}
           />
@@ -918,6 +938,7 @@ export default function App() {
             user={cloudUser}
             onOpenAccount={openAccount}
             onOpenTool={openTool}
+            onOpenPractice={openPracticeFromBadge}
             showBack
             onBack={() => changeProfile(lastProfile.id)}
           />
@@ -979,6 +1000,7 @@ export default function App() {
               user={cloudUser}
               onOpenAccount={openAccount}
               onOpenTool={openTool}
+              onOpenPractice={openPracticeFromBadge}
             />
             <section className="home-hero">
               <div className="home-hero-rainbow">
@@ -1054,6 +1076,7 @@ export default function App() {
               user={cloudUser}
               onOpenAccount={openAccount}
               onOpenTool={openTool}
+              onOpenPractice={openPracticeFromBadge}
               showBack
               onBack={closeExplore}
             />
@@ -1091,6 +1114,7 @@ export default function App() {
               user={cloudUser}
               onOpenAccount={openAccount}
               onOpenTool={openTool}
+              onOpenPractice={openPracticeFromBadge}
               showBack
               onBack={goHome}
             />
@@ -1118,6 +1142,7 @@ export default function App() {
               user={cloudUser}
               onOpenAccount={openAccount}
               onOpenTool={openTool}
+              onOpenPractice={openPracticeFromBadge}
               showBack
               onBack={goHome}
             />
@@ -1146,6 +1171,7 @@ export default function App() {
               user={cloudUser}
               onOpenAccount={openAccount}
               onOpenTool={openTool}
+              onOpenPractice={openPracticeFromBadge}
               showBack
               onBack={goHome}
             />
@@ -1182,6 +1208,7 @@ export default function App() {
               user={cloudUser}
               onOpenAccount={openAccount}
               onOpenTool={openTool}
+              onOpenPractice={openPracticeFromBadge}
               showBack
               onBack={goHome}
             />
@@ -1236,6 +1263,7 @@ export default function App() {
               user={cloudUser}
               onOpenAccount={openAccount}
               onOpenTool={openTool}
+              onOpenPractice={openPracticeFromBadge}
               showBack
               onBack={goHome}
             />

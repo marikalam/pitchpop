@@ -57,6 +57,22 @@ function elapsedMs(p, now) {
 
 const wholeMinutes = (ms) => Math.floor(ms / 60000);
 
+// For the practice pill in the header on other screens: whether a practice
+// is on (running or paused) and how many whole minutes it has so far.
+export function readPracticeTimer(now = Date.now()) {
+  const p = loadPractice();
+  return { status: p.status, minutes: wholeMinutes(elapsedMs(p, now)) };
+}
+
+// Makes Practice Mode open on its Timer tab (used by the header pill).
+export function showTimerTab() {
+  try {
+    localStorage.setItem(TAB_KEY, 'timer');
+  } catch {
+    /* ignore */
+  }
+}
+
 function formatDay(key) {
   const [y, m, d] = key.split('-').map(Number);
   return new Date(y, m - 1, d).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
