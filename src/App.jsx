@@ -182,9 +182,6 @@ function AppHeader({
           </h1>
         )}
         <div className="brand-actions">
-          <a className="games-link-btn" href="https://marikalam.github.io/apps/">
-            Apps
-          </a>
           <AccountButton user={user} onClick={onOpenAccount} />
         </div>
       </div>
