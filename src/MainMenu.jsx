@@ -26,6 +26,10 @@ const MENU_SECTIONS = [
     title: 'Practice',
     items: [{ id: 'practice', icon: '⏱️', label: 'Practice Mode' }],
   },
+  {
+    title: 'About',
+    items: [{ id: 'method', icon: '🎓', label: 'The Eguchi method' }],
+  },
 ];
 
 export default function MainMenu({ signedIn, onOpen }) {

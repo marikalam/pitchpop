@@ -74,6 +74,8 @@ No account is needed to play. PitchPop opens on its home page, which has a
 button for every part of the app: tap "Pitch Practice" to start playing.
 - Menu: the ☰ button at the top left also opens every part of the app,
   grouped into Play, Learn and Practice, with "Home" and "Pitch Practice" first.
+- About: "How it works" on the home page (or ☰ → About) explains the
+  Eguchi method the chord game is based on.
 - Chord game: tap the rainbow to hear a chord, pick a color, then Next.
 - Explore sounds: tap any color to hear its chord.
 - Piano: turn the phone sideways to play; the keyboard appears in landscape.

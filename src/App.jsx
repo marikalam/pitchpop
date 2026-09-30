@@ -9,6 +9,7 @@ import NoteSpeller from './NoteSpeller.jsx';
 import Piano from './Piano.jsx';
 import PracticeMode from './PracticeMode.jsx';
 import MusicTheory from './MusicTheory.jsx';
+import MethodInfo from './MethodInfo.jsx';
 import { getUser, loadCloudProfiles, saveCloudProfile, deleteCloudProfile, onAuthEvent } from './cloud.js';
 import { PlayTriangleIcon, SpeakerIcon, CheckIcon, XIcon } from './icons.jsx';
 import { loadStreakDays, recordStreakDay, streakFor } from './streak.js';
@@ -651,7 +652,7 @@ export default function App() {
   // Piano, Practice Mode and Music Theory are side trips like Explore:
   // closing one goes back to wherever the player was (a quiz in progress
   // included) instead of restarting the color game.
-  const TOOL_VIEWS = ['piano', 'practice', 'theory'];
+  const TOOL_VIEWS = ['piano', 'practice', 'theory', 'method'];
 
   function openTool(id) {
     // Already in a color test: keep the round going rather than restart it.
@@ -828,9 +829,10 @@ export default function App() {
     return <Piano engine={engineRef.current} onClose={closeTool} />;
   }
 
-  if (view === 'practice' || view === 'theory') {
+  if (view === 'practice' || view === 'theory' || view === 'method') {
     // Practice Mode fits on one screen (its tools are tabs); the Music
-    // Theory glossary is a long list and scrolls.
+    // Theory glossary and the method explanation are reading pages and
+    // scroll.
     const fit = view === 'practice';
     return (
       <div className={fit ? 'page page-fit' : 'page'}>
@@ -848,6 +850,8 @@ export default function App() {
           />
           {view === 'practice' ? (
             <PracticeMode profileId={currentProfile.id} profileName={currentProfile.name} ready={authChecked} />
+          ) : view === 'method' ? (
+            <MethodInfo colors={COLORS} signedIn={!!cloudUser} />
           ) : (
             <MusicTheory />
           )}
@@ -989,6 +993,9 @@ export default function App() {
                   : 'Hear a chord, pick its color, and train your ear one game at a time.'}
               </p>
               <div className="home-stats">
+                <button className="home-stat home-stat-link" onClick={() => openTool('method')}>
+                  🎓 How it works
+                </button>
                 <span className="home-stat">
                   🔥 {streak.current ? `${streak.current} ${streak.current === 1 ? 'day' : 'days'} in a row` : 'Start a streak'}
                 </span>
