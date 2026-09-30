@@ -6,6 +6,14 @@ import { dayKey, streakFor } from './streak.js';
 // rules as the game streak (streak.js).
 const LOG_KEY = 'pitchpop-practice-log-v1';
 export const MIN_PRACTICE_MINUTES = 5;
+// Players collect a token for every TOKEN_MINUTES of a saved practice.
+// Tokens are worked out from the saved practices rather than stored, so
+// practices saved before tokens existed count too.
+export const TOKEN_MINUTES = 5;
+
+export function tokensFor(minutes) {
+  return Math.floor(minutes / TOKEN_MINUTES);
+}
 
 export function loadPracticeLog() {
   try {
@@ -38,6 +46,7 @@ export function practiceStats(entries = [], today = new Date()) {
     weekMinutes: sum(entries.filter((e) => e.day >= weekStartKey)),
     totalMinutes: sum(entries),
     count: entries.length,
+    tokens: entries.reduce((total, e) => total + tokensFor(e.minutes), 0),
     streak: streakFor(
       entries.map((e) => e.day),
       todayKey,
