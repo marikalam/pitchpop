@@ -1,30 +1,10 @@
 import { useState } from 'react';
 import Avatar from './Avatar.jsx';
 
-// Everything besides the color game, grouped the way a family uses it:
-// things to play with, things to learn, and practice-time tools.
-const MENU_SECTIONS = [
-  {
-    title: 'Play',
-    items: [
-      { id: 'explore', icon: '🎵', label: 'Explore sounds' },
-      { id: 'piano', icon: '🎹', label: 'Piano' },
-    ],
-  },
-  {
-    title: 'Learn',
-    items: [
-      { id: 'notespeller', icon: '🎼', label: 'NoteSpeller' },
-      { id: 'theory', icon: '📖', label: 'Music Theory' },
-    ],
-  },
-  {
-    title: 'Practice',
-    items: [{ id: 'practice', icon: '⏱️', label: 'Practice Mode' }],
-  },
-];
-
-export default function ProfileSwitcher({ profile, profiles, colors, onChange, onOpenSettings, onOpenTool }) {
+// "Playing as": picks which player is playing. Signed in, it also leads to
+// the family's Players & colors settings. The rest of the app lives in the
+// ☰ menu (MainMenu).
+export default function ProfileSwitcher({ profile, profiles, colors, signedIn, onChange, onOpenSettings }) {
   const [open, setOpen] = useState(false);
   const current = profiles.find((p) => p.id === profile) || profiles[0];
 
@@ -59,34 +39,19 @@ export default function ProfileSwitcher({ profile, profiles, colors, onChange, o
               </span>
             </button>
           ))}
-          {MENU_SECTIONS.map((section) => (
-            <div key={section.title} className="profile-menu-section">
-              <div className="profile-menu-heading">{section.title}</div>
-              {section.items.map((item) => (
-                <button
-                  key={item.id}
-                  className="profile-settings-item"
-                  onClick={() => {
-                    onOpenTool(item.id);
-                    setOpen(false);
-                  }}
-                >
-                  {item.icon} <span>{item.label}</span>
-                </button>
-              ))}
+          {signedIn && (
+            <div className="profile-menu-section">
+              <button
+                className="profile-settings-item"
+                onClick={() => {
+                  onOpenSettings();
+                  setOpen(false);
+                }}
+              >
+                ⚙️ <span>Players &amp; colors</span>
+              </button>
             </div>
-          ))}
-          <div className="profile-menu-section">
-            <button
-              className="profile-settings-item"
-              onClick={() => {
-                onOpenSettings();
-                setOpen(false);
-              }}
-            >
-              ⚙️ <span>Players &amp; colors</span>
-            </button>
-          </div>
+          )}
         </div>
       )}
     </div>
