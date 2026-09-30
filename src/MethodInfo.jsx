@@ -75,7 +75,7 @@ export default function MethodInfo({ colors, signedIn }) {
             ten chords.
           </li>
           <li>
-            <strong>Start with two or three colors</strong> and add the next one when they’re easy.
+            <strong>Start with two or three colors</strong> and add more as your child is ready (see below).
             {signedIn
               ? ' Choose each player’s colors in Players & colors.'
               : ' With a family account, you choose each player’s colors in Players & colors.'}
@@ -85,6 +85,26 @@ export default function MethodInfo({ colors, signedIn }) {
             flags in the traditional lessons. Explore shows every color with its notes.
           </li>
         </ul>
+      </section>
+
+      <section className="method-card">
+        <h3 className="method-heading">➕ When to add a new color</h3>
+        <ul className="method-tips">
+          <li>
+            Add a new color when your child recognizes their current colors with <strong>at least 90% accuracy</strong>{' '}
+            on <strong>two different days</strong>.
+          </li>
+          <li>Keep practicing all the old colors, too.</li>
+          <li>If accuracy stays at 90% or higher, add the next color.</li>
+          <li>
+            If it drops <strong>below 80%</strong>, remove the newest color or practice with fewer colors until accuracy
+            is steady again.
+          </li>
+        </ul>
+        <p className="method-note">
+          No rush: progress is based on how your child does, not the calendar. The end of each Pitch Practice round
+          shows how many of the 10 chords were correct: 9 or 10 is 90% or more.
+        </p>
       </section>
     </div>
   );
