@@ -3,6 +3,7 @@ import { PianoEngine, playCorrectChime, playWrongBuzz } from './piano.js';
 import { speakColorName, speakResults, prewarmVoices, unlockAudio } from './speech.js';
 import Rainbow from './Rainbow.jsx';
 import ProfileSwitcher from './ProfileSwitcher.jsx';
+import MainMenu from './MainMenu.jsx';
 import { PlayerSettingsCard, AddPlayerForm, AccountButton, AccountScreen, SyncStatus } from './Settings.jsx';
 import NoteSpeller from './NoteSpeller.jsx';
 import Piano from './Piano.jsx';
@@ -44,6 +45,8 @@ const SESSION_KEY = 'pitchpop-session-v1';
 const PROFILES_KEY = 'pitchpop-profiles-v1';
 const GUEST_PROFILES_KEY = 'pitchpop-guest-profiles-v1';
 const WELCOME_KEY = 'pitchpop-welcome-seen-v1';
+// Screens only a signed-in family can open.
+const SIGNED_IN_VIEWS = ['settings', 'notespeller', 'theory'];
 // Everything this device keeps about players: their lists, progress,
 // streaks and practice. Cleared when the account is deleted. (App-wide
 // preferences like the NoteSpeller clef or piano labels stay.)
@@ -171,6 +174,7 @@ function AppHeader({
   showBack,
   hideProfile = false,
 }) {
+  const signedIn = !!user;
   return (
     <>
       <div className="brand-row">
@@ -194,6 +198,7 @@ function AppHeader({
           </h1>
         )}
         <div className="brand-actions">
+          <MainMenu signedIn={signedIn} onOpen={onOpenTool} />
           <AccountButton user={user} onClick={onOpenAccount} />
         </div>
       </div>
@@ -206,9 +211,9 @@ function AppHeader({
             profile={profile}
             profiles={profiles}
             colors={COLORS}
+            signedIn={signedIn}
             onChange={onChangeProfile}
             onOpenSettings={onOpenSettings}
-            onOpenTool={onOpenTool}
           />
         </div>
       ) : hideProfile ? null : (
@@ -216,9 +221,9 @@ function AppHeader({
           profile={profile}
           profiles={profiles}
           colors={COLORS}
+          signedIn={signedIn}
           onChange={onChangeProfile}
           onOpenSettings={onOpenSettings}
-          onOpenTool={onOpenTool}
         />
       )}
     </>
@@ -283,6 +288,8 @@ export default function App() {
   const [draftProfiles, setDraftProfiles] = useState(profiles);
   const [cloudUser, setCloudUser] = useState(null);
   const [cloudConnected, setCloudConnected] = useState(false);
+  // False until the saved sign-in (if any) has been checked on load.
+  const [authChecked, setAuthChecked] = useState(false);
   const [passwordRecovery, setPasswordRecovery] = useState(false);
   const [showWelcome, setShowWelcome] = useState(() => localStorage.getItem(WELCOME_KEY) !== '1');
 
@@ -396,11 +403,22 @@ export default function App() {
           if (cached) showProfiles(cached, 'account');
         }
       })
-      .catch((err) => console.error('PitchPop is using local profile settings', err));
+      .catch((err) => console.error('PitchPop is using local profile settings', err))
+      .finally(() => {
+        if (!cancelled) setAuthChecked(true);
+      });
     return () => {
       cancelled = true;
     };
   }, []);
+
+  // Players & colors and the Learn screens are for signed-in families. A
+  // guest who lands on one (a saved screen from before signing out, or
+  // after signing out right there) goes back to the color test.
+  const signedIn = !!cloudUser;
+  useEffect(() => {
+    if (authChecked && !signedIn && SIGNED_IN_VIEWS.includes(view)) goHome();
+  }, [authChecked, signedIn, view]);
 
   // Clicking the link in a "reset your password" email lands back here with
   // a recovery session already active - Supabase surfaces that as this
@@ -513,6 +531,8 @@ export default function App() {
   // including mid-quiz - closing it should return to wherever the player
   // actually was, not reset their progress.
   function openExplore() {
+    // Opening Explore from Explore must not make Explore its own way back.
+    if (view === 'explore') return;
     setPreExploreView(view);
     setView('explore');
   }
@@ -633,6 +653,8 @@ export default function App() {
   const TOOL_VIEWS = ['piano', 'practice', 'theory'];
 
   function openTool(id) {
+    // Already in a color test: keep the round going rather than restart it.
+    if (id === 'color-test') return view.startsWith('play-') ? undefined : goHome();
     if (id === 'explore') return openExplore();
     if (id === 'notespeller') return openNoteSpeller();
     if (!TOOL_VIEWS.includes(view)) setPreToolView(view);

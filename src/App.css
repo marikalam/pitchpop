@@ -1305,6 +1305,50 @@ body {
   gap: 8px;
 }
 
+/* The ☰ menu next to Sign in: the rest of the app (color test, explore,
+   piano, learn, practice). It opens under the button, right-aligned. */
+.main-menu {
+  position: relative;
+}
+
+.main-menu-btn {
+  appearance: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--card-bg);
+  box-shadow: var(--shadow-sm);
+  color: var(--ink);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.main-menu-btn[aria-expanded='true'] {
+  color: var(--accent-blue);
+}
+
+.main-menu-panel {
+  left: auto;
+  right: 0;
+  z-index: 10;
+  min-width: 210px;
+}
+
+.main-menu-section-first {
+  display: flex;
+  flex-direction: column;
+}
+
+.main-menu-section-first .profile-settings-item {
+  border-top: none;
+  margin-top: 0;
+  padding: 8px 10px;
+}
+
 .account-btn {
   appearance: none;
   border: none;
