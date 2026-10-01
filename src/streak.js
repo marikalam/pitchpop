@@ -1,5 +1,6 @@
 // Practice streaks, per player: the set of days each player finished a
-// round, stored on this device like the rest of their progress.
+// round, stored on this device and, signed in, synced to the family
+// account (historySync.js).
 const STREAK_KEY = 'pitchpop-streak-days-v1';
 
 // Local calendar day ("2026-09-28"), so a streak follows the family's own
@@ -30,6 +31,20 @@ export function recordStreakDay(allDays, profileId, today = dayKey()) {
   const days = allDays[profileId] || [];
   if (days.includes(today)) return allDays;
   const next = { ...allDays, [profileId]: [...days, today].sort() };
+  try {
+    localStorage.setItem(STREAK_KEY, JSON.stringify(next));
+  } catch {
+    /* ignore */
+  }
+  // historySync.js sends it to the family account.
+  window.dispatchEvent(new CustomEvent('pitchpop-history-changed', { detail: profileId }));
+  return next;
+}
+
+// Replaces one player's streak days (with the synced list from the family
+// account).
+export function replaceStreakDays(profileId, days) {
+  const next = { ...loadStreakDays(), [profileId]: days };
   try {
     localStorage.setItem(STREAK_KEY, JSON.stringify(next));
   } catch {

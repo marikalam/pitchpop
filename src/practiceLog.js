@@ -33,6 +33,20 @@ export function recordPractice(log, profileId, minutes, ended = new Date()) {
   } catch {
     /* ignore */
   }
+  // historySync.js sends it to the family account.
+  window.dispatchEvent(new CustomEvent('pitchpop-history-changed', { detail: profileId }));
+  return next;
+}
+
+// Replaces one player's saved practices (with the synced list from the
+// family account).
+export function replacePlayerPractices(profileId, entries) {
+  const next = { ...loadPracticeLog(), [profileId]: entries };
+  try {
+    localStorage.setItem(LOG_KEY, JSON.stringify(next));
+  } catch {
+    /* ignore */
+  }
   return next;
 }
 

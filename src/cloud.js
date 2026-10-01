@@ -139,3 +139,25 @@ export async function deleteCloudProfile(profileId) {
     console.error('Could not reach PitchPop storage', err);
   }
 }
+
+// Sends one player's practice history and game streak days to the family
+// account and gets back everything saved there, from every phone (the
+// database side is supabase/player_history_sync.sql). Returns null when
+// signed out or unreachable, or before that SQL has been run.
+export async function mergeCloudHistory(profileId, practiceLog, streakDays) {
+  try {
+    const { data, error } = await supabase.rpc('merge_player_history', {
+      p_profile_key: profileId,
+      p_practice_log: practiceLog,
+      p_streak_days: streakDays,
+    });
+    if (error) {
+      console.error('Could not sync PitchPop history', error);
+      return null;
+    }
+    return data;
+  } catch (err) {
+    console.error('Could not reach PitchPop storage', err);
+    return null;
+  }
+}
