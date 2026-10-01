@@ -29,6 +29,10 @@ class ViewController: CAPBridgeViewController {
         webView?.scrollView.alwaysBounceVertical = false
         webView?.scrollView.alwaysBounceHorizontal = false
         webView?.scrollView.pinchGestureRecognizer?.isEnabled = false
+        // Swiping from the left edge goes back to the previous screen
+        // (src/screenHistory.js keeps the web view's history in step with
+        // PitchPop's screens).
+        webView?.allowsBackForwardNavigationGestures = true
     }
 
     override func webView(with frame: CGRect, configuration: WKWebViewConfiguration) -> WKWebView {
