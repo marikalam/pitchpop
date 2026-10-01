@@ -313,7 +313,8 @@ export default function PracticeMode({ profileId, profileName, ready = true }) {
   const earning = tokensFor(minutes);
   const tokenWord = (n) => (n === 1 ? 'token' : 'tokens');
 
-  const live = { timer: practice.status === 'running', metronome: metronomeOn };
+  // A green dot on the Timer tab while the practice timer runs.
+  const live = { timer: practice.status === 'running' };
 
   return (
     <div className="practice-screen">
