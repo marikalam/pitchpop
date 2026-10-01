@@ -24,6 +24,7 @@ on:
       - 'package.json'
       - 'package-lock.json'
       - 'capacitor.config.json'
+      - 'scripts/**'
       - '.github/workflows/testflight.yml'
       - '.github/scripts/**'
 
@@ -49,6 +50,12 @@ jobs:
         with:
           node-version: 22
           cache: npm
+
+      # The ~63MB speech voice is downloaded once and reused.
+      - uses: actions/cache@v4
+        with:
+          path: .ios-assets-cache
+          key: ios-assets-${{ hashFiles('scripts/copy-ios-assets.mjs') }}
 
       - run: npm ci
 

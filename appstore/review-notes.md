@@ -20,9 +20,11 @@ Replace everything in `[brackets]` before sending.
      Information → **Sign-in required: on**, User name / Password.
      Only there: this repository is public, so never write the password in
      this file or anywhere else in the repo.
-2. **Voice (done).** Every spoken word (color names, note letters and round
-   results) is a short clip recorded by the developer and bundled in
-   `public/voice/`, so there's no third-party voice license to worry about.
+2. **Voice license (done).** The voice's MODEL_CARD lists its dataset
+   (Hi-Fi-CAPTAIN, NICT) as CC BY-NC-SA 4.0: non-commercial, with credit.
+   Fine for a free app with no ads; it's credited in the Credits section of
+   `public/privacy.html`. If PitchPop is ever paid or shows ads, switch to a
+   voice whose license allows commercial use.
 3. **Check account deletion works.** The database function from
    `supabase/delete_my_account.sql` is installed (run on 2026-09-28). Create a *throwaway*
    account in the app, go to Account → **Delete account**, and confirm it
@@ -101,9 +103,9 @@ button for every part of the app: tap "Pitch Practice" to start playing.
   family's player names and color settings, used only when the user chooses
   to create an account.
 No other services are used. There are no ads, analytics, tracking, payments
-or AI services. The piano sounds are synthesized in the app, and the voice is
-a set of short recordings made by the developer and bundled inside the app,
-so the games work fully offline.
+or AI services. Sound and speech are generated on the device: the piano is
+synthesized in the app, and the voice is an open-source Piper text-to-speech
+model bundled inside the app, so the games work fully offline.
 
 **5. Regions**
 The app works the same in all regions. Its interface is in English only, and
@@ -111,10 +113,14 @@ no features or content differ by region.
 
 **6. Regulated industry / third-party material**
 PitchPop does not operate in a regulated industry and contains no protected
-third-party material. The voice recordings were made by the developer. The
-fonts (Fredoka, IBM Plex, and the Bravura music font's clef and note shapes)
-are used under the SIL Open Font License 1.1, and the piano sounds are
-synthesized by the app itself.
+third-party material. Bundled open-source components are used under their
+licenses: the Piper text-to-speech engine and ONNX Runtime (MIT); the Piper voice
+"en_US-hfc_female-medium", trained on the Hi-Fi-CAPTAIN dataset by NICT and
+used under CC BY-NC-SA 4.0 in this free, non-commercial app, with credit in
+the Credits section of our privacy policy
+(https://marikalam.github.io/apps/pitchpop/privacy.html); the Fredoka and
+IBM Plex fonts and the Bravura music font's clef and note shapes (SIL Open
+Font License 1.1). The piano sounds are synthesized by the app itself.
 
 Thank you!
 Marika Lam
