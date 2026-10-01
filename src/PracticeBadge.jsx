@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react';
 import { readPracticeTimer } from './PracticeMode.jsx';
 
 // A small pill in the header while a practice is on, so the timer stays in
-// view on every screen: a pulsing green dot and the minutes while it runs,
-// a coffee cup while it's on a break. Tapping it goes back to the timer. The
+// view on every screen (Practice Mode's other tabs too): a pulsing green
+// dot, "Practicing" and the minutes while it runs, a coffee cup while it's
+// on a break. Tapping it goes back to the timer. The
 // timer lives in PracticeMode's saved state, so this just re-reads it.
 export default function PracticeBadge({ onOpen }) {
   const [timer, setTimer] = useState(readPracticeTimer);
@@ -16,7 +17,9 @@ export default function PracticeBadge({ onOpen }) {
   if (timer.status !== 'running' && timer.status !== 'paused') return null;
   const running = timer.status === 'running';
   // Paused because nobody tapped for a while: ask instead of the minutes.
-  const label = timer.idlePaused ? 'Still there?' : `${timer.minutes} min`;
+  const label = timer.idlePaused
+    ? 'Still there?'
+    : `${running ? 'Practicing' : 'On a break'} · ${timer.minutes} min`;
   return (
     <button
       className={`practice-badge${running ? '' : ' practice-badge-paused'}`}

@@ -720,15 +720,13 @@ export default function App() {
   // included) instead of restarting the color game.
   const TOOL_VIEWS = ['piano', 'practice', 'theory', 'method'];
 
-  // The header's practice pill: back to the timer, from anywhere but
-  // Practice Mode itself (whose Timer tab already shows it).
-  const openPracticeFromBadge =
-    view === 'practice'
-      ? undefined
-      : () => {
-          showTimerTab();
-          openTool('practice');
-        };
+  // The header's practice pill, on every screen: back to the timer (in
+  // Practice Mode itself, to its Timer tab).
+  const openPracticeFromBadge = () => {
+    showTimerTab();
+    if (view === 'practice') window.dispatchEvent(new Event('pitchpop-show-timer'));
+    else openTool('practice');
+  };
 
   function openTool(id) {
     newSound();
