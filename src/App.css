@@ -2984,3 +2984,60 @@ body {
 .question-fit .option-btn {
   min-height: 0;
 }
+
+/* ---------- Back to the app from an account email (EmailHandoff) ---------- */
+.handoff-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(20, 22, 26, 0.45);
+}
+
+.handoff-card {
+  width: min(360px, 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 28px 22px 18px;
+  border-radius: 24px;
+  background: var(--card-bg);
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+
+.handoff-icon {
+  font-size: 44px;
+  line-height: 1;
+}
+
+.handoff-title {
+  margin: 0;
+  font: 700 22px 'Fredoka', ui-rounded, system-ui, sans-serif;
+  color: var(--ink);
+}
+
+.handoff-text {
+  margin: 0 0 6px;
+  color: var(--ink-dim);
+  font-size: 15px;
+}
+
+.handoff-open {
+  text-decoration: none;
+  text-align: center;
+}
+
+.handoff-stay {
+  appearance: none;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 8px;
+  color: var(--ink-dim);
+  font: 600 14px 'IBM Plex Sans', sans-serif;
+}
