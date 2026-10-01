@@ -3,7 +3,7 @@ import { readPracticeTimer } from './PracticeMode.jsx';
 
 // A small pill in the header while a practice is on, so the timer stays in
 // view on every screen: a pulsing green dot and the minutes while it runs,
-// a pause sign while it's paused. Tapping it goes back to the timer. The
+// a coffee cup while it's on a break. Tapping it goes back to the timer. The
 // timer lives in PracticeMode's saved state, so this just re-reads it.
 export default function PracticeBadge({ onOpen }) {
   const [timer, setTimer] = useState(readPracticeTimer);
@@ -21,9 +21,13 @@ export default function PracticeBadge({ onOpen }) {
     <button
       className={`practice-badge${running ? '' : ' practice-badge-paused'}`}
       onClick={onOpen}
-      aria-label={`${running ? 'Practicing' : 'Practice paused'}, ${timer.minutes} minutes.${timer.idlePaused ? ' Are you still practicing?' : ''} Open the practice timer.`}
+      aria-label={`${running ? 'Practicing' : timer.idlePaused ? 'Practice paused' : 'On a break'}, ${timer.minutes} minutes.${timer.idlePaused ? ' Are you still practicing?' : ''} Open the practice timer.`}
     >
-      {running ? <span className="practice-live-dot" aria-hidden="true" /> : <span aria-hidden="true">⏸</span>}
+      {running ? (
+        <span className="practice-live-dot" aria-hidden="true" />
+      ) : (
+        <span aria-hidden="true">{timer.idlePaused ? '⏸' : '☕'}</span>
+      )}
       {label}
     </button>
   );

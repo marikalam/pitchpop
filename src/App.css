@@ -2887,3 +2887,47 @@ body {
 .nav-row-home:empty {
   display: none;
 }
+
+/* ---------- Coffee break (practice timer on a break) ---------- */
+.coffee-break {
+  display: block;
+  width: clamp(72px, 15vh, 130px);
+  height: auto;
+  margin: 0 auto;
+  color: #c9b8ab;
+  overflow: visible;
+}
+
+.coffee-steam path {
+  opacity: 0;
+  animation: coffee-steam 3s ease-in-out infinite;
+}
+
+.coffee-steam .coffee-steam-2 {
+  animation-delay: 1s;
+}
+
+.coffee-steam .coffee-steam-3 {
+  animation-delay: 2s;
+}
+
+@keyframes coffee-steam {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  30% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-14px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .coffee-steam path {
+    animation: none;
+    opacity: 0.7;
+  }
+}
