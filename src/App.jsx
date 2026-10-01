@@ -90,11 +90,14 @@ function buildQueue(names, total) {
   return queue.slice(0, total);
 }
 
-function buildOptions(correctName, colorNames) {
-  const pool = colorNames.filter((n) => n !== correctName);
-  const distractors = shuffle(pool).slice(0, 3);
-  const names = shuffle([correctName, ...distractors]);
-  return names.map((n) => COLORS.find((c) => c.name === n));
+// The order colors are usually learned in (red first).
+const LEARNING_ORDER = ['red', 'yellow', 'blue', 'black', 'green', 'orange', 'purple', 'pink', 'brown'];
+
+// Every color the player is learning is an answer, like a full set of
+// flags, always in learning order, so each color stays in the same spot
+// round after round.
+function buildOptions(colorNames) {
+  return LEARNING_ORDER.filter((n) => colorNames.includes(n)).map((n) => COLORS.find((c) => c.name === n));
 }
 
 // null when that list was never saved on this device.
@@ -596,7 +599,7 @@ export default function App() {
 
   function listenTap() {
     playChord(currentColor);
-    setOptions(buildOptions(currentColor.name, profileColorNames));
+    setOptions(buildOptions(profileColorNames));
     setView('play-question');
   }
 
@@ -1029,8 +1032,16 @@ export default function App() {
     );
   }
 
-  // The home page and Explore fit on one phone screen, no scrolling.
-  const fitClass = view === 'home' ? ' home-fit' : view === 'explore' ? ' explore-fit' : '';
+  // The home page, Explore and the question screen fit on one phone
+  // screen, no scrolling.
+  const fitClass =
+    view === 'home'
+      ? ' home-fit'
+      : view === 'explore'
+        ? ' explore-fit'
+        : view === 'play-question'
+          ? ' question-fit'
+          : '';
   return (
     <div className={fitClass ? 'page page-fit' : 'page'}>
       <div className={`app${fitClass ? ' app-fit' : ''}${fitClass}`}>
@@ -1227,7 +1238,12 @@ export default function App() {
                 <SpeakerIcon />
               </span>
             </button>
-            <div className="options-grid">
+            <div
+              className={`options-grid${options.length > 4 ? ' options-grid-3col' : ''}`}
+              // Buttons fill the space under the rainbow, up to about 130px
+              // tall each, so a few colors don't turn into huge slabs.
+              style={{ maxHeight: Math.ceil(options.length / (options.length > 4 ? 3 : 2)) * 144 }}
+            >
               {options.map((color) => (
                 <button
                   key={color.name}
