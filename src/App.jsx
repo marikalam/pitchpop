@@ -12,7 +12,8 @@ import PracticeMode, { showTimerTab, stopPractice } from './PracticeMode.jsx';
 import PracticeBadge from './PracticeBadge.jsx';
 import MusicTheory from './MusicTheory.jsx';
 import MethodInfo from './MethodInfo.jsx';
-import { getUser, loadCloudProfiles, saveCloudProfile, deleteCloudProfile, onAuthEvent } from './cloud.js';
+import { getUser, loadCloudProfiles, saveCloudProfile, deleteCloudProfile, onAuthEvent, signInFromLink } from './cloud.js';
+import { listenForAppLinks } from './appLink.js';
 import { PlayTriangleIcon, SpeakerIcon, CheckIcon, XIcon } from './icons.jsx';
 import { loadStreakDays, recordStreakDay, streakFor } from './streak.js';
 import { startHistorySync } from './historySync.js';
@@ -497,6 +498,27 @@ export default function App() {
     });
     return unsubscribe;
   }, []);
+
+  // In the iPhone app: an account email's link, handed over by the website
+  // (appLink.js), signs the family in here. A password-reset link goes to
+  // "choose a new password".
+  const handleSignedInRef = useRef(null);
+  handleSignedInRef.current = (user) => handleSignedIn(user);
+  useEffect(
+    () =>
+      listenForAppLinks(async ({ accessToken, refreshToken, recovery }) => {
+        const user = await signInFromLink(accessToken, refreshToken);
+        if (!user) return;
+        if (recovery) {
+          setCloudUser(user);
+          setPasswordRecovery(true);
+          setView('account');
+        } else {
+          handleSignedInRef.current(user);
+        }
+      }),
+    [],
+  );
 
   useEffect(() => {
     saveSession({

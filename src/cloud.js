@@ -21,13 +21,28 @@ export async function getUser() {
 
 // Where links in PitchPop's emails (confirm sign-up, reset password) lead.
 // Inside the iOS app the page's own origin (capacitor://localhost) can't be
-// opened from an email, so the link goes to the website instead. Supabase
-// only follows URLs on its Redirect URLs list (Authentication -> URL
-// Configuration); anything else falls back to the Site URL.
+// opened from an email, so the link goes to the website marked
+// ?from=app, which hands the sign-in back to the app (appLink.js).
+// Supabase only follows URLs on its Redirect URLs list (Authentication ->
+// URL Configuration, which needs https://marikalam.github.io/apps/pitchpop/**);
+// anything else falls back to the Site URL.
 const WEB_APP_URL = 'https://marikalam.github.io/apps/pitchpop/';
 
 function emailLinkUrl() {
-  return Capacitor.isNativePlatform() ? WEB_APP_URL : `${window.location.origin}${import.meta.env.BASE_URL}`;
+  return Capacitor.isNativePlatform() ? `${WEB_APP_URL}?from=app` : `${window.location.origin}${import.meta.env.BASE_URL}`;
+}
+
+// Signs in with the details from an email link handed to the app (see
+// appLink.js). Returns the user, or null if the link was used up or expired.
+export async function signInFromLink(accessToken, refreshToken) {
+  try {
+    const { data, error } = await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
+    if (error) throw error;
+    return data.user;
+  } catch (err) {
+    console.error('Could not sign in from the email link', err);
+    return null;
+  }
 }
 
 export async function signIn(email, password) {
