@@ -2954,3 +2954,26 @@ body {
     animation-timing-function: ease-in-out;
   }
 }
+
+/* ---------- Question screen: every learned color is an answer ---------- */
+/* Up to 4 colors in two columns, more in three; the buttons share the
+   space left under the rainbow, so even all nine fit without scrolling. */
+.options-grid-3col {
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.options-grid-3col .option-btn {
+  font-size: 17px;
+  border-radius: 18px;
+}
+
+.question-fit .options-grid {
+  flex: 1 1 auto;
+  min-height: 0;
+  grid-auto-rows: minmax(0, 1fr);
+}
+
+.question-fit .option-btn {
+  min-height: 0;
+}
