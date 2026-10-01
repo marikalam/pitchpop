@@ -14,6 +14,8 @@ import MusicTheory from './MusicTheory.jsx';
 import MethodInfo from './MethodInfo.jsx';
 import { getUser, loadCloudProfiles, saveCloudProfile, deleteCloudProfile, onAuthEvent, signInFromLink } from './cloud.js';
 import { listenForAppLinks } from './appLink.js';
+import { playSoundCheck } from './soundCheck.js';
+import VolumeWarning from './VolumeWarning.jsx';
 import { PlayTriangleIcon, SpeakerIcon, CheckIcon, XIcon } from './icons.jsx';
 import { loadStreakDays, recordStreakDay, streakFor } from './streak.js';
 import { startHistorySync } from './historySync.js';
@@ -275,14 +277,16 @@ function AppHeader({
           <button className="back-link" onClick={onBack}>
             ← Back
           </button>
-          {onOpenPractice && <PracticeBadge onOpen={onOpenPractice} />}
+          <div className="nav-row-right">
+            <VolumeWarning />
+            {onOpenPractice && <PracticeBadge onOpen={onOpenPractice} />}
+          </div>
         </div>
       ) : (
-        onOpenPractice && (
-          <div className="nav-row nav-row-home">
-            <PracticeBadge onOpen={onOpenPractice} />
-          </div>
-        )
+        <div className="nav-row nav-row-home">
+          <VolumeWarning />
+          {onOpenPractice && <PracticeBadge onOpen={onOpenPractice} />}
+        </div>
       )}
     </>
   );
@@ -753,6 +757,7 @@ export default function App() {
   };
 
   function openTool(id) {
+    if (id === 'sound-check') return playSoundCheck();
     newSound();
     // Already in a color test: keep the round going rather than restart it.
     if (id === 'home') return goHome();
@@ -1117,6 +1122,9 @@ export default function App() {
                   🔥 {streak.current ? `${streak.current} ${streak.current === 1 ? 'day' : 'days'} in a row` : 'Start a streak'}
                 </span>
                 <span className="home-stat">🪙 {homeTokens} {homeTokens === 1 ? 'token' : 'tokens'}</span>
+                <button className="home-stat home-stat-link" onClick={playSoundCheck}>
+                  🔊 Sound check
+                </button>
               </div>
             </section>
 

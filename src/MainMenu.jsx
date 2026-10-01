@@ -12,6 +12,7 @@ const MENU_SECTIONS = [
       { id: 'color-test', icon: '🌈', label: 'Pitch Practice' },
       { id: 'explore', icon: '🎵', label: 'Explore sounds' },
       { id: 'piano', icon: '🎹', label: 'Piano' },
+      { id: 'sound-check', icon: '🔊', label: 'Sound check' },
     ],
   },
   {

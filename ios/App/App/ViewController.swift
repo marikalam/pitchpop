@@ -20,6 +20,7 @@ import Capacitor
 class ViewController: CAPBridgeViewController {
     override func capacitorDidLoad() {
         bridge?.registerPluginInstance(PracticeActivityPlugin())
+        bridge?.registerPluginInstance(DeviceVolumePlugin())
         // PitchPop is laid out to fit the screen like a native app: the
         // web view itself never pans, bounces or zooms (scrolling is also
         // off in capacitor.config.json). Screens with more content than
