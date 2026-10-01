@@ -15,6 +15,7 @@ import MethodInfo from './MethodInfo.jsx';
 import { getUser, loadCloudProfiles, saveCloudProfile, deleteCloudProfile, onAuthEvent } from './cloud.js';
 import { PlayTriangleIcon, SpeakerIcon, CheckIcon, XIcon } from './icons.jsx';
 import { loadStreakDays, recordStreakDay, streakFor } from './streak.js';
+import { startHistorySync } from './historySync.js';
 import { loadPracticeLog, practiceStats } from './practiceLog.js';
 
 const COLORS = [
@@ -460,6 +461,19 @@ export default function App() {
     return () => {
       cancelled = true;
     };
+  }, []);
+
+  // Signed in, each player's practice history and game streak sync with
+  // the family account (historySync.js); show what other phones added.
+  const syncedProfileIds = cloudConnected && cloudUser ? profiles.map((p) => p.id).join(',') : '';
+  useEffect(() => {
+    if (!syncedProfileIds) return undefined;
+    return startHistorySync(syncedProfileIds.split(','));
+  }, [syncedProfileIds]);
+  useEffect(() => {
+    const reload = () => setStreakDays(loadStreakDays());
+    window.addEventListener('pitchpop-history-synced', reload);
+    return () => window.removeEventListener('pitchpop-history-synced', reload);
   }, []);
 
   // Players & colors and the Learn screens are for signed-in families. A

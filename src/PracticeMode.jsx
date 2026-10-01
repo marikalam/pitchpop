@@ -163,6 +163,13 @@ export default function PracticeMode({ profileId, profileName, ready = true }) {
     }
   }, [practice]);
 
+  // Practices saved on the family's other phones (historySync.js).
+  useEffect(() => {
+    const reload = () => setLog(loadPracticeLog());
+    window.addEventListener('pitchpop-history-synced', reload);
+    return () => window.removeEventListener('pitchpop-history-synced', reload);
+  }, []);
+
   useEffect(() => {
     const reload = () => setPractice(loadPractice());
     window.addEventListener('pitchpop-practice-idle', reload);
