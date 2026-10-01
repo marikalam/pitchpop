@@ -16,6 +16,7 @@ import { getUser, loadCloudProfiles, saveCloudProfile, deleteCloudProfile, onAut
 import { listenForAppLinks } from './appLink.js';
 import { playSoundCheck } from './soundCheck.js';
 import VolumeWarning from './VolumeWarning.jsx';
+import { useScreenHistory } from './screenHistory.js';
 import { PlayTriangleIcon, SpeakerIcon, CheckIcon, XIcon } from './icons.jsx';
 import { loadStreakDays, recordStreakDay, streakFor } from './streak.js';
 import { startHistorySync } from './historySync.js';
@@ -377,6 +378,8 @@ export default function App() {
   // PitchPop always opens on the home page, which shows every part of the
   // app. (A first visit also gets the welcome card on top of it.)
   const [view, setView] = useState('home');
+  // Swipe back / the browser's back button go to the previous screen.
+  useScreenHistory(view, setView);
   const [preExploreView, setPreExploreView] = useState('home');
   const [preToolView, setPreToolView] = useState('home');
   // Read fresh each render so tokens earned in Practice Mode show at once.
