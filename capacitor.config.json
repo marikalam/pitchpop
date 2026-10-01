@@ -3,6 +3,7 @@
   "appName": "PitchPop",
   "webDir": "dist",
   "ios": {
-    "contentInset": "never"
+    "contentInset": "never",
+    "scrollEnabled": false
   }
 }
