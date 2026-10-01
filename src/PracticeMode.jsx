@@ -9,6 +9,7 @@ import {
   tokensFor,
 } from './practiceLog.js';
 import Metronome from './Metronome.jsx';
+import CoffeeBreak from './CoffeeBreak.jsx';
 
 // A practice companion: a timer for the whole session, a tap counter for
 // repetitions ("5 times scales, then 5 times Hanon"), and each player's
@@ -322,8 +323,9 @@ export default function PracticeMode({ profileId, profileName, ready = true }) {
                   {earning > 0 && ` · 🪙 ${earning} ${tokenWord(earning)} so far`}
                 </>
               )}
-              {practice.status === 'paused' && !practice.idlePaused && 'Paused'}
+              {practice.status === 'paused' && !practice.idlePaused && 'On a break · the timer is stopped'}
             </p>
+            {practice.status === 'paused' && !practice.idlePaused && <CoffeeBreak />}
             {practice.status === 'paused' && practice.idlePaused && (
               <div className="practice-idle" role="alert">
                 <strong>Are you still practicing?</strong>
@@ -340,7 +342,7 @@ export default function PracticeMode({ profileId, profileName, ready = true }) {
               <div className="practice-actions">
                 {practice.status === 'running' ? (
                   <button className="pill-btn-secondary" onClick={pause}>
-                    Pause
+                    ☕ Take a break
                   </button>
                 ) : (
                   <button className="pill-btn-secondary" onClick={resume}>
