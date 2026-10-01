@@ -198,6 +198,13 @@ export default function PracticeMode({ profileId, profileName, ready = true }) {
     if (ready && practice.profileId === profileId) reflectOnLockScreen(practice, Date.now(), profileName);
   }, [practice, ready, profileId, profileName]);
 
+  // The header's practice pill, tapped while in Practice Mode.
+  useEffect(() => {
+    const show = () => setTab('timer');
+    window.addEventListener('pitchpop-show-timer', show);
+    return () => window.removeEventListener('pitchpop-show-timer', show);
+  }, []);
+
   // Practices saved on the family's other phones (historySync.js).
   useEffect(() => {
     const reload = () => setLog(loadPracticeLog());
