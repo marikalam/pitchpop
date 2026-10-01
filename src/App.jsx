@@ -984,9 +984,10 @@ export default function App() {
 
   if (profile === 'melody') {
     const melodyDone = melodyTaps >= MELODY_SESSION_TAPS;
-    // The home page and Explore fit on one phone screen, no scrolling.
-  const fitClass = view === 'home' ? ' home-fit' : view === 'explore' ? ' explore-fit' : '';
-  return (
+    // The color buttons fit on one phone screen, no scrolling: they share
+    // the height left under the header.
+    const fitClass = melodyDone ? '' : ' melody-fit';
+    return (
     <div className={fitClass ? 'page page-fit' : 'page'}>
       <div className={`app${fitClass ? ' app-fit' : ''}${fitClass}`}>
           <AppHeader
