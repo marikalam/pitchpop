@@ -15,9 +15,15 @@
   box-sizing: border-box;
 }
 
+/* PitchPop is laid out like an app: no pinch or double-tap zoom (also
+   set in index.html's viewport, which stops iOS zooming in on a text field
+   when it's tapped), and the page itself never slides around - only a
+   screen's own content scrolls (.page), when it doesn't fit. */
 html, body {
   height: 100%;
-  overscroll-behavior-y: none;
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: manipulation;
 }
 
 body {
@@ -38,8 +44,9 @@ body {
   padding-block: max(20px, env(safe-area-inset-top)) max(32px, env(safe-area-inset-bottom));
   display: flex;
   justify-content: center;
+  overflow-x: hidden;
   overflow-y: auto;
-  overscroll-behavior-y: contain;
+  overscroll-behavior: none;
 }
 
 .app {
