@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		258CDC32559C8EDD9A8BB3AE /* PracticeTimerWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D7CD5660E5FC2D93AEFDD64F /* PracticeTimerWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		2FAD9763203C412B000D30F8 /* config.xml in Resources */ = {isa = PBXBuildFile; fileRef = 2FAD9762203C412B000D30F8 /* config.xml */; };
+		32C0E73174352FD4C974E3AB /* DeviceVolumePlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCD3843E3218AB6E856AACB3 /* DeviceVolumePlugin.swift */; };
 		4D22ABE92AF431CB00220026 /* CapApp-SPM in Frameworks */ = {isa = PBXBuildFile; productRef = 4D22ABE82AF431CB00220026 /* CapApp-SPM */; };
 		50379B232058CBB4000EE86E /* capacitor.config.json in Resources */ = {isa = PBXBuildFile; fileRef = 50379B222058CBB4000EE86E /* capacitor.config.json */; };
 		504EC3081FED79650016851F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504EC3071FED79650016851F /* AppDelegate.swift */; };
@@ -66,6 +67,7 @@
 		A1B2C3D40000000000000002 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		D7CD5660E5FC2D93AEFDD64F /* PracticeTimerWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = PracticeTimerWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		E0BA81F66276189299412224 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		FCD3843E3218AB6E856AACB3 /* DeviceVolumePlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DeviceVolumePlugin.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -130,6 +132,7 @@
 				2FAD9762203C412B000D30F8 /* config.xml */,
 				50B271D01FEDC1A000F3C39B /* public */,
 				106526DF9CA6FA9D77122488 /* PracticeActivityPlugin.swift */,
+				FCD3843E3218AB6E856AACB3 /* DeviceVolumePlugin.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -257,6 +260,7 @@
 				9582B6832FE993A70072D4E8 /* SceneDelegate.swift in Sources */,
 				5550D1BCF964C2DE6C47A12A /* PracticeActivityPlugin.swift in Sources */,
 				E5BD04B406CB1C50E5F4D49A /* PracticeActivityAttributes.swift in Sources */,
+				32C0E73174352FD4C974E3AB /* DeviceVolumePlugin.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

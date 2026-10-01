@@ -11,6 +11,8 @@ let timers = new Set();
 
 export function newSound() {
   generation += 1;
+  // SoundNotices.jsx shows a one-time tip on the iPhone website.
+  window.dispatchEvent(new Event('pitchpop-sound-start'));
   playing.forEach((stop) => stop());
   playing = new Set();
   timers.forEach((id) => clearTimeout(id));

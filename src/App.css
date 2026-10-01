@@ -3041,3 +3041,87 @@ body {
   color: var(--ink-dim);
   font: 600 14px 'IBM Plex Sans', sans-serif;
 }
+
+/* ---------- Hearing PitchPop: volume warning, sound check notes ---------- */
+.nav-row-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.nav-row-home {
+  gap: 8px;
+}
+
+.volume-warning {
+  appearance: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: #fff1e6;
+  color: #b4530a;
+  box-shadow: var(--shadow-sm);
+  font: 700 14px 'IBM Plex Sans', sans-serif;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+  animation: volume-warning-in 0.25s ease-out;
+}
+
+@keyframes volume-warning-in {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+}
+
+.sound-notice {
+  position: fixed;
+  left: 50%;
+  bottom: max(18px, calc(env(safe-area-inset-bottom) + 8px));
+  z-index: 40;
+  transform: translateX(-50%);
+  width: min(420px, calc(100% - 32px));
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 12px 12px 14px;
+  border-radius: 18px;
+  background: var(--ink);
+  color: #fff;
+  box-shadow: var(--shadow);
+  font-size: 14px;
+  line-height: 1.35;
+  animation: sound-notice-in 0.25s ease-out;
+}
+
+@keyframes sound-notice-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 12px);
+  }
+}
+
+.sound-notice-icon {
+  font-size: 22px;
+}
+
+.sound-notice-text {
+  flex: 1;
+}
+
+.sound-notice-ok {
+  appearance: none;
+  border: none;
+  cursor: pointer;
+  flex: none;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  font: 700 13px 'IBM Plex Sans', sans-serif;
+}
