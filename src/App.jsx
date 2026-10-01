@@ -8,7 +8,7 @@ import MainMenu from './MainMenu.jsx';
 import { PlayerSettingsCard, AddPlayerForm, AccountButton, AccountScreen, SyncStatus } from './Settings.jsx';
 import NoteSpeller from './NoteSpeller.jsx';
 import Piano from './Piano.jsx';
-import PracticeMode, { showTimerTab } from './PracticeMode.jsx';
+import PracticeMode, { showTimerTab, stopPractice } from './PracticeMode.jsx';
 import PracticeBadge from './PracticeBadge.jsx';
 import MusicTheory from './MusicTheory.jsx';
 import MethodInfo from './MethodInfo.jsx';
@@ -568,6 +568,8 @@ export default function App() {
   function changeProfile(next) {
     if (profile !== 'melody') setLastActiveProfile(profile);
     if (next !== profile) {
+      // The practice timer belongs to the player who started it.
+      stopPractice();
       // A quiz round in progress is built from the outgoing profile's
       // color set - switching identity mid-round let colors outside the
       // new profile's palette (e.g. Maddie's "brown") leak into Marcus's
@@ -779,6 +781,8 @@ export default function App() {
   async function handleSignedIn(user) {
     setCloudUser(user);
     if (!user) {
+      // Signing out ends any practice that's on (saved if long enough).
+      stopPractice();
       setCloudConnected(false);
       showProfiles(loadGuestProfiles(), 'guest');
       return;
@@ -809,6 +813,7 @@ export default function App() {
   // Deleting the account also wipes its players from this device, so the
   // app starts over with one fresh generic player.
   function handleAccountDeleted() {
+    stopPractice();
     PLAYER_DATA_KEYS.forEach((key) => {
       try {
         localStorage.removeItem(key);

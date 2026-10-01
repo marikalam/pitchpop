@@ -157,6 +157,28 @@ export function readPracticeTimer(now = Date.now()) {
   return { status: p.status, minutes: wholeMinutes(elapsedMs(p, now)), idlePaused: p.idlePaused };
 }
 
+// Stops a practice that's on, from outside Practice Mode: signing out,
+// deleting the account, or switching player. Like End practice, it's
+// saved to the player's history if it was long enough; then the timer,
+// the counter and the Lock Screen timer are cleared.
+export function stopPractice() {
+  const p = loadPractice();
+  const t = Date.now();
+  if ((p.status === 'running' || p.status === 'paused') && p.profileId) {
+    const minutes = wholeMinutes(elapsedMs(p, t));
+    if (minutes >= MIN_PRACTICE_MINUTES) recordPractice(loadPracticeLog(), p.profileId, minutes, new Date(t));
+  }
+  try {
+    localStorage.setItem(PRACTICE_KEY, JSON.stringify(EMPTY));
+  } catch {
+    /* ignore */
+  }
+  reflectOnLockScreen(EMPTY, t, '');
+  // Practice Mode, if open, reloads the timer and the history.
+  window.dispatchEvent(new Event('pitchpop-practice-idle'));
+  window.dispatchEvent(new Event('pitchpop-history-synced'));
+}
+
 // Makes Practice Mode open on its Timer tab (used by the header pill).
 export function showTimerTab() {
   try {
