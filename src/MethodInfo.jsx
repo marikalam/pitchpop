@@ -61,9 +61,18 @@ export default function MethodInfo({ colors, signedIn }) {
       <section className="method-card">
         <h3 className="method-heading">🔬 The research</h3>
         <p>
-          In a long-term study in Japan (Sakakibara, 2014, <em>Psychology of Music</em>), most of the children aged 2 to 6
-          who trained with this method developed absolute pitch, also called perfect pitch: naming a note just by hearing
-          it. Starting young matters, and the skill needs a little regular practice to keep.
+          In a long-term study in Japan (Sakakibara, 2014, <em>Psychology of Music</em>), 24 children aged 2 to 6 trained
+          with this method, and every child who kept practicing (22 of them) developed absolute pitch, also called perfect
+          pitch: naming a note just by hearing it. It took about one to two years of regular practice.
+        </p>
+      </section>
+
+      <section className="method-card">
+        <h3 className="method-heading">👶 The best age</h3>
+        <p>
+          <strong>Start between ages 2 and 6</strong>: that’s the age of the children in the study, and the younger the
+          better. The ability to learn perfect pitch fades after about age 6 to 7, and adults almost never can. Older
+          children and grown-ups still train their ear with PitchPop, just not usually to perfect pitch.
         </p>
       </section>
 
@@ -71,8 +80,12 @@ export default function MethodInfo({ colors, signedIn }) {
         <h3 className="method-heading">🌱 How to practice</h3>
         <ul className="method-tips">
           <li>
-            <strong>A few minutes every day</strong> works better than one long session. A round of Pitch Practice is
-            ten chords.
+            <strong>4 to 5 short sessions a day</strong>, each just 2 to 5 minutes (about 20 to 25 chords, or two rounds
+            of Pitch Practice), spread through the day. That’s how the method is designed. If that’s too many, aim for at
+            least 3 a day.
+          </li>
+          <li>
+            <strong>Every day, for one to two years.</strong> Short and often works much better than one long session.
           </li>
           <li>
             <strong>Start with one color</strong>, red (C–E–G), and add the next one when your child is ready (see
