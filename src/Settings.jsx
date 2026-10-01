@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { deleteAccount, requestPasswordReset, signIn, signOut, signUp, updatePassword } from './cloud.js';
 import { firstDay, streakFor } from './streak.js';
 
@@ -160,7 +160,33 @@ export function AccountButton({ user, onClick }) {
   );
 }
 
+// Whether the phone has an internet connection right now.
+function useOnline() {
+  const [online, setOnline] = useState(() => (typeof navigator === 'undefined' ? true : navigator.onLine !== false));
+  useEffect(() => {
+    const update = () => setOnline(navigator.onLine !== false);
+    window.addEventListener('online', update);
+    window.addEventListener('offline', update);
+    return () => {
+      window.removeEventListener('online', update);
+      window.removeEventListener('offline', update);
+    };
+  }, []);
+  return online;
+}
+
 export function SyncStatus({ user, onOpenAccount }) {
+  const online = useOnline();
+  if (user && !online) {
+    return (
+      <div className="sync-status sync-status-offline">
+        <span className="sync-dot sync-dot-offline" aria-hidden="true" />
+        <span>
+          Offline: changes are saved on this phone and sync to <strong>{user.email}</strong> when you’re back online
+        </span>
+      </div>
+    );
+  }
   if (user) {
     return (
       <div className="sync-status sync-status-on">

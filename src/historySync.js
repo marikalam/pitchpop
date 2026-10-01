@@ -6,8 +6,9 @@ import { loadStreakDays, replaceStreakDays } from './streak.js';
 // phone signed in to the family account. Each phone sends what it has and
 // gets back the combined lists (the database only ever adds, so phones
 // never overwrite each other), then saves them locally. Runs on sign-in,
-// whenever a practice or a streak day is recorded, and when the app comes
-// back to the foreground. Screens showing this data listen for the
+// whenever a practice or a streak day is recorded, when the app comes
+// back to the foreground, and when the internet comes back (practices
+// saved offline catch up then). Screens showing this data listen for the
 // 'pitchpop-history-synced' event.
 
 async function syncPlayer(profileId) {
@@ -38,10 +39,13 @@ export function startHistorySync(profileIds) {
   const onVisible = () => {
     if (document.visibilityState === 'visible') syncPlayers([...ids]);
   };
+  const onOnline = () => syncPlayers([...ids]);
   window.addEventListener('pitchpop-history-changed', onChange);
   document.addEventListener('visibilitychange', onVisible);
+  window.addEventListener('online', onOnline);
   return () => {
     window.removeEventListener('pitchpop-history-changed', onChange);
     document.removeEventListener('visibilitychange', onVisible);
+    window.removeEventListener('online', onOnline);
   };
 }

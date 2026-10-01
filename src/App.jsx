@@ -12,7 +12,15 @@ import PracticeMode, { showTimerTab, stopPractice } from './PracticeMode.jsx';
 import PracticeBadge from './PracticeBadge.jsx';
 import MusicTheory from './MusicTheory.jsx';
 import MethodInfo from './MethodInfo.jsx';
-import { getUser, loadCloudProfiles, saveCloudProfile, deleteCloudProfile, onAuthEvent, signInFromLink } from './cloud.js';
+import {
+  getUser,
+  loadCloudProfiles,
+  saveCloudProfile,
+  deleteCloudProfile,
+  onAuthEvent,
+  signInFromLink,
+  rememberedAccount,
+} from './cloud.js';
 import { listenForAppLinks } from './appLink.js';
 import { playSoundCheck } from './soundCheck.js';
 import VolumeWarning from './VolumeWarning.jsx';
@@ -448,11 +456,31 @@ export default function App() {
 
   // Signed in on load: show the family account's players (or the copy
   // cached on this device if the account can't be reached right now).
+  // Bumped on every sign-in and sign-out, so a slow check started before
+  // (e.g. with no internet) can't undo it when it finally answers.
+  const authEpoch = useRef(0);
   useEffect(() => {
     let cancelled = false;
+    const epoch = authEpoch.current;
+    // Show the family signed in at once, from this device (works with no
+    // internet); the server check below can take a while offline.
+    const remembered = rememberedAccount();
+    const cachedAtStart = remembered && loadPreAccountProfiles();
+    if (remembered) {
+      setCloudUser(remembered);
+      if (cachedAtStart) showProfiles(cachedAtStart, 'account');
+    }
     Promise.all([getUser(), loadCloudProfiles()])
       .then(([user, cloudProfiles]) => {
-        if (cancelled || !user) return;
+        if (cancelled || epoch !== authEpoch.current) return;
+        if (!user) {
+          // Signed out elsewhere (or the account was deleted).
+          if (remembered) {
+            setCloudUser(null);
+            showProfiles(loadGuestProfiles(), 'guest');
+          }
+          return;
+        }
         setCloudUser(user);
         if (cloudProfiles?.length) {
           showProfiles(cloudProfiles, 'account');
@@ -473,7 +501,38 @@ export default function App() {
 
   // Signed in, each player's practice history and game streak sync with
   // the family account (historySync.js); show what other phones added.
-  const syncedProfileIds = cloudConnected && cloudUser ? profiles.map((p) => p.id).join(',') : '';
+  // Offline it tries again when the internet comes back.
+  const syncedProfileIds = cloudUser && profileOwner === 'account' ? profiles.map((p) => p.id).join(',') : '';
+
+  // Signed in but opened without internet: the players cached on this
+  // device are shown. When the internet comes back (or the app returns to
+  // the front), send any changes made offline and show the account's
+  // latest players - unless the family is in the middle of editing them.
+  const viewRef = useRef(view);
+  viewRef.current = view;
+  useEffect(() => {
+    if (!cloudUser) return undefined;
+    let busy = false;
+    const reconnect = async () => {
+      if (busy || (typeof navigator !== 'undefined' && navigator.onLine === false)) return;
+      busy = true;
+      const epoch = authEpoch.current;
+      const cloudProfiles = await loadCloudProfiles();
+      busy = false;
+      if (!cloudProfiles?.length || viewRef.current === 'settings' || epoch !== authEpoch.current) return;
+      showProfiles(cloudProfiles, 'account');
+      setCloudConnected(true);
+    };
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') reconnect();
+    };
+    window.addEventListener('online', reconnect);
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      window.removeEventListener('online', reconnect);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+  }, [cloudUser]);
   useEffect(() => {
     if (!syncedProfileIds) return undefined;
     return startHistorySync(syncedProfileIds.split(','));
@@ -517,6 +576,7 @@ export default function App() {
         const user = await signInFromLink(accessToken, refreshToken);
         if (!user) return;
         if (recovery) {
+          authEpoch.current += 1;
           setCloudUser(user);
           setPasswordRecovery(true);
           setView('account');
@@ -792,7 +852,8 @@ export default function App() {
   function saveSettings() {
     const keptIds = new Set(draftProfiles.map((p) => p.id));
     setProfiles(draftProfiles);
-    if (cloudConnected) {
+    // Signed in: saved to the account now, or as soon as it's back online.
+    if (cloudUser) {
       draftProfiles.forEach(saveCloudProfile);
       profiles.filter((p) => !keptIds.has(p.id)).forEach((p) => deleteCloudProfile(p.id));
     }
@@ -809,6 +870,7 @@ export default function App() {
   }
 
   async function handleSignedIn(user) {
+    authEpoch.current += 1;
     setCloudUser(user);
     if (!user) {
       // Signing out ends any practice that's on (saved if long enough).
@@ -843,6 +905,7 @@ export default function App() {
   // Deleting the account also wipes its players from this device, so the
   // app starts over with one fresh generic player.
   function handleAccountDeleted() {
+    authEpoch.current += 1;
     stopPractice();
     PLAYER_DATA_KEYS.forEach((key) => {
       try {
