@@ -153,8 +153,9 @@ export function AccountButton({ user, onClick }) {
     );
   }
   return (
-    <button className="account-btn account-btn-signed-out" onClick={onClick}>
-      Sign in
+    <button className="account-btn account-btn-signed-out" onClick={onClick} aria-label="Sign in or create account">
+      <span className="account-btn-line1">Sign in</span>
+      <span className="account-btn-line2">or create account</span>
     </button>
   );
 }
