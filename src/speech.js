@@ -1,4 +1,4 @@
-import { playBuffer } from './soundBus.js';
+import { currentSound, isCurrent, playBuffer } from './soundBus.js';
 
 let audioCtx = null;
 
@@ -37,8 +37,8 @@ function loadVoices() {
 // only expose whatever voices the OS ships, for free. Edge's
 // "Online (Natural)" voices are real cloud neural voices (Azure) and
 // sound best by far; macOS Enhanced/Premium voices are next; flat
-// compact/default voices are last. This is only the fallback path now:
-// the recorded clips below are what normally plays.
+// compact/default voices are last. This is only the fallback path now —
+// speak() below tries a real local neural voice (Piper) first.
 const PREFERRED_NAME_HINTS = [
   'siri',
   'samantha',
@@ -104,83 +104,83 @@ async function speakWithWebSpeechAPI(text) {
   });
 }
 
-// Everything PitchPop says is a short clip recorded by a real person (in
-// public/voice/): the nine color names, the seven note letters, and the
-// end-of-round results. Clips are fetched and decoded once, then played
-// through the shared AudioContext. If a clip can't load, the device's
-// built-in voice says the same words instead.
-const VOICE_BASE = `${import.meta.env.BASE_URL}voice/`;
-const clipCache = new Map();
-
-function loadClip(name) {
-  if (!clipCache.has(name)) {
-    const promise = fetch(`${VOICE_BASE}${name}.mp3`)
-      .then((res) => {
-        if (!res.ok) throw new Error(`Voice clip ${name}: ${res.status}`);
-        return res.arrayBuffer();
-      })
-      .then((data) => ensureAudio().decodeAudioData(data));
-    // A failed load isn't cached, so a later try can succeed (e.g. back online).
-    promise.catch(() => clipCache.delete(name));
-    clipCache.set(name, promise);
-  }
-  return clipCache.get(name);
+// piper-tts-web pulls in onnxruntime-web (a sizeable WASM runtime), so it's
+// dynamically imported rather than bundled into the main chunk — nobody
+// pays for it until speech is actually requested. The voice model itself
+// (~60MB) downloads once and is cached by the browser after that.
+let piperModulePromise = null;
+function getPiperModule() {
+  if (!piperModulePromise) piperModulePromise = import('./piper.js');
+  return piperModulePromise;
 }
 
 // Mobile browsers only let audio start playing when it's tied to a real
-// user gesture, and a clip may still be loading when it's needed - by the
-// time it's ready, the original tap no longer counts. Resuming the shared
-// AudioContext synchronously on the very first tap anywhere "spends" that
-// gesture; once resumed, the same context keeps working from async code
-// and timers for the rest of the page session. This also matters on iOS
-// specifically: clips play through this AudioContext rather than an
-// <audio> element, which is the playback path iOS is willing to mix with
-// other apps' audio (e.g. Spotify over CarPlay) instead of muting it -
-// speechSynthesis, by contrast, always takes exclusive control there.
+// user gesture, and speech goes through an async pipeline (model load +
+// inference) before it has anything to play — by the time it's ready, the
+// original tap no longer counts. Resuming the shared AudioContext
+// synchronously on the very first tap anywhere "spends" that gesture; once
+// resumed, the same context keeps working from async code and timers for
+// the rest of the page session. This also matters on iOS specifically:
+// speech plays through this AudioContext rather than an <audio> element,
+// which is the playback path iOS is willing to mix with other apps' audio
+// (e.g. Spotify over CarPlay) instead of muting it — speechSynthesis, by
+// contrast, always takes exclusive control there.
 export function unlockAudio() {
   ensureAudio();
 }
 
-const COLOR_NAMES = ['red', 'yellow', 'blue', 'black', 'green', 'orange', 'purple', 'pink', 'brown'];
-
-// Loads the color clips ahead of time so the first answer speaks at once;
-// the rest load on first use.
 export function prewarmVoices() {
   loadVoices();
-  COLOR_NAMES.forEach((name) => loadClip(`color-${name}`).catch(() => {}));
+  getPiperModule()
+    .then((m) => m.loadPiper())
+    .catch(() => {
+      /* Piper couldn't load (unsupported browser, offline on first-ever use, etc.) — speak() falls back to the OS voice */
+    });
 }
 
 // Resolves once playback actually finishes (or is cut off by a newer
 // sound), so callers can chain something after the spoken words end (e.g.
 // playing the real notes right after the color name, so "Blue" is followed
 // by the actual B-D-G pitches instead of spoken letters with no real
-// connection to the chord's pitch).
-async function speakClip(name, fallbackText) {
+// connection to the chord's pitch). Speech is made on the fly and can take
+// a moment; if something newer started meanwhile (soundBus), it isn't
+// played at all. `fallbackText`, when given, is what the built-in voice
+// says instead: the two voices need different spellings for some words
+// (see speakNoteName).
+async function speak(text, fallbackText = text) {
+  const soundId = currentSound();
   try {
-    const buffer = await loadClip(name);
-    await playBuffer(ensureAudio(), buffer);
+    const { synthesizeSpeech } = await getPiperModule();
+    const blob = await synthesizeSpeech(text);
+    const arrayBuffer = await blob.arrayBuffer();
+    const ctx = ensureAudio();
+    const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
+    if (!isCurrent(soundId)) return;
+    await playBuffer(ctx, audioBuffer);
   } catch (err) {
-    console.warn('Voice clip unavailable, using the built-in voice', err);
+    if (!isCurrent(soundId)) return;
+    console.warn('Piper TTS unavailable, falling back to the built-in voice', err);
     await speakWithWebSpeechAPI(fallbackText);
   }
 }
 
 export async function speakColorName(name) {
-  await speakClip(`color-${name}`, name.charAt(0).toUpperCase() + name.slice(1));
+  await speak(name.charAt(0).toUpperCase() + name.slice(1));
 }
 
-// Spelled out for the built-in voice, which can read a lone "A" as the
-// word "a".
+// Piper reads a capital letter on its own as the letter name ("A." is
+// /eɪ/), but reads spellings like "Ay" as the word "aye" - which sounds
+// like "I" - and "Eff" as "E-F-F". So Piper gets the plain letter. The
+// built-in voice can read a lone "A" as the word "a", so it gets these
+// spelled-out names instead.
 const LETTER_SOUNDS = { A: 'Ay', B: 'Bee', C: 'See', D: 'Dee', E: 'Ee', F: 'Eff', G: 'Gee' };
 
 export async function speakNoteName(letter) {
-  await speakClip(`note-${letter.toLowerCase()}`, `${LETTER_SOUNDS[letter] || letter}.`);
+  await speak(`${letter}.`, `${LETTER_SOUNDS[letter] || letter}.`);
 }
 
-// Recorded for rounds of 10 (both games' rounds are 10 long).
 export async function speakResults(correct, total) {
   const wrong = total - correct;
   const text = correct === total ? `Perfect! You got all ${total} correct!` : `You got ${correct} correct and ${wrong} wrong.`;
-  if (total === 10) speakClip(`result-${correct}`, text);
-  else speakWithWebSpeechAPI(text);
+  speak(text);
 }

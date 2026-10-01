@@ -23,6 +23,11 @@ export function isCurrent(id) {
   return id === generation;
 }
 
+// The id of the sound playing now (what the last newSound() returned).
+export function currentSound() {
+  return generation;
+}
+
 // Like setTimeout, but cancelled by the next newSound().
 export function later(fn, ms) {
   const id = setTimeout(() => {
