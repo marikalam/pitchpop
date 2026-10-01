@@ -7,31 +7,65 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		258CDC32559C8EDD9A8BB3AE /* PracticeTimerWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D7CD5660E5FC2D93AEFDD64F /* PracticeTimerWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		2FAD9763203C412B000D30F8 /* config.xml in Resources */ = {isa = PBXBuildFile; fileRef = 2FAD9762203C412B000D30F8 /* config.xml */; };
 		4D22ABE92AF431CB00220026 /* CapApp-SPM in Frameworks */ = {isa = PBXBuildFile; productRef = 4D22ABE82AF431CB00220026 /* CapApp-SPM */; };
 		50379B232058CBB4000EE86E /* capacitor.config.json in Resources */ = {isa = PBXBuildFile; fileRef = 50379B222058CBB4000EE86E /* capacitor.config.json */; };
 		504EC3081FED79650016851F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 504EC3071FED79650016851F /* AppDelegate.swift */; };
-		A1B2C3D40000000000000001 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D40000000000000002 /* ViewController.swift */; };
 		504EC30D1FED79650016851F /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 504EC30B1FED79650016851F /* Main.storyboard */; };
 		504EC30F1FED79650016851F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 504EC30E1FED79650016851F /* Assets.xcassets */; };
 		504EC3121FED79650016851F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 504EC3101FED79650016851F /* LaunchScreen.storyboard */; };
 		50B271D11FEDC1A000F3C39B /* public in Resources */ = {isa = PBXBuildFile; fileRef = 50B271D01FEDC1A000F3C39B /* public */; };
+		5550D1BCF964C2DE6C47A12A /* PracticeActivityPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 106526DF9CA6FA9D77122488 /* PracticeActivityPlugin.swift */; };
+		64818B015A1CCD021CACB509 /* PracticeTimerWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F11539C0C9B586A118C13F3 /* PracticeTimerWidget.swift */; };
 		9582B6832FE993A70072D4E8 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9582B6822FE993A50072D4E8 /* SceneDelegate.swift */; };
+		A1B2C3D40000000000000001 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D40000000000000002 /* ViewController.swift */; };
+		E5BD04B406CB1C50E5F4D49A /* PracticeActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5AA263913FF1B894ECF1804D /* PracticeActivityAttributes.swift */; };
+		F27391D8B09D3C9A220E4CB2 /* PracticeActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5AA263913FF1B894ECF1804D /* PracticeActivityAttributes.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		893AA8CC8711FFB81FBA4AE6 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 504EC2FC1FED79650016851F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 6A41CCC11562E44031745D74;
+			remoteInfo = PracticeTimerWidget;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		16C42935A8D9CEC0BBD09F82 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				258CDC32559C8EDD9A8BB3AE /* PracticeTimerWidget.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		106526DF9CA6FA9D77122488 /* PracticeActivityPlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PracticeActivityPlugin.swift; sourceTree = "<group>"; };
 		2FAD9762203C412B000D30F8 /* config.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = config.xml; sourceTree = "<group>"; };
 		50379B222058CBB4000EE86E /* capacitor.config.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = capacitor.config.json; sourceTree = "<group>"; };
 		504EC3041FED79650016851F /* App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = App.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		504EC3071FED79650016851F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		A1B2C3D40000000000000002 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		504EC30C1FED79650016851F /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		504EC30E1FED79650016851F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		504EC3111FED79650016851F /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		504EC3131FED79650016851F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		50B271D01FEDC1A000F3C39B /* public */ = {isa = PBXFileReference; lastKnownFileType = folder; path = public; sourceTree = "<group>"; };
+		5AA263913FF1B894ECF1804D /* PracticeActivityAttributes.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PracticeActivityAttributes.swift; sourceTree = "<group>"; };
+		5F11539C0C9B586A118C13F3 /* PracticeTimerWidget.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PracticeTimerWidget.swift; sourceTree = "<group>"; };
 		9582B6822FE993A50072D4E8 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		958DCC722DB07C7200EA8C5F /* debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = debug.xcconfig; path = ../debug.xcconfig; sourceTree = SOURCE_ROOT; };
+		A1B2C3D40000000000000002 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		D7CD5660E5FC2D93AEFDD64F /* PracticeTimerWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = PracticeTimerWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		E0BA81F66276189299412224 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -43,15 +77,33 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		DAF5FB1CD754ADD0197BFD02 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		24CCF65FA790948DAF7D4277 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				5AA263913FF1B894ECF1804D /* PracticeActivityAttributes.swift */,
+			);
+			name = Shared;
+			path = Shared;
+			sourceTree = "<group>";
+		};
 		504EC2FB1FED79650016851F = {
 			isa = PBXGroup;
 			children = (
 				958DCC722DB07C7200EA8C5F /* debug.xcconfig */,
 				504EC3061FED79650016851F /* App */,
 				504EC3051FED79650016851F /* Products */,
+				24CCF65FA790948DAF7D4277 /* Shared */,
+				A7FF0B68B7D7001D825F3FEB /* PracticeTimerWidget */,
 			);
 			sourceTree = "<group>";
 		};
@@ -59,6 +111,7 @@
 			isa = PBXGroup;
 			children = (
 				504EC3041FED79650016851F /* App.app */,
+				D7CD5660E5FC2D93AEFDD64F /* PracticeTimerWidget.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -76,8 +129,19 @@
 				504EC3131FED79650016851F /* Info.plist */,
 				2FAD9762203C412B000D30F8 /* config.xml */,
 				50B271D01FEDC1A000F3C39B /* public */,
+				106526DF9CA6FA9D77122488 /* PracticeActivityPlugin.swift */,
 			);
 			path = App;
+			sourceTree = "<group>";
+		};
+		A7FF0B68B7D7001D825F3FEB /* PracticeTimerWidget */ = {
+			isa = PBXGroup;
+			children = (
+				5F11539C0C9B586A118C13F3 /* PracticeTimerWidget.swift */,
+				E0BA81F66276189299412224 /* Info.plist */,
+			);
+			name = PracticeTimerWidget;
+			path = PracticeTimerWidget;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -90,10 +154,12 @@
 				504EC3001FED79650016851F /* Sources */,
 				504EC3011FED79650016851F /* Frameworks */,
 				504EC3021FED79650016851F /* Resources */,
+				16C42935A8D9CEC0BBD09F82 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				CB8EAD9D271B06E3DC84B40D /* PBXTargetDependency */,
 			);
 			name = App;
 			packageProductDependencies = (
@@ -102,6 +168,23 @@
 			productName = App;
 			productReference = 504EC3041FED79650016851F /* App.app */;
 			productType = "com.apple.product-type.application";
+		};
+		6A41CCC11562E44031745D74 /* PracticeTimerWidget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A8412E073509C79785B52ADD /* Build configuration list for PBXNativeTarget "PracticeTimerWidget" */;
+			buildPhases = (
+				730C7FCDDEFA5543A27DB027 /* Sources */,
+				DAF5FB1CD754ADD0197BFD02 /* Frameworks */,
+				0E56D1F7E338D51F86F7A19A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = PracticeTimerWidget;
+			productName = PracticeTimerWidget;
+			productReference = D7CD5660E5FC2D93AEFDD64F /* PracticeTimerWidget.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -136,11 +219,19 @@
 			projectRoot = "";
 			targets = (
 				504EC3031FED79650016851F /* App */,
+				6A41CCC11562E44031745D74 /* PracticeTimerWidget */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		0E56D1F7E338D51F86F7A19A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		504EC3021FED79650016851F /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -164,10 +255,30 @@
 				504EC3081FED79650016851F /* AppDelegate.swift in Sources */,
 				A1B2C3D40000000000000001 /* ViewController.swift in Sources */,
 				9582B6832FE993A70072D4E8 /* SceneDelegate.swift in Sources */,
+				5550D1BCF964C2DE6C47A12A /* PracticeActivityPlugin.swift in Sources */,
+				E5BD04B406CB1C50E5F4D49A /* PracticeActivityAttributes.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		730C7FCDDEFA5543A27DB027 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				64818B015A1CCD021CACB509 /* PracticeTimerWidget.swift in Sources */,
+				F27391D8B09D3C9A220E4CB2 /* PracticeActivityAttributes.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		CB8EAD9D271B06E3DC84B40D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = PracticeTimerWidget;
+			target = 6A41CCC11562E44031745D74 /* PracticeTimerWidget */;
+			targetProxy = 893AA8CC8711FFB81FBA4AE6 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		504EC30B1FED79650016851F /* Main.storyboard */ = {
@@ -189,6 +300,35 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		4B72165234EC5C5F679BCD2C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 6W8Q724D5F;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = PracticeTimerWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = PitchPop;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.marikalam.pitchpop.PracticeTimer;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
 		504EC3141FED79650016851F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 958DCC722DB07C7200EA8C5F /* debug.xcconfig */;
@@ -304,8 +444,8 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 6W8Q724D5F;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 6W8Q724D5F;
 				INFOPLIST_FILE = App/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -327,8 +467,8 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 6W8Q724D5F;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 6W8Q724D5F;
 				INFOPLIST_FILE = App/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -341,6 +481,36 @@
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		79786560FCC1176C7D05F53B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 6W8Q724D5F;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = PracticeTimerWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = PitchPop;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.marikalam.pitchpop.PracticeTimer;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
 		};
@@ -361,6 +531,15 @@
 			buildConfigurations = (
 				504EC3171FED79650016851F /* Debug */,
 				504EC3181FED79650016851F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A8412E073509C79785B52ADD /* Build configuration list for PBXNativeTarget "PracticeTimerWidget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				79786560FCC1176C7D05F53B /* Release */,
+				4B72165234EC5C5F679BCD2C /* Debug */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

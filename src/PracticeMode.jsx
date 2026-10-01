@@ -10,6 +10,7 @@ import {
 } from './practiceLog.js';
 import Metronome from './Metronome.jsx';
 import CoffeeBreak from './CoffeeBreak.jsx';
+import { hasLiveActivity, showPracticeOnLockScreen } from './liveActivity.js';
 
 // A practice companion: a timer for the whole session, a tap counter for
 // repetitions ("5 times scales, then 5 times Hanon"), and each player's
@@ -20,13 +21,17 @@ import CoffeeBreak from './CoffeeBreak.jsx';
 // counter belong to one player (profileId); picking another player starts
 // them over.
 //
-// If nobody touches the app for IDLE_MINUTES while the timer runs, it
-// pauses itself at that point and asks whether you're still practicing, so
-// a forgotten timer doesn't keep counting all day. A running metronome
-// counts as practicing.
+// If nobody touches the app for a while (IDLE_MINUTES) while the timer
+// runs, it pauses itself at that point and asks whether you're still
+// practicing, so a forgotten timer doesn't keep counting all day. A
+// running metronome counts as practicing. In the iPhone app the timer
+// shows on the Lock Screen (liveActivity.js), so it can keep running with
+// the phone locked on the piano: there the limit is 2 hours, on the
+// website 5 minutes.
 const PRACTICE_KEY = 'pitchpop-practice-v1';
 const ACTIVITY_KEY = 'pitchpop-last-activity-v1';
-export const IDLE_MINUTES = 5;
+export const IDLE_MINUTES = hasLiveActivity ? 120 : 5;
+const IDLE_LABEL = hasLiveActivity ? '2 hours' : '5 minutes';
 const IDLE_MS = IDLE_MINUTES * 60000;
 const TAB_KEY = 'pitchpop-practice-tab-v1';
 // One tool at a time, so Practice Mode fits on a phone screen without
@@ -85,9 +90,13 @@ function noteActivity(now = Date.now()) {
 // The idle pause as a pure step: a running practice with no activity for
 // IDLE_MS since the last tap (or since it started) stops counting at that
 // point. Returns the same object when nothing changes.
+function idleStopAt(p, last = lastActivity()) {
+  return Math.max(last, p.startedAt) + IDLE_MS;
+}
+
 function withIdlePause(p, now, last = lastActivity()) {
   if (p.status !== 'running') return p;
-  const stopAt = Math.max(last, p.startedAt) + IDLE_MS;
+  const stopAt = idleStopAt(p, last);
   if (now < stopAt) return p;
   return { ...p, status: 'paused', elapsedBefore: elapsedMs(p, stopAt), startedAt: null, idlePaused: true };
 }
@@ -103,15 +112,38 @@ function settleIdle(now = Date.now()) {
   } catch {
     /* ignore */
   }
+  reflectOnLockScreen(settled, now, '');
   window.dispatchEvent(new Event('pitchpop-practice-idle'));
+}
+
+function reflectOnLockScreen(p, now, playerName) {
+  showPracticeOnLockScreen({
+    status: p.status,
+    elapsedMs: elapsedMs(p, now),
+    staleAtMs: p.status === 'running' ? idleStopAt(p) : null,
+    playerName,
+  });
+}
+
+// Taps move the idle limit later; tell the Lock Screen now and then (it
+// shows "Still practicing?" once the limit passes).
+let lockScreenRefreshedAt = 0;
+function refreshLockScreen(now) {
+  if (!hasLiveActivity || now - lockScreenRefreshedAt < 60000) return;
+  const p = loadPractice();
+  if (p.status !== 'running') return;
+  lockScreenRefreshedAt = now;
+  reflectOnLockScreen(p, now, '');
 }
 
 // Every tap or key press counts as activity. The idle check runs first, so
 // the tap that wakes the phone after a long break doesn't count the break.
 if (typeof document !== 'undefined') {
   const onActivity = () => {
-    settleIdle();
-    noteActivity();
+    const now = Date.now();
+    settleIdle(now);
+    noteActivity(now);
+    refreshLockScreen(now);
   };
   document.addEventListener('pointerdown', onActivity, true);
   document.addEventListener('keydown', onActivity, true);
@@ -161,7 +193,10 @@ export default function PracticeMode({ profileId, profileName, ready = true }) {
     } catch {
       /* ignore */
     }
-  }, [practice]);
+    // Waits for `ready`, like the player switch below, so a signed-in
+    // family's name is known.
+    if (ready && practice.profileId === profileId) reflectOnLockScreen(practice, Date.now(), profileName);
+  }, [practice, ready, profileId, profileName]);
 
   // Practices saved on the family's other phones (historySync.js).
   useEffect(() => {
@@ -337,7 +372,7 @@ export default function PracticeMode({ profileId, profileName, ready = true }) {
               <div className="practice-idle" role="alert">
                 <strong>Are you still practicing?</strong>
                 <span>
-                  Nothing was tapped for {IDLE_MINUTES} minutes, so the timer paused. Tap Resume to keep going.
+                  Nothing was tapped for {IDLE_LABEL}, so the timer paused. Tap Resume to keep going.
                 </span>
               </div>
             )}

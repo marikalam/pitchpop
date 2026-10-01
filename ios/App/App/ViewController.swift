@@ -14,7 +14,14 @@ import Capacitor
 // and answers those two questions directly, so no prompt() ever reaches
 // WebKit. Every other prompt() call passes through untouched. Once a
 // Capacitor release stops using prompt() at startup, this can be removed.
+//
+// It also registers PitchPop's own native plugin (the practice timer's
+// Lock Screen Live Activity, PracticeActivityPlugin.swift).
 class ViewController: CAPBridgeViewController {
+    override func capacitorDidLoad() {
+        bridge?.registerPluginInstance(PracticeActivityPlugin())
+    }
+
     override func webView(with frame: CGRect, configuration: WKWebViewConfiguration) -> WKWebView {
         let source = """
         (function () {
