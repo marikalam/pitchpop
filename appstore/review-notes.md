@@ -83,7 +83,9 @@ button for every part of the app: tap "Pitch Practice" to start playing.
 - Practice Mode: Start practice / End practice timer (practices of 5 minutes
   or more are saved and earn one token per 5 minutes); a metronome (Start,
   − / + or the slider for tempo); and a repetition counter (tap the number
-  to count, − / + to adjust, Start over to reset).
+  to count, − / + to adjust, Start over to reset). "Take a break" pauses the
+  timer. While a practice is on, the timer also shows on the Lock Screen
+  (and in the Dynamic Island) as a Live Activity; tapping it opens the app.
 - "Playing as" (top right) switches between the family's players.
 - Signed in, the menu also shows Learn, and "Playing as" also shows
   Players & colors:
@@ -94,14 +96,16 @@ button for every part of the app: tap "Pitch Practice" to start playing.
 - Account: tap "Sign in" at the top right. Please use the demo account
   whose email and password are in the Sign-In Information fields of this
   submission, or create your own (a confirmation email is sent). The
-  account syncs the family's players and colors between devices. Account
+  account syncs the family's players, colors and practice history between
+  devices. Account
   deletion is at Account (the circle at the top right) → Delete account; it
   deletes the account and its players.
 
 **4. External services**
 - Supabase (supabase.com): email/password sign-in and storage of each
-  family's player names and color settings, used only when the user chooses
-  to create an account.
+  family's player names, color settings and practice history (dates and
+  minutes of saved practices, and the days a round was finished), used only
+  when the user chooses to create an account.
 No other services are used. There are no ads, analytics, tracking, payments
 or AI services. Sound and speech are generated on the device: the piano is
 synthesized in the app, and the voice is an open-source Piper text-to-speech
