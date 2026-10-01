@@ -4,7 +4,7 @@
 // motion.
 export default function CoffeeBreak() {
   return (
-    <svg className="coffee-break" viewBox="0 0 120 110" role="img" aria-label="A cup of coffee">
+    <svg className="coffee-break" viewBox="0 -30 120 140" role="img" aria-label="A cup of coffee">
       <g className="coffee-steam" fill="none" stroke="currentColor" strokeWidth="5" strokeLinecap="round">
         <path className="coffee-steam-1" d="M42 44c-6-7 6-12 0-20s6-12 0-18" />
         <path className="coffee-steam-2" d="M58 44c-6-7 6-12 0-20s6-12 0-18" />

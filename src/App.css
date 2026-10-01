@@ -2900,34 +2900,57 @@ body {
 
 .coffee-steam path {
   opacity: 0;
-  animation: coffee-steam 3s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: coffee-steam 2.4s ease-out infinite;
 }
 
 .coffee-steam .coffee-steam-2 {
-  animation-delay: 1s;
+  animation-delay: 0.8s;
 }
 
 .coffee-steam .coffee-steam-3 {
-  animation-delay: 2s;
+  animation-delay: 1.6s;
 }
 
+/* Each wisp drifts up out of the cup, swaying a little and spreading out
+   as it fades. */
 @keyframes coffee-steam {
   0% {
     opacity: 0;
-    transform: translateY(8px);
+    transform: translate(0, 14px) scale(0.7, 0.6);
   }
-  30% {
-    opacity: 0.9;
+  25% {
+    opacity: 0.95;
+  }
+  50% {
+    transform: translate(-3px, -6px) scale(0.95, 0.95);
+  }
+  75% {
+    opacity: 0.5;
+    transform: translate(3px, -18px) scale(1.1, 1.1);
   }
   100% {
     opacity: 0;
-    transform: translateY(-14px);
+    transform: translate(0, -30px) scale(1.2, 1.2);
+  }
+}
+
+/* Reduced motion: the steam fades in and out in place instead of rising. */
+@keyframes coffee-steam-fade {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.85;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .coffee-steam path {
-    animation: none;
-    opacity: 0.7;
+    animation-name: coffee-steam-fade;
+    animation-duration: 3s;
+    animation-timing-function: ease-in-out;
   }
 }
