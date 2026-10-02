@@ -25,6 +25,8 @@ import { listenForAppLinks } from './appLink.js';
 import { playSoundCheck } from './soundCheck.js';
 import VolumeWarning from './VolumeWarning.jsx';
 import { useScreenHistory } from './screenHistory.js';
+import { colorToWorkOn, loadRoundHistory, recordRound, summarizeRound } from './roundHistory.js';
+import ScoreCelebration, { scoreTier, TIER_TEXT } from './ScoreCelebration.jsx';
 import { PlayTriangleIcon, SpeakerIcon, CheckIcon, XIcon } from './icons.jsx';
 import { loadStreakDays, recordStreakDay, streakFor } from './streak.js';
 import { startHistorySync } from './historySync.js';
@@ -337,6 +339,102 @@ function ProgressDots({ current, total }) {
   );
 }
 
+// "All done!": an animation for the score, the numbers, the color to
+// practice next, and this player's recent rounds.
+function RoundSummary({ playerName, correct, wrong, streak, summary, history }) {
+  const tier = scoreTier(correct, summary.total);
+  const text = TIER_TEXT[tier];
+  const workOn = colorToWorkOn(summary);
+  const color = workOn && COLORS.find((c) => c.name === workOn.name);
+  const cap = (n) => n.charAt(0).toUpperCase() + n.slice(1);
+  const recent = history.slice(-7);
+  const best = history.reduce((m, r) => Math.max(m, r.total ? r.correct / r.total : 0), 0);
+  const bestRound = history.find((r) => r.total && r.correct / r.total === best);
+  const shortDay = (key) => {
+    const [y, m, d] = key.split('-').map(Number);
+    return new Date(y, m - 1, d).toLocaleDateString(undefined, { weekday: 'short' });
+  };
+  return (
+    <>
+      <div className="complete-wrap complete-wrap-compact">
+        <ScoreCelebration tier={tier} />
+        <h2 className="screen-title">{text.title}</h2>
+        <p className="screen-sub">
+          {correct} of {summary.total} right for {playerName}.{' '}
+          {correct === summary.total ? 'Every chord right!' : text.sub}
+        </p>
+      </div>
+      <div className="stat-tiles stat-tiles-compact">
+        <div className="stat-tile">
+          <div className="stat-number">{correct}</div>
+          <div className="stat-label">Correct</div>
+        </div>
+        <div className="stat-tile">
+          <div className="stat-number">{wrong}</div>
+          <div className="stat-label">Wrong</div>
+        </div>
+        <div className="stat-tile">
+          <div className="stat-number">🔥 {streak.current}</div>
+          <div className="stat-label">{streak.current === 1 ? 'Day' : 'Days'} in a row</div>
+        </div>
+      </div>
+      <div className="workon-card">
+        {color ? (
+          <>
+            <span className="workon-swatch" style={{ background: color.hex }} aria-hidden="true" />
+            <span>
+              <span className="workon-title">Work on {cap(color.name)} next</span>
+              <br />
+              <span className="workon-text">
+                {workOn.right} of {workOn.total} right
+                {workOn.mixedWith ? `, mixed up with ${cap(workOn.mixedWith)}` : ''}. Try it in Explore.
+              </span>
+            </span>
+          </>
+        ) : (
+          <>
+            <span className="workon-swatch" style={{ background: 'conic-gradient(#e5473c, #f4c430, #3bb273, #3b6fef, #7a4fd6, #e5473c)' }} aria-hidden="true" />
+            <span>
+              <span className="workon-title">Every color right!</span>
+              <br />
+              <span className="workon-text">90% or more on another day too? Time to add a new color.</span>
+            </span>
+          </>
+        )}
+      </div>
+      {recent.length > 1 && (
+        <div className="rounds-card" aria-label="Recent rounds">
+          <div className="rounds-head">
+            <span>Recent rounds</span>
+            {bestRound && (
+              <span className="rounds-best">
+                Best: {bestRound.correct}/{bestRound.total}
+              </span>
+            )}
+          </div>
+          <div className="rounds-bars">
+            {recent.map((r, i) => {
+              const pct = r.total ? r.correct / r.total : 0;
+              return (
+                <div key={r.endedAt} className="rounds-bar" title={`${r.correct} of ${r.total}`}>
+                  <span>{r.correct}</span>
+                  <span className="rounds-track">
+                    <span
+                      className={`rounds-fill${pct >= 0.9 ? ' rounds-fill-good' : ''}${i === recent.length - 1 ? ' rounds-fill-now' : ''}`}
+                      style={{ height: `${Math.max(8, pct * 100)}%` }}
+                    />
+                  </span>
+                  <span className="rounds-label">{i === recent.length - 1 ? 'Now' : shortDay(r.day)}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
 export default function App() {
   const engineRef = useRef(null);
   if (!engineRef.current) {
@@ -410,6 +508,9 @@ export default function App() {
   // "correct" in the final tally - this is what the session score (and
   // the end-of-session speech) should actually be based on.
   const [roundOutcomes, setRoundOutcomes] = useState(resumableSession.roundOutcomes || {});
+  // What was picked first when a chord's first answer was wrong, by round
+  // index (for "what to work on").
+  const [roundMixups, setRoundMixups] = useState(resumableSession.roundMixups || {});
 
   const [melodyTaps, setMelodyTaps] = useState(initialSession.melodyTaps || 0);
   const [melodyColorCounts, setMelodyColorCounts] = useState(initialSession.melodyColorCounts || {});
@@ -452,6 +553,7 @@ export default function App() {
       setOptions([]);
       setRoundResults({});
       setRoundOutcomes({});
+    setRoundMixups({});
       setView((v) => (v.startsWith('play-') ? 'play-listen' : v));
       return list[0].id;
     });
@@ -601,6 +703,7 @@ export default function App() {
       answerCorrect,
       roundResults,
       roundOutcomes,
+      roundMixups,
       melodyTaps,
       melodyColorCounts,
     });
@@ -673,6 +776,7 @@ export default function App() {
       setOptions([]);
       setRoundResults({});
       setRoundOutcomes({});
+    setRoundMixups({});
       setView(view.startsWith('play-') ? 'play-listen' : view);
     }
     setProfile(next);
@@ -688,6 +792,7 @@ export default function App() {
     setRoundIndex(0);
     setRoundResults({});
     setRoundOutcomes({});
+    setRoundMixups({});
     setView('play-listen');
   }
 
@@ -734,6 +839,7 @@ export default function App() {
     // The session score only reflects each round's FIRST attempt - a
     // player can retry until they get it, but that shouldn't erase a miss.
     setRoundOutcomes((prev) => (roundIndex in prev ? prev : { ...prev, [roundIndex]: correct }));
+    if (!correct) setRoundMixups((prev) => (roundIndex in prev ? prev : { ...prev, [roundIndex]: color.name }));
 
     // Long-term accuracy needs every attempt counted in "total", not just
     // the ones that happened to be correct - otherwise accuracy is stuck
@@ -775,6 +881,7 @@ export default function App() {
     newSound();
     if (roundIndex + 1 >= SESSION_ROUNDS) {
       setStreakDays(recordStreakDay(streakDays, profile));
+      recordRound(profile, summarizeRound(sessionQueue, roundOutcomes, roundMixups));
       setView('play-complete');
       return;
     }
@@ -869,6 +976,7 @@ export default function App() {
     setOptions([]);
     setRoundResults({});
     setRoundOutcomes({});
+    setRoundMixups({});
     setView('play-listen');
   }
 
@@ -902,6 +1010,7 @@ export default function App() {
     setOptions([]);
     setRoundResults({});
     setRoundOutcomes({});
+    setRoundMixups({});
     setView('play-listen');
   }
 
@@ -1444,27 +1553,14 @@ export default function App() {
               showBack
               onBack={goHome}
             />
-            <div className="complete-wrap">
-              <div className="complete-emoji">🎉</div>
-              <h2 className="screen-title">All done!</h2>
-              <p className="screen-sub">
-                You went through all {SESSION_ROUNDS} chords for {currentProfile.name}.
-              </p>
-            </div>
-            <div className="stat-tiles">
-              <div className="stat-tile">
-                <div className="stat-number">{roundCorrect}</div>
-                <div className="stat-label">Correct</div>
-              </div>
-              <div className="stat-tile">
-                <div className="stat-number">{roundWrong}</div>
-                <div className="stat-label">Wrong</div>
-              </div>
-              <div className="stat-tile">
-                <div className="stat-number">🔥 {streak.current}</div>
-                <div className="stat-label">{streak.current === 1 ? 'Day' : 'Days'} in a row</div>
-              </div>
-            </div>
+            <RoundSummary
+              playerName={currentProfile.name}
+              correct={roundCorrect}
+              wrong={roundWrong}
+              streak={streak}
+              summary={summarizeRound(sessionQueue, roundOutcomes, roundMixups)}
+              history={loadRoundHistory()[profile] || []}
+            />
             <div className="feedback-actions">
               <button className="pill-btn-secondary" onClick={goHome}>
                 Home
