@@ -1482,7 +1482,7 @@ export default function App() {
               <div className="welcome-emoji">🌈</div>
               <h2 id="welcome-title">Welcome to PitchPop!</h2>
               <p>
-                A playful way for kids to train their ear. Every chord has its own color: hear a chord, then pick the
+                A playful way to train your ear. Every chord has its own color: hear a chord, then pick the
                 color that matches.
               </p>
               <p>
