@@ -56,7 +56,8 @@ const GUEST_NAME = 'Guest Player';
 // someone added themselves get a timestamped id, so a real "Maddie" stays.)
 const OLD_SAMPLE_PROFILE_IDS = new Set(['maddie', 'marcus', 'melody']);
 
-const SESSION_ROUNDS = 10;
+// Chords in a round of Pitch Practice (about one Eguchi session).
+const SESSION_ROUNDS = 20;
 // The home page's feature cards (the color test has its own big button).
 const HOME_CARDS = [
   { id: 'explore', icon: '🎵', title: 'Explore sounds', sub: 'Tap a color, hear its chord', from: '#4f8df7', to: '#3b6fef' },
@@ -328,7 +329,7 @@ function ProgressDots({ current, total }) {
   }
   return (
     <div className="progress-wrap">
-      <div className="progress-dots">{items}</div>
+      <div className={`progress-dots${total > 12 ? ' progress-dots-many' : ''}`}>{items}</div>
       <span className="progress-count">
         {current} / {total}
       </span>
@@ -381,7 +382,9 @@ export default function App() {
   // a saved non-quiz screen (home, settings, ...) is fine to restore either
   // way, same as changeProfile's own reset only touches "play-" views.
   const profileMismatch = initialSession.profile !== undefined && initialSession.profile !== profiles[0].id;
-  const resumableSession = profileMismatch ? {} : initialSession;
+  // A round saved when rounds had a different length starts over.
+  const lengthMismatch = initialSession.sessionQueue && initialSession.sessionQueue.length !== SESSION_ROUNDS;
+  const resumableSession = profileMismatch || lengthMismatch ? {} : initialSession;
 
   // PitchPop always opens on the home page, which shows every part of the
   // app. (A first visit also gets the welcome card on top of it.)

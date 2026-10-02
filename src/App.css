@@ -3143,3 +3143,13 @@ body {
 .sync-dot-offline {
   background: #e8a33a;
 }
+
+/* A 20-chord round: smaller dots on a wider track. */
+.progress-dots-many {
+  max-width: 300px;
+}
+
+.progress-dots-many .progress-dot {
+  width: 7px;
+  height: 7px;
+}

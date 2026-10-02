@@ -80,7 +80,7 @@ export default function MethodInfo({ colors, signedIn }) {
         <h3 className="method-heading">🌱 How to practice</h3>
         <ul className="method-tips">
           <li>
-            <strong>4 to 5 short sessions a day</strong>, each just 2 to 5 minutes (about 20 to 25 chords, or two rounds
+            <strong>4 to 5 short sessions a day</strong>, each just 2 to 5 minutes (about 20 to 25 chords, or one round
             of Pitch Practice), spread through the day. That’s how the method is designed. If that’s too many, aim for at
             least 3 a day.
           </li>
@@ -117,7 +117,7 @@ export default function MethodInfo({ colors, signedIn }) {
         </ul>
         <p className="method-note">
           No rush: progress is based on how your child does, not the calendar. The end of each Pitch Practice round
-          shows how many of the 10 chords were correct: 9 or 10 is 90% or more.
+          shows how many of the 20 chords were correct: 18 or more is 90% or more.
         </p>
       </section>
     </div>
