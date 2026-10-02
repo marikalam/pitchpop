@@ -3153,3 +3153,257 @@ body {
   width: 7px;
   height: 7px;
 }
+
+/* ---------- "All done!": score animation, what to work on, recent rounds ---------- */
+.celebrate {
+  display: block;
+  width: min(190px, 46vw);
+  height: auto;
+  margin: 0 auto -4px;
+  overflow: visible;
+}
+
+.celebrate-note,
+.celebrate-star-body,
+.celebrate-sparkle,
+.celebrate-cloud,
+.celebrate-stem,
+.celebrate-leaf,
+.celebrate-flower,
+.celebrate-drop,
+.celebrate-snail-body,
+.celebrate-antennae,
+.celebrate-shell {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* Notes float up and fade, over and over. */
+.celebrate-note {
+  animation: celebrate-float 2.6s ease-in-out infinite;
+}
+.celebrate-note-1 {
+  animation-delay: 1.1s;
+}
+@keyframes celebrate-float {
+  0% { opacity: 0; transform: translateY(14px) rotate(-8deg); }
+  25% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-26px) rotate(10deg); }
+}
+
+/* Star: spins in, then bounces gently; sparkles twinkle. */
+.celebrate-star-body {
+  animation: celebrate-star-in 0.9s cubic-bezier(0.2, 1.4, 0.4, 1) both, celebrate-bob 1.8s 0.9s ease-in-out infinite;
+}
+@keyframes celebrate-star-in {
+  from { transform: scale(0) rotate(-200deg); }
+  to { transform: scale(1) rotate(0); }
+}
+@keyframes celebrate-bob {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-6px) scale(1.04); }
+}
+.celebrate-sparkle {
+  animation: celebrate-twinkle 1.4s ease-in-out infinite;
+}
+.celebrate-sparkle-1 { animation-delay: 0.3s; }
+.celebrate-sparkle-2 { animation-delay: 0.6s; }
+.celebrate-sparkle-3 { animation-delay: 0.9s; }
+.celebrate-sparkle-4 { animation-delay: 1.2s; }
+@keyframes celebrate-twinkle {
+  0%, 100% { opacity: 0.2; transform: scale(0.5) rotate(0); }
+  50% { opacity: 1; transform: scale(1.2) rotate(45deg); }
+}
+
+/* Rainbow: each band draws itself, the clouds drift. */
+.celebrate-arc {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: celebrate-draw 0.9s ease-out forwards;
+}
+@keyframes celebrate-draw {
+  to { stroke-dashoffset: 0; }
+}
+.celebrate-cloud {
+  animation: celebrate-drift 3s ease-in-out infinite;
+}
+.celebrate-cloud-r {
+  animation-delay: 1.5s;
+}
+@keyframes celebrate-drift {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(5px); }
+}
+
+/* Sprout: the stem grows, leaves unfold, the flower opens and sways. */
+.celebrate-stem {
+  transform-origin: 50% 100%;
+  animation: celebrate-grow 1s ease-out both, celebrate-sway 3s 1s ease-in-out infinite;
+}
+@keyframes celebrate-grow {
+  from { transform: scaleY(0); }
+  to { transform: scaleY(1); }
+}
+@keyframes celebrate-sway {
+  0%, 100% { transform: rotate(-3deg); }
+  50% { transform: rotate(3deg); }
+}
+.celebrate-leaf {
+  animation: celebrate-pop 0.5s 0.6s ease-out both;
+}
+.celebrate-flower {
+  animation: celebrate-pop 0.6s 0.9s cubic-bezier(0.2, 1.5, 0.4, 1) both;
+}
+@keyframes celebrate-pop {
+  from { transform: scale(0); }
+  to { transform: scale(1); }
+}
+.celebrate-drop {
+  animation: celebrate-fall 1.8s ease-in infinite;
+}
+.celebrate-drop-1 {
+  animation-delay: 0.9s;
+}
+@keyframes celebrate-fall {
+  0% { opacity: 0; transform: translateY(-10px); }
+  20% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(40px); }
+}
+
+/* Snail: slides along and back, antennae wiggle. */
+.celebrate-snail-body {
+  animation: celebrate-slide 4s ease-in-out infinite;
+}
+@keyframes celebrate-slide {
+  0%, 100% { transform: translateX(-14px); }
+  50% { transform: translateX(14px); }
+}
+.celebrate-antennae {
+  transform-origin: 50% 100%;
+  animation: celebrate-wiggle 0.9s ease-in-out infinite;
+}
+@keyframes celebrate-wiggle {
+  0%, 100% { transform: rotate(-6deg); }
+  50% { transform: rotate(6deg); }
+}
+.celebrate-shell {
+  animation: celebrate-bob 2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .celebrate * {
+    animation: none !important;
+    stroke-dashoffset: 0 !important;
+    opacity: 1 !important;
+  }
+}
+
+.complete-wrap-compact {
+  gap: 4px;
+  padding-block: 4px 8px;
+}
+
+.stat-tiles-compact .stat-tile {
+  padding: 12px 8px;
+}
+
+.stat-tiles-compact .stat-number {
+  font-size: 26px;
+}
+
+/* What to work on */
+.workon-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  background: var(--card-bg);
+  box-shadow: var(--shadow-sm);
+  font-size: 14px;
+  line-height: 1.35;
+  color: var(--ink);
+}
+
+.workon-swatch {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.06);
+}
+
+.workon-title {
+  font-weight: 700;
+}
+
+.workon-text {
+  color: var(--ink-dim);
+}
+
+/* Recent rounds: one bar per round, its height the score. */
+.rounds-card {
+  padding: 12px 14px 10px;
+  border-radius: 18px;
+  background: var(--card-bg);
+  box-shadow: var(--shadow-sm);
+}
+
+.rounds-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.rounds-best {
+  font-weight: 600;
+  color: var(--ink-dim);
+}
+
+.rounds-bars {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.rounds-bar {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 10.5px;
+  color: var(--ink-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.rounds-track {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 100%;
+  height: 46px;
+  margin-top: 2px;
+}
+
+.rounds-fill {
+  width: 100%;
+  max-width: 28px;
+  min-height: 4px;
+  border-radius: 6px 6px 3px 3px;
+  background: #c9d3ee;
+}
+
+.rounds-fill-good {
+  background: var(--accent-green);
+}
+
+.rounds-fill-now {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 1px;
+}
+
+.rounds-label {
+  margin-top: 3px;
+}
