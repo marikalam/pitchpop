@@ -10,10 +10,10 @@ PitchPop
 Hear chords, learn by color
 
 ## Promotional text (170, can change anytime without review)
-Every chord has its own color. Kids tap the rainbow, listen, and pick the matching color — a playful first step toward recognizing pitch by ear.
+Every chord has its own color. Tap the rainbow, listen, and pick the matching color: a playful way to learn to recognize chords by ear.
 
 ## Description (4000)
-PitchPop is a playful ear-training game for kids. Every chord has its own color: red, yellow, blue and more. Kids listen to a chord, then pick the color that matches. Over time they learn to recognize chords by ear.
+PitchPop is a playful ear-training game for families and beginners of any age, based on the Eguchi chord-color method. Every chord has its own color: red, yellow, blue and more. Listen to a chord, then pick the color that matches. Over time you learn to recognize chords by ear.
 
 HOW IT WORKS
 • Tap the rainbow to hear a chord
@@ -31,7 +31,7 @@ PRIVATE BY DESIGN
 No ads, no tracking, no analytics. You don't need an account to play. An optional account lets a family sync its players across devices, and you can delete it anytime from inside the app.
 
 ## Keywords (100, comma-separated, no spaces needed)
-ear training,perfect pitch,chords,music,kids,piano,colors,listening,solfege,music game
+ear training,perfect pitch,chords,music,eguchi,piano,colors,listening,solfege,music game
 
 ## URLs
 - Privacy Policy URL: https://marikalam.github.io/apps/pitchpop/privacy.html
@@ -46,9 +46,14 @@ ear training,perfect pitch,chords,music,kids,piano,colors,listening,solfege,musi
 4+ (answer "None" to every content question in the questionnaire).
 Don't choose the "Made for Kids" category: it requires a parental gate in
 front of every link out of the app and the sign-in screen. PitchPop can
-still be rated 4+ and used by kids without it.
+still be rated 4+ and used by kids without it. Because it isn't in the
+Kids category, the name, subtitle, icon and screenshots must not say it's
+for kids (Guideline 2.3.8): keep that wording out of the screenshots and
+store text.
 
 ## Screenshots
+Six per size, in order: home, hear a chord, pick its color, the real notes,
+Practice Mode, Explore. Upload all six in that order.
 - `screenshots/6.5-inch/` — 1284×2778, for the "iPhone 6.5" Display" slot
   (the one App Store Connect asks for).
 - `screenshots/6.9-inch/` — 1320×2868, for the "iPhone 6.9" Display" slot
