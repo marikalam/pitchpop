@@ -119,6 +119,12 @@ export default function Scales({ engine }) {
   const notes = buildScale(key.tonic, FORMS[form]);
   const title = `${prettyName(key.tonic)} ${choice.mode === 'major' ? 'major' : `${choice.form} minor`}`;
 
+  // Get this scale's notes ready ahead of time so Play starts right away.
+  const noteKey = notes.map((n) => n.midi).join(',');
+  useEffect(() => {
+    noteKey.split(',').forEach((m) => engine.getToneBuffer(midiFreq(Number(m))));
+  }, [engine, noteKey]);
+
   async function play() {
     if (playing) return stop();
     newSound();
@@ -130,17 +136,16 @@ export default function Scales({ engine }) {
     const done = () => {
       if (run.current === id) setPlaying(false);
     };
+    // A safety net in case the notes never get going.
+    setTimeout(done, freqs.length * 300 + 8000);
     try {
-      await engine.getMelodyBuffer(freqs);
+      await engine.playMelody(freqs);
     } catch {
       return done();
     }
-    if (run.current !== id) return;
-    // The button goes back once the scale has had time to finish (0.3 s a
-    // note plus the last note's ring); iPhones don't always report the
-    // sound ending.
-    setTimeout(done, freqs.length * 300 + 1500);
-    engine.playMelody(freqs).then(done, done);
+    // Back to Play once the scale has finished (0.3 s a note plus the
+    // last note's ring).
+    if (run.current === id) setTimeout(done, freqs.length * 300 + 1200);
   }
 
 
