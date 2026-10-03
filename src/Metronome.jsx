@@ -159,7 +159,7 @@ export default function Metronome({ hidden = false, onRunningChange }) {
         aria-label="Tempo"
       />
       <button className={running ? 'pill-btn-secondary pill-btn-full' : 'pill-btn-primary pill-btn-full'} onClick={toggle}>
-        {running ? '■ Stop' : '▶ Start metronome'}
+        {running ? '■ Stop' : '▶\uFE0E Start metronome'}
       </button>
     </section>
   );

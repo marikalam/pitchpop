@@ -3573,3 +3573,12 @@ body {
 .scales-modes {
   grid-template-columns: 1fr 1fr;
 }
+
+/* The key's other name (same piano keys), small under it: A♭m under G♯m. */
+.scales-key-also {
+  display: block;
+  margin-top: -2px;
+  font-size: 11px;
+  font-weight: 600;
+  opacity: 0.6;
+}

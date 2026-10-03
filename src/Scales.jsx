@@ -176,6 +176,12 @@ export default function Scales({ engine }) {
           >
             {prettyName(k.tonic)}
             {choice.mode === 'minor' && <span className="scales-key-m">m</span>}
+            {k.also && (
+              <span className="scales-key-also">
+                {k.also}
+                {choice.mode === 'minor' && 'm'}
+              </span>
+            )}
           </button>
         ))}
       </div>
@@ -203,7 +209,7 @@ export default function Scales({ engine }) {
             {key.also && <span className="scales-also"> (same keys as {key.also})</span>}
           </h3>
           <button className="pill-btn-primary scales-play" onClick={play}>
-            {playing ? '■ Stop' : '▶ Play'}
+            {playing ? '■ Stop' : '▶\uFE0E Play'}
           </button>
         </div>
         <Keyboard notes={notes} rh={key.rh} lh={key.lh} />
