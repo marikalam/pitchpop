@@ -12,7 +12,6 @@ const MENU_SECTIONS = [
       { id: 'color-test', icon: '🌈', label: 'Pitch Practice' },
       { id: 'explore', icon: '🎵', label: 'Explore sounds' },
       { id: 'piano', icon: '🎹', label: 'Piano' },
-      { id: 'sound-check', icon: '🔊', label: 'Sound check' },
     ],
   },
   {
@@ -25,7 +24,10 @@ const MENU_SECTIONS = [
   },
   {
     title: 'Practice',
-    items: [{ id: 'practice', icon: '⏱️', label: 'Practice Mode' }],
+    items: [
+      { id: 'practice', icon: '⏱️', label: 'Practice Mode' },
+      { id: 'scales', icon: '🎶', label: 'Scales' },
+    ],
   },
   {
     title: 'About',
