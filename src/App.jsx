@@ -1002,8 +1002,9 @@ export default function App() {
     setCloudConnected(true);
     if (!cloudProfiles.length) next.forEach(saveCloudProfile);
 
-    // Signing in is the start of a play session: go straight to a fresh
-    // color test for the selected player (or the account's first player).
+    // A fresh color test for the selected player (or the account's first
+    // player). The app opening already signed in stays where it is (the
+    // main page); signing in from the account screen goes to the main page.
     const player = next.find((p) => p.id === profile) || next[0];
     setProfile(player.id);
     setSessionQueue(buildQueue(player.colors, SESSION_ROUNDS));
@@ -1012,7 +1013,7 @@ export default function App() {
     setRoundResults({});
     setRoundOutcomes({});
     setRoundMixups({});
-    setView('play-listen');
+    setView((v) => (v === 'account' ? 'home' : v.startsWith('play-') ? 'play-listen' : v));
   }
 
   // Deleting the account also wipes its players from this device, so the
