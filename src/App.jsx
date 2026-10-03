@@ -12,6 +12,7 @@ import PracticeMode, { showTimerTab, stopPractice } from './PracticeMode.jsx';
 import PracticeBadge from './PracticeBadge.jsx';
 import MusicTheory from './MusicTheory.jsx';
 import MethodInfo from './MethodInfo.jsx';
+import Scales from './Scales.jsx';
 import {
   getUser,
   loadCloudProfiles,
@@ -22,7 +23,6 @@ import {
   rememberedAccount,
 } from './cloud.js';
 import { listenForAppLinks } from './appLink.js';
-import { playSoundCheck } from './soundCheck.js';
 import VolumeWarning from './VolumeWarning.jsx';
 import { useScreenHistory } from './screenHistory.js';
 import { colorToWorkOn, loadRoundHistory, recordRound, summarizeRound } from './roundHistory.js';
@@ -66,6 +66,7 @@ const HOME_CARDS = [
   { id: 'piano', icon: '🎹', title: 'Piano', sub: 'Play a real keyboard', from: '#9b6ef3', to: '#7a4fd6' },
   // Tokens are for signed-in families (guestSub is shown to guests).
   { id: 'practice', icon: '⏱️', title: 'Practice Mode', sub: 'Timer, metronome, tokens', guestSub: 'Timer, metronome, counter', from: '#f7a24f', to: '#e8792f' },
+  { id: 'scales', icon: '🎶', title: 'Scales', sub: 'Major & minor, with fingering', from: '#2fb3c4', to: '#1f8fa0' },
   { id: 'notespeller', icon: '🎼', title: 'NoteSpeller', sub: 'Read notes on the staff', from: '#3fbf7f', to: '#2a9d63', signedInOnly: true },
   { id: 'theory', icon: '📖', title: 'Music Theory', sub: 'Picture glossary', from: '#f06f9a', to: '#d94f7e', signedInOnly: true },
 ];
@@ -920,7 +921,7 @@ export default function App() {
   // Piano, Practice Mode and Music Theory are side trips like Explore:
   // closing one goes back to wherever the player was (a quiz in progress
   // included) instead of restarting the color game.
-  const TOOL_VIEWS = ['piano', 'practice', 'theory', 'method'];
+  const TOOL_VIEWS = ['piano', 'practice', 'theory', 'method', 'scales'];
 
   // The header's practice pill, on every screen: back to the timer (in
   // Practice Mode itself, to its Timer tab).
@@ -931,7 +932,6 @@ export default function App() {
   };
 
   function openTool(id) {
-    if (id === 'sound-check') return playSoundCheck();
     newSound();
     // Already in a color test: keep the round going rather than restart it.
     if (id === 'home') return goHome();
@@ -1117,7 +1117,7 @@ export default function App() {
     return <Piano engine={engineRef.current} onClose={closeTool} />;
   }
 
-  if (view === 'practice' || view === 'theory' || view === 'method') {
+  if (view === 'practice' || view === 'theory' || view === 'method' || view === 'scales') {
     // Practice Mode fits on one screen (its tools are tabs); the Music
     // Theory glossary and the method explanation are reading pages and
     // scroll.
@@ -1144,6 +1144,8 @@ export default function App() {
               ready={authChecked}
               showTokens={!!cloudUser}
             />
+          ) : view === 'scales' ? (
+            <Scales engine={engineRef.current} />
           ) : view === 'method' ? (
             <MethodInfo colors={COLORS} signedIn={!!cloudUser} />
           ) : (
@@ -1308,9 +1310,6 @@ export default function App() {
                 {cloudUser && (
                   <span className="home-stat">🪙 {homeTokens} {homeTokens === 1 ? 'token' : 'tokens'}</span>
                 )}
-                <button className="home-stat home-stat-link" onClick={playSoundCheck}>
-                  🔊 Sound check
-                </button>
               </div>
             </section>
 
@@ -1342,15 +1341,6 @@ export default function App() {
                   <span className="home-card-sub">{!cloudUser && card.guestSub ? card.guestSub : card.sub}</span>
                 </button>
               ))}
-              {!cloudUser && (
-                <button className="home-card home-card-account" onClick={openAccount}>
-                  <span className="home-card-icon" aria-hidden="true">
-                    👨‍👩‍👧
-                  </span>
-                  <span className="home-card-title">Family account</span>
-                  <span className="home-card-sub">Save players on every device</span>
-                </button>
-              )}
             </div>
           </>
         )}
