@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { newSound } from './soundBus.js';
 import { buildScale, FORMS, MAJOR_KEYS, MINOR_KEYS, midiFreq, prettyName } from './scales.js';
 
@@ -93,7 +93,17 @@ function sameKeyIndex(key, mode) {
 export default function Scales({ engine }) {
   const [choice, setChoice] = useState(loadChoice);
   const [playing, setPlaying] = useState(false);
+  // Counts plays, so a finished or stopped one doesn't reset a newer one.
+  const run = useRef(0);
+  const stop = () => {
+    run.current++;
+    setPlaying(false);
+    newSound();
+  };
+  // Leaving the page stops the scale.
+  useEffect(() => () => newSound(), []);
   const update = (changes) => {
+    if (playing) stop();
     const next = { ...choice, ...changes };
     setChoice(next);
     try {
@@ -110,16 +120,29 @@ export default function Scales({ engine }) {
   const title = `${prettyName(key.tonic)} ${choice.mode === 'major' ? 'major' : `${choice.form} minor`}`;
 
   async function play() {
+    if (playing) return stop();
     newSound();
+    const id = ++run.current;
     // Melodic minor comes back down as the natural minor.
     const down = buildScale(key.tonic, FORMS[form === 'melodic' ? 'natural' : form]).reverse().slice(1);
+    const freqs = [...notes, ...down].map((n) => midiFreq(n.midi));
     setPlaying(true);
+    const done = () => {
+      if (run.current === id) setPlaying(false);
+    };
     try {
-      await engine.playMelody([...notes, ...down].map((n) => midiFreq(n.midi)));
-    } finally {
-      setPlaying(false);
+      await engine.getMelodyBuffer(freqs);
+    } catch {
+      return done();
     }
+    if (run.current !== id) return;
+    // The button goes back once the scale has had time to finish (0.3 s a
+    // note plus the last note's ring); iPhones don't always report the
+    // sound ending.
+    setTimeout(done, freqs.length * 300 + 1500);
+    engine.playMelody(freqs).then(done, done);
   }
+
 
   return (
     <div className="scales">
@@ -174,8 +197,8 @@ export default function Scales({ engine }) {
             {title}
             {key.also && <span className="scales-also"> (same keys as {key.also})</span>}
           </h3>
-          <button className="pill-btn-primary scales-play" onClick={play} disabled={playing}>
-            {playing ? '♪ Playing…' : '▶ Play'}
+          <button className="pill-btn-primary scales-play" onClick={play}>
+            {playing ? '■ Stop' : '▶ Play'}
           </button>
         </div>
         <Keyboard notes={notes} rh={key.rh} lh={key.lh} />
