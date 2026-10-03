@@ -449,7 +449,7 @@ export default function PracticeMode({ profileId, profileName, ready = true, sho
             )}
             {practice.status === 'idle' ? (
               <button className="pill-btn-primary pill-btn-full" onClick={start}>
-                ▶ Start practice
+                {'▶\uFE0E'} Start practice
               </button>
             ) : (
               <div className="practice-actions">
