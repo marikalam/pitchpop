@@ -193,7 +193,9 @@ function formatDay(key) {
   return new Date(y, m - 1, d).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
 }
 
-export default function PracticeMode({ profileId, profileName, ready = true }) {
+// Tokens are shown only to signed-in families (showTokens); a guest's
+// practices still count toward them once the family signs in.
+export default function PracticeMode({ profileId, profileName, ready = true, showTokens = true }) {
   const [practice, setPractice] = useState(loadPractice);
   const [log, setLog] = useState(loadPracticeLog);
   const [now, setNow] = useState(Date.now);
@@ -320,9 +322,11 @@ export default function PracticeMode({ profileId, profileName, ready = true }) {
     <div className="practice-screen">
       <div className="practice-head">
         <h2 className="screen-title practice-title">Practice Mode</h2>
-        <div className="token-chip" aria-label={`${profileName} has ${stats.tokens} ${tokenWord(stats.tokens)}`}>
-          <span aria-hidden="true">🪙</span> {stats.tokens}
-        </div>
+        {showTokens && (
+          <div className="token-chip" aria-label={`${profileName} has ${stats.tokens} ${tokenWord(stats.tokens)}`}>
+            <span aria-hidden="true">🪙</span> {stats.tokens}
+          </div>
+        )}
       </div>
 
       <div className="practice-tabs" role="tablist" aria-label="Practice tools">
@@ -350,7 +354,7 @@ export default function PracticeMode({ profileId, profileName, ready = true }) {
           <>
             <div className="practice-time practice-time-done">{formatMinutes(minutes)}</div>
             <p className="practice-summary">Saved! Great practice, {profileName}.</p>
-            {earning > 0 && (
+            {showTokens && earning > 0 && (
               <div className="token-earned" role="status">
                 <span className="token-earned-coin" aria-hidden="true">
                   🪙
@@ -388,11 +392,13 @@ export default function PracticeMode({ profileId, profileName, ready = true }) {
             </div>
             <p className="practice-status">
               {practice.status === 'idle' &&
-                `Practices of ${MIN_PRACTICE_MINUTES}+ minutes are saved · 🪙 1 token per ${TOKEN_MINUTES} minutes`}
+                (showTokens
+                  ? `Practices of ${MIN_PRACTICE_MINUTES}+ minutes are saved · 🪙 1 token per ${TOKEN_MINUTES} minutes`
+                  : `Practices of ${MIN_PRACTICE_MINUTES}+ minutes are saved`)}
               {practice.status === 'running' && (
                 <>
                   <span className="practice-live-dot" aria-hidden="true" /> Practicing
-                  {earning > 0 && ` · 🪙 ${earning} ${tokenWord(earning)} so far`}
+                  {showTokens && earning > 0 && ` · 🪙 ${earning} ${tokenWord(earning)} so far`}
                 </>
               )}
               {practice.status === 'paused' && !practice.idlePaused && 'On a break · the timer is stopped'}
@@ -492,7 +498,7 @@ export default function PracticeMode({ profileId, profileName, ready = true }) {
                   <span>{formatDay(entry.day)}</span>
                   <span>
                     {formatMinutes(entry.minutes)}
-                    {tokensFor(entry.minutes) > 0 && <span className="practice-history-tokens"> · 🪙 {tokensFor(entry.minutes)}</span>}
+                    {showTokens && tokensFor(entry.minutes) > 0 && <span className="practice-history-tokens"> · 🪙 {tokensFor(entry.minutes)}</span>}
                   </span>
                 </li>
               ))}
