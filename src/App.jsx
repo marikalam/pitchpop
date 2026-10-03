@@ -64,7 +64,8 @@ const SESSION_ROUNDS = 20;
 const HOME_CARDS = [
   { id: 'explore', icon: '🎵', title: 'Explore sounds', sub: 'Tap a color, hear its chord', from: '#4f8df7', to: '#3b6fef' },
   { id: 'piano', icon: '🎹', title: 'Piano', sub: 'Play a real keyboard', from: '#9b6ef3', to: '#7a4fd6' },
-  { id: 'practice', icon: '⏱️', title: 'Practice Mode', sub: 'Timer, metronome, tokens', from: '#f7a24f', to: '#e8792f' },
+  // Tokens are for signed-in families (guestSub is shown to guests).
+  { id: 'practice', icon: '⏱️', title: 'Practice Mode', sub: 'Timer, metronome, tokens', guestSub: 'Timer, metronome, counter', from: '#f7a24f', to: '#e8792f' },
   { id: 'notespeller', icon: '🎼', title: 'NoteSpeller', sub: 'Read notes on the staff', from: '#3fbf7f', to: '#2a9d63', signedInOnly: true },
   { id: 'theory', icon: '📖', title: 'Music Theory', sub: 'Picture glossary', from: '#f06f9a', to: '#d94f7e', signedInOnly: true },
 ];
@@ -1137,7 +1138,12 @@ export default function App() {
             onBack={closeTool}
           />
           {view === 'practice' ? (
-            <PracticeMode profileId={currentProfile.id} profileName={currentProfile.name} ready={authChecked} />
+            <PracticeMode
+              profileId={currentProfile.id}
+              profileName={currentProfile.name}
+              ready={authChecked}
+              showTokens={!!cloudUser}
+            />
           ) : view === 'method' ? (
             <MethodInfo colors={COLORS} signedIn={!!cloudUser} />
           ) : (
@@ -1299,7 +1305,9 @@ export default function App() {
                 <span className="home-stat">
                   🔥 {streak.current ? `${streak.current} ${streak.current === 1 ? 'day' : 'days'} in a row` : 'Start a streak'}
                 </span>
-                <span className="home-stat">🪙 {homeTokens} {homeTokens === 1 ? 'token' : 'tokens'}</span>
+                {cloudUser && (
+                  <span className="home-stat">🪙 {homeTokens} {homeTokens === 1 ? 'token' : 'tokens'}</span>
+                )}
                 <button className="home-stat home-stat-link" onClick={playSoundCheck}>
                   🔊 Sound check
                 </button>
@@ -1331,7 +1339,7 @@ export default function App() {
                     {card.icon}
                   </span>
                   <span className="home-card-title">{card.title}</span>
-                  <span className="home-card-sub">{card.sub}</span>
+                  <span className="home-card-sub">{!cloudUser && card.guestSub ? card.guestSub : card.sub}</span>
                 </button>
               ))}
               {!cloudUser && (
