@@ -74,3 +74,28 @@ export function buildScale(tonic, steps) {
 export function midiFreq(midi) {
   return 440 * Math.pow(2, (midi - 69) / 12);
 }
+
+// The key's cadences in close position around the tonic, as usually taught
+// on piano: I - IV - I - V - I (C E G, C F A, C E G, B D G, C E G in C
+// major) and the 3-chord I - V - I. IV is played with the tonic at the
+// bottom (second inversion) and V with the leading note at the bottom
+// (first inversion, just below the tonic), so the hand barely moves.
+// Minor keys use the harmonic minor (a major V with the raised 7th).
+// Fingers are listed bottom note to top note; the left hand plays the same
+// notes an octave lower.
+const CHORD_SHAPES = {
+  I: { degrees: [0, 2, 4], rh: '135', lh: '531' },
+  IV: { degrees: [0, 3, 5], rh: '135', lh: '521' },
+  V: { degrees: [-1, 1, 4], rh: '125', lh: '531' },
+};
+
+export function buildCadence(tonic, minor, chords) {
+  const scale = buildScale(tonic, FORMS[minor ? 'harmonic' : 'major']);
+  const order = chords === 3 ? ['I', 'V', 'I'] : ['I', 'IV', 'I', 'V', 'I'];
+  return order.map((id) => {
+    const shape = CHORD_SHAPES[id];
+    const notes = shape.degrees.map((d) => (d < 0 ? { ...scale[6], midi: scale[6].midi - 12 } : scale[d]));
+    const label = minor && id !== 'V' ? id.toLowerCase() : id;
+    return { label, notes, rh: shape.rh, lh: shape.lh };
+  });
+}

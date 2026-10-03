@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { newSound } from './soundBus.js';
-import { buildScale, FORMS, MAJOR_KEYS, MINOR_KEYS, midiFreq, prettyName } from './scales.js';
+import { buildCadence, buildScale, FORMS, MAJOR_KEYS, MINOR_KEYS, midiFreq, prettyName } from './scales.js';
 
 // Scales: every major and minor scale with its notes on a keyboard and the
-// standard fingering for each hand, and a button to hear it up and down.
+// standard fingering for each hand, and a button to hear it up and down;
+// below it, the key's 5- or 3-chord cadence with fingering.
 // The choice is remembered on this device.
 const KEY = 'pitchpop-scales-v1';
+const CHORD_GAP_MS = 1100;
 const MINOR_FORMS = [
   { id: 'harmonic', label: 'Harmonic' },
   { id: 'natural', label: 'Natural' },
@@ -92,6 +94,7 @@ function sameKeyIndex(key, mode) {
 
 export default function Scales({ engine }) {
   const [choice, setChoice] = useState(loadChoice);
+  // What's playing: false, 'scale' or 'cadence'.
   const [playing, setPlaying] = useState(false);
   // Counts plays, so a finished or stopped one doesn't reset a newer one.
   const run = useRef(0);
@@ -119,35 +122,56 @@ export default function Scales({ engine }) {
   const notes = buildScale(key.tonic, FORMS[form]);
   const title = `${prettyName(key.tonic)} ${choice.mode === 'major' ? 'major' : `${choice.form} minor`}`;
 
-  // Get this scale's notes ready ahead of time so Play starts right away.
-  const noteKey = notes.map((n) => n.midi).join(',');
+  const chordCount = choice.chords === 3 ? 3 : 5;
+  const cadence = buildCadence(key.tonic, choice.mode === 'minor', chordCount);
+  // Each chord with the left hand an octave below the right.
+  const cadenceFreqs = cadence.map((c) => [...c.notes.map((n) => n.midi - 12), ...c.notes.map((n) => n.midi)].map(midiFreq));
+
+  // Get this key's notes ready ahead of time so Play starts right away.
+  const noteKey = [...notes.map((n) => n.midi), ...cadenceFreqs.flat().map((f) => f.toFixed(2))].join(',');
   useEffect(() => {
-    noteKey.split(',').forEach((m) => engine.getToneBuffer(midiFreq(Number(m))));
+    notes.forEach((n) => engine.getToneBuffer(midiFreq(n.midi)));
+    cadenceFreqs.flat().forEach((f) => engine.getToneBuffer(f));
+    // noteKey stands for both lists.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [engine, noteKey]);
 
-  async function play() {
-    if (playing) return stop();
+  // Plays the scale (up and down) or the cadence; tapping either button
+  // while something plays stops it.
+  async function play(what) {
+    if (playing) {
+      const was = playing;
+      stop();
+      if (was === what) return;
+    }
     newSound();
     const id = ++run.current;
-    // Melodic minor comes back down as the natural minor.
-    const down = buildScale(key.tonic, FORMS[form === 'melodic' ? 'natural' : form]).reverse().slice(1);
-    const freqs = [...notes, ...down].map((n) => midiFreq(n.midi));
-    setPlaying(true);
+    setPlaying(what);
     const done = () => {
       if (run.current === id) setPlaying(false);
     };
+    let length;
+    let start;
+    if (what === 'scale') {
+      // Melodic minor comes back down as the natural minor.
+      const down = buildScale(key.tonic, FORMS[form === 'melodic' ? 'natural' : form]).reverse().slice(1);
+      const freqs = [...notes, ...down].map((n) => midiFreq(n.midi));
+      length = freqs.length * 300;
+      start = () => engine.playMelody(freqs);
+    } else {
+      length = cadenceFreqs.length * CHORD_GAP_MS;
+      start = () => engine.playChords(cadenceFreqs, CHORD_GAP_MS);
+    }
     // A safety net in case the notes never get going.
-    setTimeout(done, freqs.length * 300 + 8000);
+    setTimeout(done, length + 8000);
     try {
-      await engine.playMelody(freqs);
+      await start();
     } catch {
       return done();
     }
-    // Back to Play once the scale has finished (0.3 s a note plus the
-    // last note's ring).
-    if (run.current === id) setTimeout(done, freqs.length * 300 + 1200);
+    // Back to Play once it has finished (plus the last notes' ring).
+    if (run.current === id) setTimeout(done, length + 1200);
   }
-
 
   return (
     <div className="scales">
@@ -208,8 +232,8 @@ export default function Scales({ engine }) {
             {title}
             {key.also && <span className="scales-also"> (same keys as {key.also})</span>}
           </h3>
-          <button className="pill-btn-primary scales-play" onClick={play}>
-            {playing ? '■ Stop' : '▶\uFE0E Play'}
+          <button className="pill-btn-primary scales-play" onClick={() => play('scale')}>
+            {playing === 'scale' ? '■ Stop' : '▶\uFE0E Play'}
           </button>
         </div>
         <Keyboard notes={notes} rh={key.rh} lh={key.lh} />
@@ -244,6 +268,83 @@ export default function Scales({ engine }) {
           down, use the same fingers in reverse.
         </p>
       </section>
+
+      <section className="practice-card scales-card" aria-label={`${prettyName(key.tonic)} ${choice.mode} cadence`}>
+        <div className="scales-title-row">
+          <h3 className="scales-title">Cadence</h3>
+          <button className="pill-btn-primary scales-play" onClick={() => play('cadence')}>
+            {playing === 'cadence' ? '■ Stop' : '▶\uFE0E Play'}
+          </button>
+        </div>
+        <div className="scales-forms" role="radiogroup" aria-label="How many chords">
+          {[5, 3].map((n) => (
+            <button
+              key={n}
+              role="radio"
+              aria-checked={chordCount === n}
+              className={`scales-form${chordCount === n ? ' scales-form-active' : ''}`}
+              onClick={() => update({ chords: n })}
+            >
+              {n} chords
+            </button>
+          ))}
+        </div>
+        <table className="scales-table cadence-table">
+          <tbody>
+            <tr>
+              <th scope="row">Chord</th>
+              {cadence.map((c, i) => (
+                <td key={i} className="cadence-label">
+                  {c.label}
+                </td>
+              ))}
+            </tr>
+            <tr>
+              <th scope="row">Notes</th>
+              {cadence.map((c, i) => (
+                <td key={i}>
+                  <Stack items={c.notes.map((n) => n.name)} />
+                </td>
+              ))}
+            </tr>
+            <tr>
+              <th scope="row" className="scales-rh">
+                Right hand
+              </th>
+              {cadence.map((c, i) => (
+                <td key={i}>
+                  <Stack items={c.rh.split('')} />
+                </td>
+              ))}
+            </tr>
+            <tr>
+              <th scope="row" className="scales-lh">
+                Left hand
+              </th>
+              {cadence.map((c, i) => (
+                <td key={i}>
+                  <Stack items={c.lh.split('')} />
+                </td>
+              ))}
+            </tr>
+          </tbody>
+        </table>
+        <p className="scales-note">
+          Notes read bottom to top, like on the staff. The left hand plays the same notes an octave lower.
+          {choice.mode === 'minor' ? ' Minor keys use the harmonic minor, so V has the raised 7th.' : ''}
+        </p>
+      </section>
     </div>
+  );
+}
+
+// A chord's notes (or fingers) stacked with the lowest at the bottom.
+function Stack({ items }) {
+  return (
+    <span className="cadence-stack">
+      {[...items].reverse().map((item, i) => (
+        <span key={i}>{item}</span>
+      ))}
+    </span>
   );
 }
