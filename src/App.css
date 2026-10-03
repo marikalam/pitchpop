@@ -3561,3 +3561,10 @@ body {
   font-size: 12px;
   color: var(--ink-dim);
 }
+
+/* The gold token coin, sitting on the text line. */
+.token-icon {
+  display: inline-block;
+  vertical-align: -0.2em;
+  flex: none;
+}
