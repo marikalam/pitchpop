@@ -3568,3 +3568,8 @@ body {
   vertical-align: -0.2em;
   flex: none;
 }
+
+/* Two tabs (Major, Minor), each half the bar. */
+.scales-modes {
+  grid-template-columns: 1fr 1fr;
+}
