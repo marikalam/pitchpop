@@ -28,12 +28,15 @@ import { hasLiveActivity, showPracticeOnLockScreen } from './liveActivity.js';
 // running metronome counts as practicing. In the iPhone app the timer
 // shows on the Lock Screen (liveActivity.js), so it can keep running with
 // the phone locked on the piano: there the limit is 2 hours, on the
-// website 5 minutes.
+// website 5 minutes. Time spent away (in another app, or with the screen
+// off) never trips the 5 minutes: it counts as practice for up to
+// AWAY_MINUTES.
 const PRACTICE_KEY = 'pitchpop-practice-v1';
 const ACTIVITY_KEY = 'pitchpop-last-activity-v1';
 export const IDLE_MINUTES = hasLiveActivity ? 120 : 5;
-const IDLE_LABEL = hasLiveActivity ? '2 hours' : '5 minutes';
 const IDLE_MS = IDLE_MINUTES * 60000;
+const AWAY_MS = 120 * 60000;
+const HIDDEN_KEY = 'pitchpop-hidden-at-v1';
 const TAB_KEY = 'pitchpop-practice-tab-v1';
 // One tool at a time, so Practice Mode fits on a phone screen without
 // scrolling. Every panel stays mounted (just hidden), so the timer and the
@@ -72,9 +75,13 @@ function elapsedMs(p, now) {
 
 const wholeMinutes = (ms) => Math.floor(ms / 60000);
 
+// The last tap, or - while the app is in the background - the point that
+// makes the limit AWAY_MS after leaving.
 function lastActivity() {
   try {
-    return Number(localStorage.getItem(ACTIVITY_KEY)) || 0;
+    const last = Number(localStorage.getItem(ACTIVITY_KEY)) || 0;
+    const hiddenAt = Number(localStorage.getItem(HIDDEN_KEY)) || 0;
+    return hiddenAt ? Math.max(last, hiddenAt + AWAY_MS - IDLE_MS) : last;
   } catch {
     return 0;
   }
@@ -148,6 +155,24 @@ if (typeof document !== 'undefined') {
   };
   document.addEventListener('pointerdown', onActivity, true);
   document.addEventListener('keydown', onActivity, true);
+  // Leaving the app: remember when. Coming back: the time away counts
+  // (unless it was over AWAY_MS), and coming back counts as activity.
+  const onVisibility = () => {
+    try {
+      if (document.hidden) {
+        localStorage.setItem(HIDDEN_KEY, String(Date.now()));
+        return;
+      }
+      if (!localStorage.getItem(HIDDEN_KEY)) return;
+      onActivity();
+      localStorage.removeItem(HIDDEN_KEY);
+    } catch {
+      /* ignore */
+    }
+  };
+  document.addEventListener('visibilitychange', onVisibility);
+  // Also when the app was closed while away and is opened again.
+  onVisibility();
 }
 
 // For the practice pill in the header on other screens: whether a practice
@@ -418,7 +443,7 @@ export default function PracticeMode({ profileId, profileName, ready = true, sho
               <div className="practice-idle" role="alert">
                 <strong>Are you still practicing?</strong>
                 <span>
-                  Nothing was tapped for {IDLE_LABEL}, so the timer paused. Tap Resume to keep going.
+                  Nothing was tapped for a long while, so the timer paused. Tap Resume to keep going.
                 </span>
               </div>
             )}
