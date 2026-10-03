@@ -7,8 +7,8 @@ import { buildScale, FORMS, MAJOR_KEYS, MINOR_KEYS, midiFreq, prettyName } from 
 // The choice is remembered on this device.
 const KEY = 'pitchpop-scales-v1';
 const MINOR_FORMS = [
-  { id: 'natural', label: 'Natural' },
   { id: 'harmonic', label: 'Harmonic' },
+  { id: 'natural', label: 'Natural' },
   { id: 'melodic', label: 'Melodic' },
 ];
 
@@ -19,7 +19,7 @@ function loadChoice() {
   } catch {
     /* ignore */
   }
-  return { mode: 'major', index: 0, form: 'natural' };
+  return { mode: 'major', index: 0, form: 'harmonic' };
 }
 
 const WHITE_PCS = [0, 2, 4, 5, 7, 9, 11];
