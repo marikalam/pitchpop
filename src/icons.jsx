@@ -63,3 +63,23 @@ export function XIcon() {
     </svg>
   );
 }
+
+// A practice token: a gold coin with a star (the 🪙 emoji looks like a moon
+// on iPhone). Sized to the text around it.
+export function TokenIcon({ size = '1.1em' }) {
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} className="token-icon" aria-hidden="true">
+      <circle cx="12" cy="12" r="11" fill="#e8a317" />
+      <circle cx="12" cy="12" r="9.2" fill="#ffc93c" />
+      <circle cx="12" cy="12" r="7.6" fill="none" stroke="#f0a91a" strokeWidth="1" />
+      <path
+        d="M12 6.4l1.65 3.4 3.75.5-2.73 2.6.68 3.7L12 14.8l-3.35 1.8.68-3.7-2.73-2.6 3.75-.5Z"
+        fill="#fff"
+        stroke="#e8a317"
+        strokeWidth="0.6"
+        strokeLinejoin="round"
+      />
+      <path d="M6.2 8.2a7 7 0 0 1 3-2.8" fill="none" stroke="#fff6d6" strokeWidth="1.2" strokeLinecap="round" />
+    </svg>
+  );
+}

@@ -9,6 +9,7 @@ import {
   tokensFor,
 } from './practiceLog.js';
 import Metronome from './Metronome.jsx';
+import { TokenIcon } from './icons.jsx';
 import CoffeeBreak from './CoffeeBreak.jsx';
 import { hasLiveActivity, showPracticeOnLockScreen } from './liveActivity.js';
 
@@ -324,7 +325,7 @@ export default function PracticeMode({ profileId, profileName, ready = true, sho
         <h2 className="screen-title practice-title">Practice Mode</h2>
         {showTokens && (
           <div className="token-chip" aria-label={`${profileName} has ${stats.tokens} ${tokenWord(stats.tokens)}`}>
-            <span aria-hidden="true">🪙</span> {stats.tokens}
+            <TokenIcon /> {stats.tokens}
           </div>
         )}
       </div>
@@ -357,7 +358,7 @@ export default function PracticeMode({ profileId, profileName, ready = true, sho
             {showTokens && earning > 0 && (
               <div className="token-earned" role="status">
                 <span className="token-earned-coin" aria-hidden="true">
-                  🪙
+                  <TokenIcon size="1.4em" />
                 </span>
                 You earned {earning} {tokenWord(earning)}!
               </div>
@@ -392,13 +393,22 @@ export default function PracticeMode({ profileId, profileName, ready = true, sho
             </div>
             <p className="practice-status">
               {practice.status === 'idle' &&
-                (showTokens
-                  ? `Practices of ${MIN_PRACTICE_MINUTES}+ minutes are saved · 🪙 1 token per ${TOKEN_MINUTES} minutes`
-                  : `Practices of ${MIN_PRACTICE_MINUTES}+ minutes are saved`)}
+                (showTokens ? (
+                  <>
+                    Practices of {MIN_PRACTICE_MINUTES}+ minutes are saved · <TokenIcon /> 1 token per {TOKEN_MINUTES} minutes
+                  </>
+                ) : (
+                  `Practices of ${MIN_PRACTICE_MINUTES}+ minutes are saved`
+                ))}
               {practice.status === 'running' && (
                 <>
                   <span className="practice-live-dot" aria-hidden="true" /> Practicing
-                  {showTokens && earning > 0 && ` · 🪙 ${earning} ${tokenWord(earning)} so far`}
+                  {showTokens && earning > 0 && (
+                    <>
+                      {' · '}
+                      <TokenIcon /> {earning} {tokenWord(earning)} so far
+                    </>
+                  )}
                 </>
               )}
               {practice.status === 'paused' && !practice.idlePaused && 'On a break · the timer is stopped'}
@@ -498,7 +508,7 @@ export default function PracticeMode({ profileId, profileName, ready = true, sho
                   <span>{formatDay(entry.day)}</span>
                   <span>
                     {formatMinutes(entry.minutes)}
-                    {showTokens && tokensFor(entry.minutes) > 0 && <span className="practice-history-tokens"> · 🪙 {tokensFor(entry.minutes)}</span>}
+                    {showTokens && tokensFor(entry.minutes) > 0 && <span className="practice-history-tokens"> · <TokenIcon /> {tokensFor(entry.minutes)}</span>}
                   </span>
                 </li>
               ))}

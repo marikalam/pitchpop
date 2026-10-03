@@ -27,7 +27,7 @@ import VolumeWarning from './VolumeWarning.jsx';
 import { useScreenHistory } from './screenHistory.js';
 import { colorToWorkOn, loadRoundHistory, recordRound, summarizeRound } from './roundHistory.js';
 import ScoreCelebration, { scoreTier, TIER_TEXT } from './ScoreCelebration.jsx';
-import { PlayTriangleIcon, SpeakerIcon, CheckIcon, XIcon } from './icons.jsx';
+import { PlayTriangleIcon, SpeakerIcon, CheckIcon, XIcon, TokenIcon } from './icons.jsx';
 import { loadStreakDays, recordStreakDay, streakFor } from './streak.js';
 import { startHistorySync } from './historySync.js';
 import { loadPracticeLog, practiceStats } from './practiceLog.js';
@@ -1308,7 +1308,7 @@ export default function App() {
                   🔥 {streak.current ? `${streak.current} ${streak.current === 1 ? 'day' : 'days'} in a row` : 'Start a streak'}
                 </span>
                 {cloudUser && (
-                  <span className="home-stat">🪙 {homeTokens} {homeTokens === 1 ? 'token' : 'tokens'}</span>
+                  <span className="home-stat"><TokenIcon /> {homeTokens} {homeTokens === 1 ? 'token' : 'tokens'}</span>
                 )}
               </div>
             </section>
