@@ -3582,3 +3582,17 @@ body {
   font-weight: 600;
   opacity: 0.6;
 }
+
+/* Cadence chords: each column a chord, its notes and fingers stacked
+   lowest at the bottom. */
+.cadence-label {
+  font-family: 'Fredoka', ui-rounded, system-ui, sans-serif;
+  font-size: 15px;
+}
+
+.cadence-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.35;
+}

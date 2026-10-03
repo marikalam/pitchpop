@@ -328,6 +328,28 @@ export class PianoEngine {
     });
   }
 
+  // Plays chords of exact pitches (each a list of Hz) one after another,
+  // gapMs apart; like playMelody, resolves once the first has started.
+  async playChords(chords, gapMs) {
+    const ctx = this.ensureAudio();
+    if (ctx.state !== 'running') {
+      try {
+        await ctx.resume();
+      } catch {
+        /* ignore - will retry resuming on the next tap */
+      }
+    }
+    const soundId = currentSound();
+    const buffers = await Promise.all(chords.map((chord) => Promise.all(chord.map((f) => this.getToneBuffer(f)))));
+    if (soundId !== currentSound()) return;
+    buffers.forEach((chord, i) => {
+      // Quieter per note, so six notes together don't distort.
+      const playChord = () => chord.forEach((buffer) => playBuffer(ctx, buffer, 0.4));
+      if (i === 0) playChord();
+      else later(playChord, i * gapMs);
+    });
+  }
+
   async playNoteSequence(notes) {
     const ctx = this.ensureAudio();
     if (ctx.state === 'suspended') {

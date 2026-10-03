@@ -41,10 +41,11 @@ export function later(fn, ms) {
 
 // Plays a buffer through a gain node that newSound() can fade out in
 // ~30 ms, which avoids a click. Returns a promise for when it ends.
-export function playBuffer(ctx, buffer) {
+export function playBuffer(ctx, buffer, volume = 1) {
   const source = ctx.createBufferSource();
   source.buffer = buffer;
   const gain = ctx.createGain();
+  gain.gain.value = volume;
   source.connect(gain).connect(ctx.destination);
   const stop = track(ctx, gain, [source]);
   // Resolves when it finishes or is stopped by newSound().
