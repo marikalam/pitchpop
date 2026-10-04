@@ -61,7 +61,7 @@ function scheduleClick(ctx, time, noise) {
   edge.stop(time + 0.045);
 }
 
-export default function Metronome({ hidden = false, onRunningChange }) {
+export default function Metronome({ hidden = false }) {
   const [bpm, setBpm] = useState(loadBpm);
   const [running, setRunning] = useState(false);
   const [beat, setBeat] = useState(0); // bumps on every click, for the flash
@@ -79,10 +79,6 @@ export default function Metronome({ hidden = false, onRunningChange }) {
       /* ignore */
     }
   }, [bpm]);
-
-  useEffect(() => {
-    onRunningChange?.(running);
-  }, [running, onRunningChange]);
 
   useEffect(() => {
     if (!running) return undefined;

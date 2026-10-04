@@ -11,7 +11,7 @@ import {
 import Metronome from './Metronome.jsx';
 import { TokenIcon } from './icons.jsx';
 import CoffeeBreak from './CoffeeBreak.jsx';
-import { hasLiveActivity, showPracticeOnLockScreen } from './liveActivity.js';
+import { showPracticeOnLockScreen } from './liveActivity.js';
 
 // A practice companion: a timer for the whole session, a tap counter for
 // repetitions ("5 times scales, then 5 times Hanon"), and each player's
@@ -22,21 +22,10 @@ import { hasLiveActivity, showPracticeOnLockScreen } from './liveActivity.js';
 // counter belong to one player (profileId); picking another player starts
 // them over.
 //
-// If nobody touches the app for a while (IDLE_MINUTES) while the timer
-// runs, it pauses itself at that point and asks whether you're still
-// practicing, so a forgotten timer doesn't keep counting all day. A
-// running metronome counts as practicing. In the iPhone app the timer
-// shows on the Lock Screen (liveActivity.js), so it can keep running with
-// the phone locked on the piano: there the limit is 2 hours, on the
-// website 5 minutes. Time spent away (in another app, or with the screen
-// off) never trips the 5 minutes: it counts as practice for up to
-// AWAY_MINUTES.
+// The timer keeps running until the player pauses or ends it - in another
+// app or with the screen off too. In the iPhone app it also shows on the
+// Lock Screen (liveActivity.js).
 const PRACTICE_KEY = 'pitchpop-practice-v1';
-const ACTIVITY_KEY = 'pitchpop-last-activity-v1';
-export const IDLE_MINUTES = hasLiveActivity ? 120 : 5;
-const IDLE_MS = IDLE_MINUTES * 60000;
-const AWAY_MS = 120 * 60000;
-const HIDDEN_KEY = 'pitchpop-hidden-at-v1';
 const TAB_KEY = 'pitchpop-practice-tab-v1';
 // One tool at a time, so Practice Mode fits on a phone screen without
 // scrolling. Every panel stays mounted (just hidden), so the timer and the
@@ -58,11 +47,14 @@ function loadTab() {
   return 'timer';
 }
 const STATUSES = ['idle', 'running', 'paused', 'tooShort', 'saved'];
-const EMPTY = { status: 'idle', startedAt: null, elapsedBefore: 0, count: 0, profileId: null, idlePaused: false };
+const EMPTY = { status: 'idle', startedAt: null, elapsedBefore: 0, count: 0, profileId: null };
 
 function loadPractice() {
   try {
-    const saved = { ...EMPTY, ...JSON.parse(localStorage.getItem(PRACTICE_KEY)) };
+    // (Older versions could pause by themselves and saved an idlePaused
+    // flag; that's now an ordinary break.)
+    // eslint-disable-next-line no-unused-vars
+    const { idlePaused, ...saved } = { ...EMPTY, ...JSON.parse(localStorage.getItem(PRACTICE_KEY)) };
     return STATUSES.includes(saved.status) ? saved : { ...saved, status: 'idle', startedAt: null, elapsedBefore: 0 };
   } catch {
     return EMPTY;
@@ -75,112 +67,19 @@ function elapsedMs(p, now) {
 
 const wholeMinutes = (ms) => Math.floor(ms / 60000);
 
-// The last tap, or - while the app is in the background - the point that
-// makes the limit AWAY_MS after leaving.
-function lastActivity() {
-  try {
-    const last = Number(localStorage.getItem(ACTIVITY_KEY)) || 0;
-    const hiddenAt = Number(localStorage.getItem(HIDDEN_KEY)) || 0;
-    return hiddenAt ? Math.max(last, hiddenAt + AWAY_MS - IDLE_MS) : last;
-  } catch {
-    return 0;
-  }
-}
-
-function noteActivity(now = Date.now()) {
-  try {
-    localStorage.setItem(ACTIVITY_KEY, String(now));
-  } catch {
-    /* ignore */
-  }
-}
-
-// The idle pause as a pure step: a running practice with no activity for
-// IDLE_MS since the last tap (or since it started) stops counting at that
-// point. Returns the same object when nothing changes.
-function idleStopAt(p, last = lastActivity()) {
-  return Math.max(last, p.startedAt) + IDLE_MS;
-}
-
-function withIdlePause(p, now, last = lastActivity()) {
-  if (p.status !== 'running') return p;
-  const stopAt = idleStopAt(p, last);
-  if (now < stopAt) return p;
-  return { ...p, status: 'paused', elapsedBefore: elapsedMs(p, stopAt), startedAt: null, idlePaused: true };
-}
-
-// Applies the idle pause to the saved practice. Practice Mode hears about
-// it through the event; the header pill re-reads the saved state.
-function settleIdle(now = Date.now()) {
-  const p = loadPractice();
-  const settled = withIdlePause(p, now);
-  if (settled === p) return;
-  try {
-    localStorage.setItem(PRACTICE_KEY, JSON.stringify(settled));
-  } catch {
-    /* ignore */
-  }
-  reflectOnLockScreen(settled, now, '');
-  window.dispatchEvent(new Event('pitchpop-practice-idle'));
-}
-
 function reflectOnLockScreen(p, now, playerName) {
   showPracticeOnLockScreen({
     status: p.status,
     elapsedMs: elapsedMs(p, now),
-    staleAtMs: p.status === 'running' ? idleStopAt(p) : null,
     playerName,
   });
-}
-
-// Taps move the idle limit later; tell the Lock Screen now and then (it
-// shows "Still practicing?" once the limit passes).
-let lockScreenRefreshedAt = 0;
-function refreshLockScreen(now) {
-  if (!hasLiveActivity || now - lockScreenRefreshedAt < 60000) return;
-  const p = loadPractice();
-  if (p.status !== 'running') return;
-  lockScreenRefreshedAt = now;
-  reflectOnLockScreen(p, now, '');
-}
-
-// Every tap or key press counts as activity. The idle check runs first, so
-// the tap that wakes the phone after a long break doesn't count the break.
-if (typeof document !== 'undefined') {
-  const onActivity = () => {
-    const now = Date.now();
-    settleIdle(now);
-    noteActivity(now);
-    refreshLockScreen(now);
-  };
-  document.addEventListener('pointerdown', onActivity, true);
-  document.addEventListener('keydown', onActivity, true);
-  // Leaving the app: remember when. Coming back: the time away counts
-  // (unless it was over AWAY_MS), and coming back counts as activity.
-  const onVisibility = () => {
-    try {
-      if (document.hidden) {
-        localStorage.setItem(HIDDEN_KEY, String(Date.now()));
-        return;
-      }
-      if (!localStorage.getItem(HIDDEN_KEY)) return;
-      onActivity();
-      localStorage.removeItem(HIDDEN_KEY);
-    } catch {
-      /* ignore */
-    }
-  };
-  document.addEventListener('visibilitychange', onVisibility);
-  // Also when the app was closed while away and is opened again.
-  onVisibility();
 }
 
 // For the practice pill in the header on other screens: whether a practice
 // is on (running or paused) and how many whole minutes it has so far.
 export function readPracticeTimer(now = Date.now()) {
-  settleIdle(now);
   const p = loadPractice();
-  return { status: p.status, minutes: wholeMinutes(elapsedMs(p, now)), idlePaused: p.idlePaused };
+  return { status: p.status, minutes: wholeMinutes(elapsedMs(p, now)) };
 }
 
 // Stops a practice that's on, from outside Practice Mode: signing out,
@@ -226,7 +125,6 @@ export default function PracticeMode({ profileId, profileName, ready = true, sho
   const [log, setLog] = useState(loadPracticeLog);
   const [now, setNow] = useState(Date.now);
   const [tab, setTab] = useState(loadTab);
-  const [metronomeOn, setMetronomeOn] = useState(false);
 
   function chooseTab(id) {
     setTab(id);
@@ -272,14 +170,12 @@ export default function PracticeMode({ profileId, profileName, ready = true, sho
     if (practice.status !== 'running') return undefined;
     const tick = () => {
       const t = Date.now();
-      if (metronomeOn) noteActivity(t);
-      setPractice((p) => withIdlePause(p, t));
       setNow(t);
     };
     tick();
     const id = setInterval(tick, 1000);
     return () => clearInterval(id);
-  }, [practice.status, metronomeOn]);
+  }, [practice.status]);
 
   const update = (changes) => setPractice((p) => ({ ...p, ...changes }));
 
@@ -307,17 +203,17 @@ export default function PracticeMode({ profileId, profileName, ready = true, sho
 
   function start() {
     setNow(Date.now());
-    update({ status: 'running', startedAt: Date.now(), elapsedBefore: 0, idlePaused: false });
+    update({ status: 'running', startedAt: Date.now(), elapsedBefore: 0 });
   }
 
   function pause() {
     const t = Date.now();
-    setPractice((p) => ({ ...p, status: 'paused', elapsedBefore: elapsedMs(p, t), startedAt: null, idlePaused: false }));
+    setPractice((p) => ({ ...p, status: 'paused', elapsedBefore: elapsedMs(p, t), startedAt: null }));
   }
 
   function resume() {
     setNow(Date.now());
-    update({ status: 'running', startedAt: Date.now(), idlePaused: false });
+    update({ status: 'running', startedAt: Date.now() });
   }
 
   function end() {
@@ -325,15 +221,15 @@ export default function PracticeMode({ profileId, profileName, ready = true, sho
     const total = elapsedMs(practice, t);
     const minutes = wholeMinutes(total);
     if (minutes < MIN_PRACTICE_MINUTES) {
-      update({ status: 'tooShort', elapsedBefore: total, startedAt: null, idlePaused: false });
+      update({ status: 'tooShort', elapsedBefore: total, startedAt: null });
       return;
     }
     setLog((prev) => recordPractice(prev, profileId, minutes, new Date(t)));
-    update({ status: 'saved', elapsedBefore: total, startedAt: null, idlePaused: false });
+    update({ status: 'saved', elapsedBefore: total, startedAt: null });
   }
 
   function newPractice() {
-    update({ status: 'idle', startedAt: null, elapsedBefore: 0, idlePaused: false });
+    update({ status: 'idle', startedAt: null, elapsedBefore: 0 });
   }
 
   const minutes = wholeMinutes(elapsedMs(practice, now));
@@ -436,17 +332,9 @@ export default function PracticeMode({ profileId, profileName, ready = true, sho
                   )}
                 </>
               )}
-              {practice.status === 'paused' && !practice.idlePaused && 'On a break · the timer is stopped'}
+              {practice.status === 'paused' && 'On a break · the timer is stopped'}
             </p>
-            {practice.status === 'paused' && !practice.idlePaused && <CoffeeBreak />}
-            {practice.status === 'paused' && practice.idlePaused && (
-              <div className="practice-idle" role="alert">
-                <strong>Are you still practicing?</strong>
-                <span>
-                  Nothing was tapped for a long while, so the timer paused. Tap Resume to keep going.
-                </span>
-              </div>
-            )}
+            {practice.status === 'paused' && <CoffeeBreak />}
             {practice.status === 'idle' ? (
               <button className="pill-btn-primary pill-btn-full" onClick={start}>
                 {'▶\uFE0E'} Start practice
@@ -471,7 +359,7 @@ export default function PracticeMode({ profileId, profileName, ready = true, sho
         )}
       </section>
 
-      <Metronome hidden={tab !== 'metronome'} onRunningChange={setMetronomeOn} />
+      <Metronome hidden={tab !== 'metronome'} />
 
       <section className="practice-card" aria-label="Repetition counter" hidden={tab !== 'counter'}>
         <div className="practice-card-title">🔁 Repetition counter</div>
