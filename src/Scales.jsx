@@ -30,7 +30,7 @@ const BLACK_AFTER = { 0: 1, 2: 3, 5: 6, 7: 8, 9: 10 }; // white pc -> black pc t
 // Two octaves from middle C (C4-B5), the scale's keys lit, with the right
 // hand's finger above each key and the left hand's below (a black key's
 // finger one row further out, so it never covers its white neighbor's).
-function Keyboard({ notes, rh, lh }) {
+export function Keyboard({ notes, rh, lh }) {
   const W = 24;
   const H = 92;
   const whites = [];

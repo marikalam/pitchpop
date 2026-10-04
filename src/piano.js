@@ -174,10 +174,12 @@ async function renderPitchBuffer(note, octave) {
   return renderToneBuffer(freq(note, octave));
 }
 
-// One note at an exact pitch in Hz (also the Scales screen's notes).
-async function renderToneBuffer(freqHz) {
-  const noteDuration = 1.4;
-  const duration = 0.05 + noteDuration + 1.2;
+// One note at an exact pitch in Hz (also the Scales screen's notes). A
+// short one (for fast exercises like Hanon) rings 0.5 s instead of 1.4 s,
+// so dozens of quick notes don't pile up into a blur.
+async function renderToneBuffer(freqHz, short = false) {
+  const noteDuration = short ? 0.5 : 1.4;
+  const duration = 0.05 + noteDuration + (short ? 0.5 : 1.2);
   const OfflineCtx = window.OfflineAudioContext || window.webkitOfflineAudioContext;
   const offline = new OfflineCtx(2, Math.ceil(SAMPLE_RATE * duration), SAMPLE_RATE);
 
@@ -294,11 +296,11 @@ export class PianoEngine {
     playBuffer(ctx, buffer);
   }
 
-  getToneBuffer(freqHz) {
-    const key = `tone:${freqHz.toFixed(2)}`;
+  getToneBuffer(freqHz, short = false) {
+    const key = `tone${short ? 's' : ''}:${freqHz.toFixed(2)}`;
     if (this.bufferCache.has(key)) return Promise.resolve(this.bufferCache.get(key));
     if (this.pendingRenders.has(key)) return this.pendingRenders.get(key);
-    const promise = renderToneBuffer(freqHz).then((buffer) => {
+    const promise = renderToneBuffer(freqHz, short).then((buffer) => {
       this.bufferCache.set(key, buffer);
       this.pendingRenders.delete(key);
       return buffer;
@@ -348,6 +350,27 @@ export class PianoEngine {
       if (i === 0) playChord();
       else later(playChord, i * gapMs);
     });
+  }
+
+  // Plays short notes at exact times on the audio clock: events are
+  // { at: seconds from the start, freqs: [Hz, ...] }. For long, quick
+  // passages (Hanon), where timers would drift. Resolves once it has
+  // started; newSound() stops the rest.
+  async playTimed(events, volume = 0.5) {
+    const ctx = this.ensureAudio();
+    if (ctx.state !== 'running') {
+      try {
+        await ctx.resume();
+      } catch {
+        /* ignore - will retry resuming on the next tap */
+      }
+    }
+    const soundId = currentSound();
+    const freqs = [...new Set(events.flatMap((e) => e.freqs))];
+    const buffers = new Map(await Promise.all(freqs.map(async (f) => [f, await this.getToneBuffer(f, true)])));
+    if (soundId !== currentSound()) return;
+    const start = ctx.currentTime + 0.08;
+    events.forEach((e) => e.freqs.forEach((f) => playBuffer(ctx, buffers.get(f), volume, start + e.at)));
   }
 
   async playNoteSequence(notes) {

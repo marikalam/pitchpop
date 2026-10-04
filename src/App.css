@@ -3849,3 +3849,61 @@ body {
   font: 600 13px 'IBM Plex Sans', sans-serif;
   -webkit-tap-highlight-color: transparent;
 }
+
+/* Hanon: the 20 exercise numbers, the pattern tables and the settings. */
+.hanon-intro {
+  margin: 0;
+  text-align: center;
+  color: var(--ink-dim);
+  font-size: 14px;
+}
+
+.hanon-intro strong {
+  color: var(--ink);
+  font-family: 'Fredoka', ui-rounded, system-ui, sans-serif;
+  font-size: 17px;
+}
+
+.hanon-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+}
+
+.hanon-pattern {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.hanon-pattern-title {
+  font: 700 13px 'IBM Plex Sans', sans-serif;
+  color: var(--ink);
+}
+
+.hanon-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.hanon-tempo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--ink-dim);
+}
+
+.hanon-tempo strong {
+  color: var(--ink);
+}
+
+.hanon-tempo input {
+  width: 100%;
+  accent-color: var(--accent-blue);
+}
+
+.hanon-grid .scales-key-chip {
+  padding: 6px 0;
+}
