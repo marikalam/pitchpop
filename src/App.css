@@ -2222,21 +2222,7 @@ body {
   font-size: 13px;
 }
 
-.practice-idle {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 10px 14px;
-  border-radius: 14px;
-  background: #fff6e0;
-  color: #7a5200;
-  text-align: center;
-  font-size: 13px;
-}
 
-.practice-idle strong {
-  font-size: 15px;
-}
 
 .practice-live-dot {
   display: inline-block;

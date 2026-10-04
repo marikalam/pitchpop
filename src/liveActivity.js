@@ -11,10 +11,9 @@ const PracticeActivity = hasLiveActivity ? registerPlugin('PracticeActivity') : 
 let shown = null; // what the Lock Screen shows now, to skip repeat calls
 
 // practice: Practice Mode's saved timer state. elapsedMs: time practiced
-// so far. staleAtMs: when the idle pause would kick in (the Lock Screen
-// then asks "Still practicing?"). playerName may be '' when not known (the
+// so far. playerName may be '' when not known (the
 // native side then keeps the current player's name).
-export function showPracticeOnLockScreen({ status, elapsedMs, staleAtMs, playerName }) {
+export function showPracticeOnLockScreen({ status, elapsedMs, playerName }) {
   if (!PracticeActivity) return;
   const on = status === 'running' || status === 'paused';
   if (!on) {
@@ -26,8 +25,8 @@ export function showPracticeOnLockScreen({ status, elapsedMs, staleAtMs, playerN
   // A running timer counts on by itself, so only changes need sending.
   const key = paused
     ? `paused:${playerName}:${Math.floor(elapsedMs / 60000)}`
-    : `running:${playerName}:${Math.round((Date.now() - elapsedMs) / 1000)}:${staleAtMs}`;
+    : `running:${playerName}:${Math.round((Date.now() - elapsedMs) / 1000)}`;
   if (key === shown) return;
   shown = key;
-  PracticeActivity.update({ playerName, elapsedMs, paused, staleAtMs }).catch(() => {});
+  PracticeActivity.update({ playerName, elapsedMs, paused }).catch(() => {});
 }
