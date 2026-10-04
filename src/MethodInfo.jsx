@@ -120,6 +120,14 @@ export default function MethodInfo({ colors, signedIn }) {
           shows how many of the 20 chords were correct: 18 or more is 90% or more.
         </p>
       </section>
+
+      <p className="method-credits">
+        Piano sound on the Piano, Scales and Hanon screens: Salamander Grand Piano by Alexander Holm (
+        <a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noreferrer">
+          CC BY 3.0
+        </a>
+        ). Hanon exercises: C.-L. Hanon, The Virtuoso Pianist (1873, public domain).
+      </p>
     </div>
   );
 }
