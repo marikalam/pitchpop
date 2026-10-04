@@ -3582,3 +3582,83 @@ body {
   align-items: center;
   line-height: 1.35;
 }
+
+/* Opening signed in: the PitchPop icon bobbing, the name, and three
+   bouncing dots in the rainbow colors, until the family's players load. */
+.opening {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  background: var(--bg);
+}
+
+.opening-mark {
+  width: 96px;
+  height: 96px;
+  border-radius: 24px;
+  box-shadow: var(--shadow-sm);
+  animation: opening-bob 1.2s ease-in-out infinite;
+}
+
+.opening-word {
+  font-size: 34px;
+}
+
+.opening-dots {
+  display: flex;
+  gap: 8px;
+}
+
+.opening-dots span {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  animation: opening-dot 0.9s ease-in-out infinite;
+}
+
+.opening-dots span:nth-child(1) {
+  background: #f06f6f;
+}
+
+.opening-dots span:nth-child(2) {
+  background: #f2c94c;
+  animation-delay: 0.15s;
+}
+
+.opening-dots span:nth-child(3) {
+  background: #4f8df7;
+  animation-delay: 0.3s;
+}
+
+@keyframes opening-bob {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-3deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(3deg);
+  }
+}
+
+@keyframes opening-dot {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translateY(-8px);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .opening-mark,
+  .opening-dots span {
+    animation: none;
+  }
+}

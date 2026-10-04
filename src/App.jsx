@@ -71,6 +71,9 @@ const HOME_CARDS = [
   { id: 'theory', icon: '📖', title: 'Music Theory', sub: 'Picture glossary', from: '#f06f9a', to: '#d94f7e', signedInOnly: true },
 ];
 const MELODY_SESSION_TAPS = 20;
+// The loading screen when the app opens signed in (see `opening`).
+const OPENING_MIN_MS = 700;
+const OPENING_MAX_MS = 5000;
 const PROGRESS_KEY = 'pitchpop-progress-v1';
 const SESSION_KEY = 'pitchpop-session-v1';
 const PROFILES_KEY = 'pitchpop-profiles-v1';
@@ -458,6 +461,24 @@ export default function App() {
   const [cloudConnected, setCloudConnected] = useState(false);
   // False until the saved sign-in (if any) has been checked on load.
   const [authChecked, setAuthChecked] = useState(false);
+  // Signed in on this device: a PitchPop loading screen until the
+  // family's players are in, so the guest player never flashes first.
+  // At most OPENING_MAX_MS (e.g. with no internet the cached players are
+  // used), and at least OPENING_MIN_MS so it doesn't just flicker.
+  const [opening, setOpening] = useState(() => !!rememberedAccount());
+  useEffect(() => {
+    if (!opening) return undefined;
+    const started = performance.now();
+    const cap = setTimeout(() => setOpening(false), OPENING_MAX_MS);
+    let wait;
+    if (authChecked) {
+      wait = setTimeout(() => setOpening(false), Math.max(0, OPENING_MIN_MS - (performance.now() - started)));
+    }
+    return () => {
+      clearTimeout(cap);
+      clearTimeout(wait);
+    };
+  }, [opening, authChecked]);
   const [passwordRecovery, setPasswordRecovery] = useState(false);
   const [showWelcome, setShowWelcome] = useState(() => localStorage.getItem(WELCOME_KEY) !== '1');
 
@@ -1056,6 +1077,22 @@ export default function App() {
   const profileColors = profileColorNames.map((name) => COLORS.find((c) => c.name === name)).filter(Boolean);
   const roundCorrect = Object.values(roundOutcomes).filter(Boolean).length;
   const roundWrong = Object.values(roundOutcomes).filter((v) => v === false).length;
+
+  if (opening) {
+    return (
+      <div className="opening" role="status" aria-label="PitchPop is opening">
+        <img className="opening-mark" src={`${import.meta.env.BASE_URL}icon-192.png`} alt="" />
+        <span className="logo opening-word">
+          <LogoWord />
+        </span>
+        <span className="opening-dots" aria-hidden="true">
+          <span />
+          <span />
+          <span />
+        </span>
+      </div>
+    );
+  }
 
   if (view === 'account') {
     return (
