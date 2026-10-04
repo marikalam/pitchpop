@@ -1,3 +1,5 @@
+import { Capacitor } from '@capacitor/core';
+import { App as CapacitorApp } from '@capacitor/app';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { PianoEngine, playCorrectChime, playWrongBuzz } from './piano.js';
 import { speakColorName, speakResults, prewarmVoices, unlockAudio } from './speech.js';
@@ -8,7 +10,7 @@ import MainMenu from './MainMenu.jsx';
 import { PlayerSettingsCard, AddPlayerForm, AccountButton, AccountScreen, SyncStatus } from './Settings.jsx';
 import NoteSpeller from './NoteSpeller.jsx';
 import Piano from './Piano.jsx';
-import PracticeMode, { showTimerTab, stopPractice } from './PracticeMode.jsx';
+import PracticeMode, { readPracticeTimer, showTimerTab, stopPractice } from './PracticeMode.jsx';
 import PracticeBadge from './PracticeBadge.jsx';
 import MusicTheory from './MusicTheory.jsx';
 import MethodInfo from './MethodInfo.jsx';
@@ -785,11 +787,13 @@ export default function App() {
     engineRef.current.playNoteSequence(color.notes);
   }
 
-  function changeProfile(next) {
+  // keepPractice: switching *to* the player whose practice is on (see
+  // resumePractice), so the timer keeps going.
+  function changeProfile(next, keepPractice = false) {
     if (profile !== 'melody') setLastActiveProfile(profile);
     if (next !== profile) {
       // The practice timer belongs to the player who started it.
-      stopPractice();
+      if (!keepPractice) stopPractice();
       // A quiz round in progress is built from the outgoing profile's
       // color set - switching identity mid-round let colors outside the
       // new profile's palette (e.g. Maddie's "brown") leak into Marcus's
@@ -953,6 +957,37 @@ export default function App() {
     if (view === 'practice') window.dispatchEvent(new Event('pitchpop-show-timer'));
     else openTool('practice');
   };
+
+  // Opening PitchPop, or coming back to it from another app, while a
+  // practice is on: straight to that player's practice timer. (Signed in,
+  // once the family's players have loaded.)
+  const resumePracticeRef = useRef(null);
+  resumePracticeRef.current = () => {
+    const timer = readPracticeTimer();
+    if (timer.status !== 'running' && timer.status !== 'paused') return;
+    if (timer.profileId && timer.profileId !== profile && profiles.some((p) => p.id === timer.profileId)) {
+      changeProfile(timer.profileId, true);
+    }
+    openPracticeFromBadge();
+  };
+  useEffect(() => {
+    if (opening) return undefined;
+    resumePracticeRef.current();
+    const onVisible = () => {
+      if (!document.hidden) resumePracticeRef.current();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    // The iPhone app also says so directly when it comes to the front.
+    const appState = Capacitor.isNativePlatform()
+      ? CapacitorApp.addListener('appStateChange', ({ isActive }) => {
+          if (isActive) resumePracticeRef.current();
+        })
+      : null;
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible);
+      appState?.then((handle) => handle.remove());
+    };
+  }, [opening]);
 
   function openTool(id) {
     newSound();
