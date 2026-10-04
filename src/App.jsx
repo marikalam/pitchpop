@@ -13,6 +13,7 @@ import PracticeBadge from './PracticeBadge.jsx';
 import MusicTheory from './MusicTheory.jsx';
 import MethodInfo from './MethodInfo.jsx';
 import Scales from './Scales.jsx';
+import Hanon from './Hanon.jsx';
 import {
   getUser,
   loadCloudProfiles,
@@ -67,6 +68,7 @@ const HOME_CARDS = [
   // Tokens are for signed-in families (guestSub is shown to guests).
   { id: 'practice', icon: '⏱️', title: 'Practice Mode', sub: 'Timer, metronome, tokens', guestSub: 'Timer, metronome, counter', from: '#f7a24f', to: '#e8792f' },
   { id: 'scales', icon: '🎶', title: 'Scales', sub: 'Major & minor, with fingering', from: '#2fb3c4', to: '#1f8fa0' },
+  { id: 'hanon', icon: '🏋️', title: 'Hanon', sub: 'Finger exercises 1–20', from: '#5b6ee8', to: '#3f4fc4' },
   { id: 'notespeller', icon: '🎼', title: 'NoteSpeller', sub: 'Read notes on the staff', from: '#3fbf7f', to: '#2a9d63', signedInOnly: true },
   { id: 'theory', icon: '📖', title: 'Music Theory', sub: 'Picture glossary', from: '#f06f9a', to: '#d94f7e', signedInOnly: true },
 ];
@@ -942,7 +944,7 @@ export default function App() {
   // Piano, Practice Mode and Music Theory are side trips like Explore:
   // closing one goes back to wherever the player was (a quiz in progress
   // included) instead of restarting the color game.
-  const TOOL_VIEWS = ['piano', 'practice', 'theory', 'method', 'scales'];
+  const TOOL_VIEWS = ['piano', 'practice', 'theory', 'method', 'scales', 'hanon'];
 
   // The header's practice pill, on every screen: back to the timer (in
   // Practice Mode itself, to its Timer tab).
@@ -1155,7 +1157,7 @@ export default function App() {
     return <Piano engine={engineRef.current} onClose={closeTool} />;
   }
 
-  if (view === 'practice' || view === 'theory' || view === 'method' || view === 'scales') {
+  if (view === 'practice' || view === 'theory' || view === 'method' || view === 'scales' || view === 'hanon') {
     // Practice Mode fits on one screen (its tools are tabs); the Music
     // Theory glossary and the method explanation are reading pages and
     // scroll.
@@ -1184,6 +1186,8 @@ export default function App() {
             />
           ) : view === 'scales' ? (
             <Scales engine={engineRef.current} />
+          ) : view === 'hanon' ? (
+            <Hanon engine={engineRef.current} />
           ) : view === 'method' ? (
             <MethodInfo colors={COLORS} signedIn={!!cloudUser} />
           ) : (

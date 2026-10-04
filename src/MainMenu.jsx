@@ -24,6 +24,7 @@ const MENU_SECTIONS = [
     items: [
       { id: 'piano', icon: '🎹', label: 'Piano' },
       { id: 'scales', icon: '🎶', label: 'Scales' },
+      { id: 'hanon', icon: '🏋️', label: 'Hanon' },
       { id: 'practice', icon: '⏱️', label: 'Practice Mode' },
     ],
   },
