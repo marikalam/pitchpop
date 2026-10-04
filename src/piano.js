@@ -1,4 +1,5 @@
 import { currentSound, later, playBuffer, soundOutput } from './soundBus.js';
+import { freqMidi, loadPianoSamples, pianoSample } from './pianoSamples.js';
 
 // Sharps are for the Piano screen's black keys; everything else uses the
 // seven natural letters.
@@ -209,6 +210,20 @@ export class PianoEngine {
     this.ctx = null;
     this.bufferCache = new Map();
     this.pendingRenders = new Map();
+    // The recorded grand piano (pianoSamples.js), decoded ahead of time
+    // (no user tap needed for that).
+    const OfflineCtx = typeof window !== 'undefined' && (window.OfflineAudioContext || window.webkitOfflineAudioContext);
+    if (OfflineCtx) loadPianoSamples(new OfflineCtx(2, 1, SAMPLE_RATE));
+  }
+
+  // One note of the recorded grand piano (a MIDI number, may be
+  // fractional). False while the recordings aren't loaded, so the caller
+  // plays the synthesized piano instead.
+  playPianoNote(ctx, midi, { when = 0, volume = 1, releaseAt } = {}) {
+    const sample = pianoSample(midi);
+    if (!sample) return false;
+    playBuffer(ctx, sample.buffer, volume, when, { rate: sample.rate, releaseAt });
+    return true;
   }
 
   ensureAudio() {
@@ -292,6 +307,7 @@ export class PianoEngine {
         /* ignore - will retry resuming on the next tap */
       }
     }
+    if (this.playPianoNote(ctx, freqMidi(freq(note, octave)))) return;
     const buffer = await this.getPitchBuffer(note, octave);
     playBuffer(ctx, buffer);
   }
@@ -321,6 +337,16 @@ export class PianoEngine {
         /* ignore - will retry resuming on the next tap */
       }
     }
+    if (pianoSample(60)) {
+      // Each note let go as the next one sounds (legato), the last left
+      // to ring.
+      const start = ctx.currentTime + 0.05;
+      freqs.forEach((f, i) => {
+        const when = start + i * 0.3;
+        this.playPianoNote(ctx, freqMidi(f), { when, releaseAt: i < freqs.length - 1 ? when + 0.36 : undefined });
+      });
+      return;
+    }
     const soundId = currentSound();
     const buffers = await Promise.all(freqs.map((f) => this.getToneBuffer(f)));
     if (soundId !== currentSound()) return;
@@ -340,6 +366,16 @@ export class PianoEngine {
       } catch {
         /* ignore - will retry resuming on the next tap */
       }
+    }
+    if (pianoSample(60)) {
+      const start = ctx.currentTime + 0.05;
+      const gap = gapMs / 1000;
+      chords.forEach((chord, i) => {
+        const when = start + i * gap;
+        const releaseAt = i < chords.length - 1 ? when + gap * 0.95 : undefined;
+        chord.forEach((f) => this.playPianoNote(ctx, freqMidi(f), { when, volume: 0.4, releaseAt }));
+      });
+      return;
     }
     const soundId = currentSound();
     const buffers = await Promise.all(chords.map((chord) => Promise.all(chord.map((f) => this.getToneBuffer(f)))));
@@ -364,6 +400,18 @@ export class PianoEngine {
       } catch {
         /* ignore - will retry resuming on the next tap */
       }
+    }
+    if (pianoSample(60)) {
+      // Each note held until the next one starts, like fingers on keys;
+      // the last rings on.
+      const start = ctx.currentTime + 0.08;
+      const loud = Math.min(1, volume * 2);
+      events.forEach((e, i) => {
+        const next = events[i + 1];
+        const releaseAt = next ? start + next.at + 0.03 : undefined;
+        e.freqs.forEach((f) => this.playPianoNote(ctx, freqMidi(f), { when: start + e.at, volume: loud, releaseAt }));
+      });
+      return;
     }
     const soundId = currentSound();
     const freqs = [...new Set(events.flatMap((e) => e.freqs))];

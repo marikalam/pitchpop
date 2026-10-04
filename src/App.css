@@ -3907,3 +3907,14 @@ body {
 .hanon-grid .scales-key-chip {
   padding: 6px 0;
 }
+
+.method-credits {
+  margin: 4px 4px 0;
+  font-size: 12px;
+  color: var(--ink-dim);
+  text-align: center;
+}
+
+.method-credits a {
+  color: inherit;
+}

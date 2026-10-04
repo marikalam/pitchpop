@@ -42,11 +42,18 @@ export function later(fn, ms) {
 // Plays a buffer through a gain node that newSound() can fade out in
 // ~30 ms, which avoids a click. Returns a promise for when it ends.
 // `when` (audio-clock seconds) schedules it ahead, for exact timing.
-export function playBuffer(ctx, buffer, volume = 1, when = 0) {
+// `rate` plays it faster or slower (a recorded piano note retuned), and
+// `releaseAt` lets it go then, like lifting a finger off a piano key.
+export function playBuffer(ctx, buffer, volume = 1, when = 0, { rate = 1, releaseAt } = {}) {
   const source = ctx.createBufferSource();
   source.buffer = buffer;
+  source.playbackRate.value = rate;
   const gain = ctx.createGain();
   gain.gain.value = volume;
+  if (releaseAt) {
+    gain.gain.setValueAtTime(volume, releaseAt);
+    gain.gain.setTargetAtTime(0, releaseAt, 0.07);
+  }
   source.connect(gain).connect(ctx.destination);
   const stop = track(ctx, gain, [source]);
   // Resolves when it finishes or is stopped by newSound().
@@ -57,6 +64,7 @@ export function playBuffer(ctx, buffer, volume = 1, when = 0) {
     });
   });
   source.start(when);
+  if (releaseAt) source.stop(releaseAt + 0.6);
   return ended;
 }
 

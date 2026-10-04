@@ -1,0 +1,6 @@
+Piano sound: Salamander Grand Piano V3 by Alexander Holm
+https://archive.org/details/SalamanderGrandPianoV3
+License: Creative Commons Attribution 3.0 (http://creativecommons.org/licenses/by/3.0/)
+The samples here are trimmed to 4 seconds and re-encoded (from the
+@audio-samples/piano-mp3-velocity10 MP3 set by Jan Forst, MIT).
+File names are MIDI note numbers.
