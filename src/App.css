@@ -3662,3 +3662,190 @@ body {
     animation: none;
   }
 }
+
+/* Home: Pitch Practice and Explore sounds together in one card with a
+   rainbow edge, then the piano tools under their own heading. */
+.pitch-set {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 12px 12px;
+  border: 2px solid transparent;
+  border-radius: 28px;
+  background:
+    linear-gradient(var(--card-bg), var(--card-bg)) padding-box,
+    linear-gradient(135deg, #e5484d, #f5a524, #2fb36c, #3b6fef) border-box;
+  box-shadow: var(--shadow-sm);
+}
+
+.pitch-set-title,
+.home-section-title {
+  margin: 0;
+  padding: 0 6px;
+  font: 700 17px 'Fredoka', ui-rounded, system-ui, sans-serif;
+  color: var(--ink);
+}
+
+
+.home-section-title {
+  margin-top: 6px;
+  padding: 0 4px;
+}
+
+.pitch-explore {
+  appearance: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 12px 18px;
+  border: none;
+  border-radius: 20px;
+  background: #eef3fe;
+  color: var(--ink);
+  text-align: left;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.08s ease;
+}
+
+.pitch-explore:active {
+  transform: scale(0.98);
+}
+
+.pitch-explore-icon {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 40px;
+  font-size: 22px;
+}
+
+.pitch-explore-title {
+  font: 700 18px 'Fredoka', ui-rounded, system-ui, sans-serif;
+  color: #3b6fef;
+}
+
+.pitch-explore-sub {
+  font: 600 13px 'IBM Plex Sans', sans-serif;
+  color: var(--ink-dim);
+}
+
+.pitch-explore-arrow {
+  font-size: 22px;
+  font-weight: 700;
+  color: #3b6fef;
+}
+
+/* Explore -> the game, and the game -> Explore. */
+.explore-to-game {
+  appearance: none;
+  cursor: pointer;
+  align-self: center;
+  margin: 16px auto 0;
+  display: block;
+  padding: 12px 22px;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #e5484d 0%, #f5a524 30%, #2fb36c 62%, #3b6fef 100%);
+  color: #fff;
+  font: 700 16px 'Fredoka', ui-rounded, system-ui, sans-serif;
+  box-shadow: 0 10px 22px -12px rgba(59, 111, 239, 0.7);
+}
+
+.hear-colors-link {
+  appearance: none;
+  cursor: pointer;
+  display: block;
+  margin: 14px auto 0;
+  padding: 8px 14px;
+  border: none;
+  background: none;
+  color: #3b6fef;
+  font: 600 14px 'IBM Plex Sans', sans-serif;
+}
+
+/* The home page still fits one screen with the Perfect Pitch card: a
+   smaller rainbow, a tighter card, and the tools laid out icon-left. */
+.home-fit .home-hero-rainbow .rainbow {
+  height: clamp(36px, 7vh, 76px);
+}
+
+.home-fit .pitch-set {
+  flex: none;
+  gap: 8px;
+  padding: 10px 10px 10px;
+}
+
+.home-fit .pitch-set-title {
+  font-size: 15.5px;
+}
+
+.home-fit .pitch-explore {
+  padding: 8px 16px;
+}
+
+.home-fit .pitch-explore-icon {
+  height: 32px;
+}
+
+.home-fit .pitch-explore-title {
+  font-size: 16.5px;
+}
+
+.home-fit .pitch-explore-sub {
+  font-size: 12px;
+}
+
+.home-fit .home-section-title {
+  flex: none;
+  margin-top: 0;
+  font-size: 15.5px;
+}
+
+.home-fit .home-card {
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+}
+
+.home-fit .home-card-icon {
+  flex: none;
+  margin-bottom: 0;
+}
+
+.home-fit .home-card-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+@media (max-height: 720px) {
+  .home-fit .pitch-explore-sub {
+    display: none;
+  }
+}
+
+/* The card's title, with "How it works" (the Eguchi method) beside it. */
+.pitch-set-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.pitch-set-how {
+  appearance: none;
+  cursor: pointer;
+  flex: none;
+  padding: 5px 12px;
+  border: none;
+  border-radius: 999px;
+  background: #eef3fe;
+  color: var(--accent-blue);
+  font: 600 13px 'IBM Plex Sans', sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}

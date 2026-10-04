@@ -1,37 +1,40 @@
 import { useEffect, useRef, useState } from 'react';
 
-// The ☰ menu: every part of the app besides picking a player, grouped the
-// way a family uses it. Home and Pitch Practice (the color game) come
-// first, so there's a way back to them from anywhere. Learn needs an
-// account.
+// The ☰ menu: every part of the app besides picking a player, grouped like
+// the home page - Home first (a way back from anywhere), then the Perfect
+// Pitch training (the color game, Explore and the method behind them),
+// the piano tools, and Learn (which needs an account).
 const MENU_SECTIONS = [
   {
-    title: 'Play',
+    id: 'home',
+    items: [{ id: 'home', icon: '🏠', label: 'Home' }],
+  },
+  {
+    id: 'pitch',
+    title: 'Perfect Pitch',
     items: [
-      { id: 'home', icon: '🏠', label: 'Home' },
       { id: 'color-test', icon: '🌈', label: 'Pitch Practice' },
       { id: 'explore', icon: '🎵', label: 'Explore sounds' },
-      { id: 'piano', icon: '🎹', label: 'Piano' },
+      { id: 'method', icon: '🎓', label: 'The Eguchi method' },
     ],
   },
   {
+    id: 'piano',
+    title: 'Piano tools',
+    items: [
+      { id: 'piano', icon: '🎹', label: 'Piano' },
+      { id: 'scales', icon: '🎶', label: 'Scales' },
+      { id: 'practice', icon: '⏱️', label: 'Practice Mode' },
+    ],
+  },
+  {
+    id: 'learn',
     title: 'Learn',
     signedInOnly: true,
     items: [
       { id: 'notespeller', icon: '🎼', label: 'NoteSpeller' },
       { id: 'theory', icon: '📖', label: 'Music Theory' },
     ],
-  },
-  {
-    title: 'Practice',
-    items: [
-      { id: 'practice', icon: '⏱️', label: 'Practice Mode' },
-      { id: 'scales', icon: '🎶', label: 'Scales' },
-    ],
-  },
-  {
-    title: 'About',
-    items: [{ id: 'method', icon: '🎓', label: 'The Eguchi method' }],
   },
 ];
 
@@ -68,8 +71,8 @@ export default function MainMenu({ signedIn, onOpen }) {
       {open && (
         <div className="profile-menu main-menu-panel">
           {MENU_SECTIONS.filter((section) => signedIn || !section.signedInOnly).map((section, i) => (
-            <div key={section.title} className={i === 0 ? 'main-menu-section-first' : 'profile-menu-section'}>
-              <div className="profile-menu-heading">{section.title}</div>
+            <div key={section.id} className={i === 0 ? 'main-menu-section-first' : 'profile-menu-section'}>
+              {section.title && <div className="profile-menu-heading">{section.title}</div>}
               {section.items.map((item) => (
                 <button
                   key={item.id}

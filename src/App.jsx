@@ -60,9 +60,9 @@ const OLD_SAMPLE_PROFILE_IDS = new Set(['maddie', 'marcus', 'melody']);
 
 // Chords in a round of Pitch Practice (about one Eguchi session).
 const SESSION_ROUNDS = 20;
-// The home page's feature cards (the color test has its own big button).
+// The home page's piano tools (Pitch Practice and Explore sounds have
+// their own Perfect Pitch card above them).
 const HOME_CARDS = [
-  { id: 'explore', icon: '🎵', title: 'Explore sounds', sub: 'Tap a color, hear its chord', from: '#4f8df7', to: '#3b6fef' },
   { id: 'piano', icon: '🎹', title: 'Piano', sub: 'Play a real keyboard', from: '#9b6ef3', to: '#7a4fd6' },
   // Tokens are for signed-in families (guestSub is shown to guests).
   { id: 'practice', icon: '⏱️', title: 'Practice Mode', sub: 'Timer, metronome, tokens', guestSub: 'Timer, metronome, counter', from: '#f7a24f', to: '#e8792f' },
@@ -1339,9 +1339,6 @@ export default function App() {
                   : 'Hear a chord, pick its color, and train your ear one game at a time.'}
               </p>
               <div className="home-stats">
-                <button className="home-stat home-stat-link" onClick={() => openTool('method')}>
-                  🎓 How it works
-                </button>
                 <span className="home-stat">
                   🔥 {streak.current ? `${streak.current} ${streak.current === 1 ? 'day' : 'days'} in a row` : 'Start a streak'}
                 </span>
@@ -1351,19 +1348,44 @@ export default function App() {
               </div>
             </section>
 
-            <button className="home-cta" onClick={startPlay}>
-              <span className="home-cta-icon" aria-hidden="true">
-                <PlayTriangleIcon />
-              </span>
-              <span className="home-cta-text">
-                <span className="home-cta-title">Pitch Practice</span>
-                <span className="home-cta-sub">Hear a chord, pick its color</span>
-              </span>
-              <span className="home-cta-arrow" aria-hidden="true">
-                →
-              </span>
-            </button>
+            {/* The Eguchi perfect-pitch training together in one card: the
+                game, and Explore for hearing each color's chord. */}
+            <section className="pitch-set" aria-labelledby="pitch-set-title">
+              <div className="pitch-set-head">
+                <h3 className="pitch-set-title" id="pitch-set-title">
+                  <span aria-hidden="true">🌈</span> Perfect Pitch
+                </h3>
+                <button className="pitch-set-how" onClick={() => openTool('method')}>
+                  🎓 How it works
+                </button>
+              </div>
+              <button className="home-cta" onClick={startPlay}>
+                <span className="home-cta-icon" aria-hidden="true">
+                  <PlayTriangleIcon />
+                </span>
+                <span className="home-cta-text">
+                  <span className="home-cta-title">Pitch Practice</span>
+                  <span className="home-cta-sub">Hear a chord, pick its color</span>
+                </span>
+                <span className="home-cta-arrow" aria-hidden="true">
+                  →
+                </span>
+              </button>
+              <button className="pitch-explore" onClick={() => openTool('explore')}>
+                <span className="pitch-explore-icon" aria-hidden="true">
+                  🎵
+                </span>
+                <span className="home-cta-text">
+                  <span className="pitch-explore-title">Explore sounds</span>
+                  <span className="pitch-explore-sub">Learn each color's chord</span>
+                </span>
+                <span className="pitch-explore-arrow" aria-hidden="true">
+                  →
+                </span>
+              </button>
+            </section>
 
+            <h3 className="home-section-title">Piano tools</h3>
             <div className="home-grid">
               {HOME_CARDS.filter((card) => cloudUser || !card.signedInOnly).map((card) => (
                 <button
@@ -1375,8 +1397,10 @@ export default function App() {
                   <span className="home-card-icon" aria-hidden="true">
                     {card.icon}
                   </span>
-                  <span className="home-card-title">{card.title}</span>
-                  <span className="home-card-sub">{!cloudUser && card.guestSub ? card.guestSub : card.sub}</span>
+                  <span className="home-card-text">
+                    <span className="home-card-title">{card.title}</span>
+                    <span className="home-card-sub">{!cloudUser && card.guestSub ? card.guestSub : card.sub}</span>
+                  </span>
                 </button>
               ))}
             </div>
@@ -1418,6 +1442,13 @@ export default function App() {
                 </button>
               ))}
             </div>
+            {/* On to the game (or back to the round this was opened from). */}
+            <button
+              className="explore-to-game"
+              onClick={preExploreView.startsWith('play-') ? closeExplore : startPlay}
+            >
+              {preExploreView.startsWith('play-') ? 'Back to Pitch Practice' : 'Ready? Start Pitch Practice'} →
+            </button>
           </>
         )}
 
@@ -1446,6 +1477,9 @@ export default function App() {
               </span>
             </button>
             <div className="tap-pill">Tap to listen</div>
+            <button className="hear-colors-link" onClick={() => openTool('explore')}>
+              🎵 Hear the colors
+            </button>
           </>
         )}
 
