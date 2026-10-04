@@ -76,10 +76,11 @@ function reflectOnLockScreen(p, now, playerName) {
 }
 
 // For the practice pill in the header on other screens: whether a practice
-// is on (running or paused) and how many whole minutes it has so far.
+// is on (running or paused), how many whole minutes it has so far, and
+// whose it is.
 export function readPracticeTimer(now = Date.now()) {
   const p = loadPractice();
-  return { status: p.status, minutes: wholeMinutes(elapsedMs(p, now)) };
+  return { status: p.status, minutes: wholeMinutes(elapsedMs(p, now)), profileId: p.profileId };
 }
 
 // Stops a practice that's on, from outside Practice Mode: signing out,
