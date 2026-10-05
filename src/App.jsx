@@ -914,8 +914,18 @@ export default function App() {
       setView('play-complete');
       return;
     }
+    // The next chord plays by itself (tapping Next is the cue), straight
+    // to its question; the rainbow there plays it again. Only a round's
+    // first chord waits for a tap on the rainbow.
+    const nextColor = COLORS.find((c) => c.name === sessionQueue[roundIndex + 1]);
     setRoundIndex((r) => r + 1);
-    setView('play-listen');
+    if (!nextColor) {
+      setView('play-listen');
+      return;
+    }
+    setOptions(buildOptions(profileColorNames));
+    setView('play-question');
+    later(() => playChord(nextColor), 300);
   }
 
   function exploreTap(color) {
