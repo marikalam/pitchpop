@@ -30,7 +30,8 @@ const BLACK_AFTER = { 0: 1, 2: 3, 5: 6, 7: 8, 9: 10 }; // white pc -> black pc t
 // Two octaves from middle C (C4-B5), the scale's keys lit, with the right
 // hand's finger above each key and the left hand's below (a black key's
 // finger one row further out, so it never covers its white neighbor's).
-export function Keyboard({ notes, rh, lh }) {
+// `active` (a MIDI note) lights the key being played right now (Hanon).
+export function Keyboard({ notes, rh, lh, active }) {
   const W = 24;
   const H = 92;
   const whites = [];
@@ -54,7 +55,7 @@ export function Keyboard({ notes, rh, lh }) {
           width={W - 1}
           height={H}
           rx="3"
-          className={lit.has(m) ? 'scale-key-white scale-key-lit' : 'scale-key-white'}
+          className={`scale-key-white${lit.has(m) ? ' scale-key-lit' : ''}${m === active ? ' scale-key-now' : ''}`}
         />
       ))}
       {whites.map((m) => {
@@ -62,21 +63,29 @@ export function Keyboard({ notes, rh, lh }) {
         if (!(pc in BLACK_AFTER) || m === whites[whites.length - 1]) return null;
         const b = m + 1;
         return (
-          <rect key={b} x={blackX(b)} y="0" width="14" height={H * 0.6} rx="2" className={lit.has(b) ? 'scale-key-black scale-key-lit-black' : 'scale-key-black'} />
+          <rect key={b} x={blackX(b)} y="0" width="14" height={H * 0.6} rx="2" className={`scale-key-black${lit.has(b) ? ' scale-key-lit-black' : ''}${b === active ? ' scale-key-now' : ''}`} />
         );
       })}
       {notes.map((n, i) => {
         const out = isBlack(n.midi) ? 21 : 0;
         return (
           <g key={`f${i}`}>
-            <circle cx={centerX(n.midi)} cy={-13 - out} r="9" className="scale-finger-rh" />
-            <text x={centerX(n.midi)} y={-9 - out} className="scale-finger-text">
-              {rh[i]}
-            </text>
-            <circle cx={centerX(n.midi)} cy={H + 13 + out} r="9" className="scale-finger-lh" />
-            <text x={centerX(n.midi)} y={H + 17 + out} className="scale-finger-text">
-              {lh[i]}
-            </text>
+            {rh[i] && (
+              <>
+                <circle cx={centerX(n.midi)} cy={-13 - out} r="9" className="scale-finger-rh" />
+                <text x={centerX(n.midi)} y={-9 - out} className="scale-finger-text">
+                  {rh[i]}
+                </text>
+              </>
+            )}
+            {lh[i] && (
+              <>
+                <circle cx={centerX(n.midi)} cy={H + 13 + out} r="9" className="scale-finger-lh" />
+                <text x={centerX(n.midi)} y={H + 17 + out} className="scale-finger-text">
+                  {lh[i]}
+                </text>
+              </>
+            )}
           </g>
         );
       })}

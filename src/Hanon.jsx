@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
-import { newSound } from './soundBus.js';
+import { later, newSound } from './soundBus.js';
 import { midiFreq } from './scales.js';
 import { Keyboard } from './Scales.jsx';
 import { HANON_COUNT, hanonExercise, positionMidi, positionName } from './hanon.js';
 
-// Hanon, Part I (exercises 1-20): each exercise's pattern going up and
-// coming down with both hands' fingering, its first bar on a keyboard, and
+// Hanon, Part I (exercises 1-20): how each exercise starts, turns around
+// at the top and finishes, bar by bar on a keyboard with both hands'
+// fingering (each part playable, the keys lighting up as it plays), and
 // Play for the whole exercise - at the chosen speed, in the chosen rhythm
 // (even, long-short or short-long, as teachers often assign), with both
 // hands or one. The choices are remembered on this device.
@@ -24,7 +25,7 @@ const MIN_TEMPO = 40;
 const MAX_TEMPO = 120;
 
 function loadChoice() {
-  const fallback = { n: 1, tempo: 60, rhythm: 'even', hands: 'both' };
+  const fallback = { n: 1, tempo: 60, rhythm: 'even', hands: 'both', part: 'start' };
   try {
     const saved = JSON.parse(localStorage.getItem(KEY));
     return saved && saved.n >= 1 && saved.n <= HANON_COUNT ? { ...fallback, ...saved } : fallback;
@@ -33,16 +34,58 @@ function loadChoice() {
   }
 }
 
-// The exercise's bars (8 notes each) and the first one going up / coming
-// down in the pattern the fingering is written for.
+// The exercise's bars (8 notes each) and where the way down starts: the
+// first bar in the second half with the coming-down pattern.
 function bars(ex) {
   const list = [];
   for (let i = 0; i < ex.notes.length; i += 8) list.push(ex.notes.slice(i, i + 8));
   const matches = (bar, cell) => bar.every((p, i) => p - bar[0] === cell[i]);
   const half = Math.floor(list.length / 2);
+  const found = list.findIndex((bar, i) => i >= half - 2 && matches(bar, ex.down.cell));
+  return { list, downStart: found > 0 ? found : half };
+}
+
+// The three parts shown: how it starts, the turnaround at the top, and how
+// it ends - each a few bars with their fingers.
+const PARTS = [
+  { id: 'start', label: 'Start' },
+  { id: 'turn', label: 'Turn around' },
+  { id: 'finish', label: 'Finish' },
+];
+
+function parts(ex) {
+  const { list, downStart } = bars(ex);
+  const last = list.length - 1;
+  const lastNote = ex.rhEnd.length > 1 ? 'Last notes' : 'Last note';
   return {
-    up: list[0],
-    down: list.slice(half - 2).find((bar) => matches(bar, ex.down.cell)) || list[half],
+    start: {
+      text: `Bars 1–${downStart} go up: the same pattern, starting one white key higher each bar.`,
+      bars: [
+        { label: 'Bar 1', notes: list[0], lhNotes: list[0], rh: ex.up.rh, lh: ex.up.lh },
+        { label: 'Bar 2', notes: list[1], lhNotes: list[1], rh: ex.up.rh, lh: ex.up.lh },
+      ],
+    },
+    turn: {
+      text: `Bar ${downStart} is the top. Right after it the hands turn around and come down, one white key lower each bar, with the pattern for going down.`,
+      bars: [
+        { label: `Bar ${downStart} · top`, notes: list[downStart - 1], lhNotes: list[downStart - 1], rh: ex.turn.rh, lh: ex.turn.lh },
+        { label: `Bar ${downStart + 1} · going down`, notes: list[downStart], lhNotes: list[downStart], rh: ex.turnDown.rh, lh: ex.turnDown.lh },
+      ],
+    },
+    finish: {
+      text: `Bars ${downStart + 1}–${last + 1} come down, one white key lower each bar, to the last note.`,
+      bars: [
+        { label: `Bar ${last + 1} · last bar`, notes: list[last], lhNotes: list[last], rh: ex.finish.rh, lh: ex.finish.lh },
+        {
+          label: lastNote,
+          notes: ex.rhEnd,
+          lhNotes: ex.lhEnd,
+          chord: true,
+          rh: ex.rhEnd.length === 1 ? '1' : '',
+          lh: ex.lhEnd.length === 1 ? '5' : '',
+        },
+      ],
+    },
   };
 }
 
@@ -55,15 +98,28 @@ function noteTimes(count, rhythm) {
   });
 }
 
-function PatternTable({ title, bar, rh, lh }) {
+// One bar: its keys on a keyboard with each hand's fingers (each key once),
+// the key sounding now lit, and the notes and fingers in order below.
+function BarView({ bar, active }) {
+  const shift = 7 * Math.floor(Math.min(...bar.notes) / 7);
+  const keys = [];
+  bar.notes.forEach((p, i) => {
+    if (!keys.some((k) => k.pos === p)) keys.push({ pos: p, rh: bar.rh[i] || '', lh: bar.lh[i] || '' });
+  });
   return (
     <div className="hanon-pattern">
-      <div className="hanon-pattern-title">{title}</div>
+      <div className="hanon-pattern-title">{bar.label}</div>
+      <Keyboard
+        notes={keys.map((k) => ({ midi: positionMidi(k.pos - shift, 60) }))}
+        rh={keys.map((k) => k.rh)}
+        lh={keys.map((k) => k.lh)}
+        active={active === undefined ? undefined : positionMidi(active - shift, 60)}
+      />
       <table className="scales-table">
         <tbody>
           <tr>
             <th scope="row">Notes</th>
-            {bar.map((p, i) => (
+            {bar.notes.map((p, i) => (
               <td key={i}>{positionName(p)}</td>
             ))}
           </tr>
@@ -71,16 +127,16 @@ function PatternTable({ title, bar, rh, lh }) {
             <th scope="row" className="scales-rh">
               Right hand
             </th>
-            {rh.split('').map((f, i) => (
-              <td key={i}>{f}</td>
+            {bar.notes.map((_, i) => (
+              <td key={i}>{bar.rh[i] || '–'}</td>
             ))}
           </tr>
           <tr>
             <th scope="row" className="scales-lh">
               Left hand
             </th>
-            {lh.split('').map((f, i) => (
-              <td key={i}>{f}</td>
+            {bar.notes.map((_, i) => (
+              <td key={i}>{bar.lh[i] || '–'}</td>
             ))}
           </tr>
         </tbody>
@@ -91,11 +147,15 @@ function PatternTable({ title, bar, rh, lh }) {
 
 export default function Hanon({ engine }) {
   const [choice, setChoice] = useState(loadChoice);
+  // What's playing: false, 'all' (the whole exercise) or 'part'.
   const [playing, setPlaying] = useState(false);
+  // The note sounding in the shown part: { bar, pos }.
+  const [active, setActive] = useState(null);
   const run = useRef(0);
   const stop = () => {
     run.current++;
     setPlaying(false);
+    setActive(null);
     newSound();
   };
   // Leaving the page stops the music.
@@ -112,12 +172,7 @@ export default function Hanon({ engine }) {
   };
 
   const ex = hanonExercise(choice.n);
-  const { up, down } = bars(ex);
-  // The keyboard shows the first bar; each key once, with its fingers.
-  const firstKeys = [];
-  up.forEach((p, i) => {
-    if (!firstKeys.some((k) => k.pos === p)) firstKeys.push({ pos: p, rh: ex.up.rh[i], lh: ex.up.lh[i] });
-  });
+  const part = parts(ex)[PARTS.some((p) => p.id === choice.part) ? choice.part : 'start'];
 
   // Right hand from middle C, left hand an octave below.
   const rhFreq = (p) => midiFreq(positionMidi(p, 60));
@@ -132,21 +187,34 @@ export default function Hanon({ engine }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [engine, choice.n]);
 
-  async function play() {
-    if (playing) return stop();
+  // Plays notes (each { rh: [positions], lh: [positions], bar, pos }) at
+  // the chosen speed, rhythm and hands; with `show`, the keys light up.
+  async function playNotes(kind, notes, show) {
+    if (playing) {
+      const was = playing;
+      stop();
+      if (was === kind) return;
+    }
     newSound();
     const id = ++run.current;
-    setPlaying(true);
+    setPlaying(kind);
     const sixteenth = 60 / choice.tempo / 4;
-    const handsFor = (rh, lh) => (choice.hands === 'rh' ? rh : choice.hands === 'lh' ? lh : [...lh, ...rh]);
-    const events = noteTimes(ex.notes.length, choice.rhythm).map((t, i) => ({
-      at: t * sixteenth,
-      freqs: handsFor([rhFreq(ex.notes[i])], [lhFreq(ex.notes[i])]),
-    }));
-    const endAt = ex.notes.length * sixteenth;
-    events.push({ at: endAt, freqs: handsFor(ex.rhEnd.map(rhFreq), ex.lhEnd.map(lhFreq)) });
+    const handsFor = (n) =>
+      choice.hands === 'rh'
+        ? n.rh.map(rhFreq)
+        : choice.hands === 'lh'
+          ? n.lh.map(lhFreq)
+          : [...n.lh.map(lhFreq), ...n.rh.map(rhFreq)];
+    // The last note (or chord) comes a beat after the rest, held.
+    const times = noteTimes(notes.length - 1, choice.rhythm);
+    times.push(notes.length - 1);
+    const events = notes.map((n, i) => ({ at: times[i] * sixteenth, freqs: handsFor(n) }));
+    const endAt = events[events.length - 1].at;
     const done = () => {
-      if (run.current === id) setPlaying(false);
+      if (run.current === id) {
+        setPlaying(false);
+        setActive(null);
+      }
     };
     const length = (endAt + 1) * 1000;
     // A safety net in case the notes never get going.
@@ -156,7 +224,24 @@ export default function Hanon({ engine }) {
     } catch {
       return done();
     }
-    if (run.current === id) setTimeout(done, length);
+    if (run.current !== id) return;
+    if (show) notes.forEach((n, i) => later(() => setActive({ bar: n.bar, pos: n.pos }), events[i].at * 1000 + 80));
+    setTimeout(done, length);
+  }
+
+  function play() {
+    const notes = ex.notes.map((p) => ({ rh: [p], lh: [p] }));
+    notes.push({ rh: ex.rhEnd, lh: ex.lhEnd });
+    playNotes('all', notes, false);
+  }
+
+  function playPart() {
+    const notes = part.bars.flatMap((bar, b) =>
+      bar.chord
+        ? [{ rh: bar.notes, lh: bar.lhNotes, bar: b, pos: bar.notes[0] }]
+        : bar.notes.map((p) => ({ rh: [p], lh: [p], bar: b, pos: p })),
+    );
+    playNotes('part', notes, true);
   }
 
   return (
@@ -182,7 +267,7 @@ export default function Hanon({ engine }) {
         <div className="scales-title-row">
           <h3 className="scales-title">Exercise {choice.n}</h3>
           <button className="pill-btn-primary scales-play" onClick={play}>
-            {playing ? '■ Stop' : '▶︎ Play'}
+            {playing === 'all' ? '■ Stop' : '▶︎ Play'}
           </button>
         </div>
         <div className="hanon-settings">
@@ -230,16 +315,31 @@ export default function Hanon({ engine }) {
             the notes in dotted pairs, a classic way to practice them.
           </p>
         </div>
-        <Keyboard
-          notes={firstKeys.map((k) => ({ midi: positionMidi(k.pos, 60) }))}
-          rh={firstKeys.map((k) => k.rh).join('')}
-          lh={firstKeys.map((k) => k.lh).join('')}
-        />
-        <PatternTable title="Going up (first bar)" bar={up} rh={ex.up.rh} lh={ex.up.lh} />
-        <PatternTable title="Coming down (first bar)" bar={down} rh={ex.down.rh} lh={ex.down.lh} />
+        <div className="practice-tabs hanon-parts" role="tablist" aria-label="Part of the exercise">
+          {PARTS.map((p) => (
+            <button
+              key={p.id}
+              role="tab"
+              aria-selected={(choice.part || 'start') === p.id}
+              className={`practice-tab${(choice.part || 'start') === p.id ? ' practice-tab-active' : ''}`}
+              onClick={() => update({ part: p.id })}
+            >
+              <span className="practice-tab-label">{p.label}</span>
+            </button>
+          ))}
+        </div>
+        <div className="hanon-part-head">
+          <p className="hanon-part-text">{part.text}</p>
+          <button className="hanon-part-play" onClick={playPart}>
+            {playing === 'part' ? '■ Stop' : '▶\uFE0E Hear this part'}
+          </button>
+        </div>
+        {part.bars.map((bar, b) => (
+          <BarView key={`${choice.n}-${choice.part}-${b}`} bar={bar} active={active?.bar === b ? active.pos : undefined} />
+        ))}
         <p className="scales-note">
-          Each bar moves one note higher (then lower) with the same fingers. The left hand plays an octave below. 1 =
-          thumb.
+          Bars between these repeat the same pattern one white key higher (going up) or lower (coming down). The
+          left hand plays the same notes an octave lower. 1 = thumb.
         </p>
       </section>
 
