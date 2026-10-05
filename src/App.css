@@ -3918,3 +3918,40 @@ body {
 .method-credits a {
   color: inherit;
 }
+
+/* Hanon: the Start / Turn around / Finish tabs, the part's text and its
+   play button, and the key sounding now. */
+.hanon-parts {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.hanon-part-head {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.hanon-part-text {
+  margin: 0;
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.hanon-part-play {
+  appearance: none;
+  cursor: pointer;
+  padding: 7px 14px;
+  border: none;
+  border-radius: 999px;
+  background: #eef3fe;
+  color: var(--accent-blue);
+  font: 700 14px 'IBM Plex Sans', sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.scale-key-white.scale-key-now,
+.scale-key-black.scale-key-now {
+  fill: #ffd45c;
+  stroke: #e0a400;
+}
