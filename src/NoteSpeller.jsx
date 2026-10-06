@@ -4,6 +4,7 @@ import { speakNoteName, speakResults } from './speech.js';
 import { isCurrent, later, newSound } from './soundBus.js';
 import { LEVELS, buildNoteQueue, lettersFor } from './noteReading.js';
 import Staff from './Staff.jsx';
+import ScoreCelebration, { EffortCheer, scoreTier } from './ScoreCelebration.jsx';
 
 // Note reading: a note is drawn on a treble or bass staff, the player
 // names it, and the app says the name and plays that exact pitch - so
@@ -184,11 +185,12 @@ export default function NoteSpeller({ engine, onComplete }) {
       <>
         {clefPicker}
         <div className="complete-wrap">
-          <div className="complete-emoji">🎼</div>
+          <ScoreCelebration tier={scoreTier(correctCount, SESSION_ROUNDS)} />
           <h2 className="screen-title">NoteSpeller complete!</h2>
           <p className="screen-sub">
             You got {correctCount} out of {SESSION_ROUNDS} right.
           </p>
+          <EffortCheer />
           <button className="pill-btn-primary" onClick={() => restart()}>
             Play again →
           </button>

@@ -29,7 +29,7 @@ import { listenForAppLinks } from './appLink.js';
 import VolumeWarning from './VolumeWarning.jsx';
 import { useScreenHistory } from './screenHistory.js';
 import { colorToWorkOn, loadRoundHistory, recordRound, summarizeRound } from './roundHistory.js';
-import ScoreCelebration, { scoreTier, TIER_TEXT } from './ScoreCelebration.jsx';
+import ScoreCelebration, { EffortCheer, scoreTier, TIER_TEXT } from './ScoreCelebration.jsx';
 import { PlayTriangleIcon, SpeakerIcon, CheckIcon, XIcon, TokenIcon } from './icons.jsx';
 import { loadStreakDays, recordStreakDay, streakFor } from './streak.js';
 import { startHistorySync } from './historySync.js';
@@ -373,6 +373,7 @@ function RoundSummary({ playerName, correct, wrong, streak, summary, history }) 
           {correct === summary.total ? 'Every chord right!' : text.sub}
         </p>
       </div>
+      <EffortCheer />
       <div className="stat-tiles stat-tiles-compact">
         <div className="stat-tile">
           <div className="stat-number">{correct}</div>
