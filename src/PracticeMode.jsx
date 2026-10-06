@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useState } from 'react';
 import {
+  MAX_PRACTICE_MINUTES,
   MIN_PRACTICE_MINUTES,
   TOKEN_MINUTES,
   formatMinutes,
@@ -24,7 +25,11 @@ import { showPracticeOnLockScreen } from './liveActivity.js';
 //
 // The timer keeps running until the player pauses or ends it - in another
 // app or with the screen off too. In the iPhone app it also shows on the
-// Lock Screen (liveActivity.js).
+// Lock Screen (liveActivity.js). There's no pause for not tapping (playing
+// the piano means not touching the phone), but a timer that reaches
+// MAX_PRACTICE_MINUTES was surely forgotten: it stops there ('leftOn') and
+// asks how long the practice really was, so a timer left on overnight
+// doesn't count for days.
 const PRACTICE_KEY = 'pitchpop-practice-v1';
 const TAB_KEY = 'pitchpop-practice-tab-v1';
 // One tool at a time, so Practice Mode fits on a phone screen without
@@ -46,8 +51,12 @@ function loadTab() {
   }
   return 'timer';
 }
-const STATUSES = ['idle', 'running', 'paused', 'tooShort', 'saved'];
+const STATUSES = ['idle', 'running', 'paused', 'tooShort', 'saved', 'leftOn'];
 const EMPTY = { status: 'idle', startedAt: null, elapsedBefore: 0, count: 0, profileId: null };
+const MAX_MS = MAX_PRACTICE_MINUTES * 60000;
+// What the "left on" question suggests at first; the player changes it.
+const LEFT_ON_GUESS_MINUTES = 30;
+const LEFT_ON_STEP = 5;
 
 function loadPractice() {
   try {
@@ -55,23 +64,50 @@ function loadPractice() {
     // flag; that's now an ordinary break.)
     // eslint-disable-next-line no-unused-vars
     const { idlePaused, ...saved } = { ...EMPTY, ...JSON.parse(localStorage.getItem(PRACTICE_KEY)) };
-    return STATUSES.includes(saved.status) ? saved : { ...saved, status: 'idle', startedAt: null, elapsedBefore: 0 };
+    if (!STATUSES.includes(saved.status)) return { ...saved, status: 'idle', startedAt: null, elapsedBefore: 0 };
+    return stopIfLeftOn(saved, Date.now());
   } catch {
     return EMPTY;
   }
 }
 
 function elapsedMs(p, now) {
-  return p.elapsedBefore + (p.status === 'running' ? now - p.startedAt : 0);
+  if (p.status !== 'running') return p.elapsedBefore;
+  return Math.min(MAX_MS, p.elapsedBefore + now - p.startedAt);
+}
+
+// A running timer that has reached MAX_PRACTICE_MINUTES stops there. It
+// keeps when its last stretch started (resumedAt, with the time practiced
+// before it), so the practice can be saved on the day it really happened.
+function stopIfLeftOn(p, now) {
+  if (p.status !== 'running' || elapsedMs(p, now) < MAX_MS) return p;
+  return {
+    ...p,
+    status: 'leftOn',
+    elapsedBefore: MAX_MS,
+    startedAt: null,
+    resumedAt: p.startedAt,
+    elapsedAtResume: p.elapsedBefore,
+  };
+}
+
+// When a left-on timer would have shown `minutes`: when that practice
+// really ended.
+function leftOnEndedAt(p, minutes) {
+  return new Date(p.resumedAt + Math.max(0, minutes * 60000 - p.elapsedAtResume));
 }
 
 const wholeMinutes = (ms) => Math.floor(ms / 60000);
 
 function reflectOnLockScreen(p, now, playerName) {
+  const elapsed = elapsedMs(p, now);
   showPracticeOnLockScreen({
     status: p.status,
-    elapsedMs: elapsedMs(p, now),
+    elapsedMs: elapsed,
     playerName,
+    // From then on the Lock Screen says "Still practicing?" instead of
+    // counting on, even if PitchPop isn't opened again.
+    staleAtMs: now + MAX_MS - elapsed,
   });
 }
 
@@ -126,6 +162,7 @@ export default function PracticeMode({ profileId, profileName, ready = true, sho
   const [log, setLog] = useState(loadPracticeLog);
   const [now, setNow] = useState(Date.now);
   const [tab, setTab] = useState(loadTab);
+  const [leftOnMinutes, setLeftOnMinutes] = useState(LEFT_ON_GUESS_MINUTES);
 
   function chooseTab(id) {
     setTab(id);
@@ -172,6 +209,7 @@ export default function PracticeMode({ profileId, profileName, ready = true, sho
     const tick = () => {
       const t = Date.now();
       setNow(t);
+      setPractice((p) => stopIfLeftOn(p, t));
     };
     tick();
     const id = setInterval(tick, 1000);
@@ -230,8 +268,19 @@ export default function PracticeMode({ profileId, profileName, ready = true, sho
   }
 
   function newPractice() {
-    update({ status: 'idle', startedAt: null, elapsedBefore: 0 });
+    update({ status: 'idle', startedAt: null, elapsedBefore: 0, resumedAt: undefined, elapsedAtResume: undefined });
+    setLeftOnMinutes(LEFT_ON_GUESS_MINUTES);
   }
+
+  // The answer to "How long did you really practice?"
+  function saveLeftOn() {
+    const ended = leftOnEndedAt(practice, leftOnMinutes);
+    setLog((prev) => recordPractice(prev, profileId, leftOnMinutes, ended));
+    update({ status: 'saved', elapsedBefore: leftOnMinutes * 60000, startedAt: null });
+  }
+
+  const changeLeftOn = (by) =>
+    setLeftOnMinutes((m) => Math.min(MAX_PRACTICE_MINUTES, Math.max(MIN_PRACTICE_MINUTES, m + by)));
 
   const minutes = wholeMinutes(elapsedMs(practice, now));
   const stats = practiceStats(log[profileId]);
@@ -288,6 +337,48 @@ export default function PracticeMode({ profileId, profileName, ready = true, sho
             <button className="pill-btn-primary pill-btn-full" onClick={newPractice}>
               Start a new practice
             </button>
+          </>
+        )}
+
+        {practice.status === 'leftOn' && (
+          <>
+            <div className="practice-left-on-emoji" aria-hidden="true">
+              🙈
+            </div>
+            <p className="practice-summary">
+              <strong>Was the timer left on?</strong>
+              <br />
+              It stopped itself after {formatMinutes(MAX_PRACTICE_MINUTES)}. How long did you really practice?
+            </p>
+            <div className="practice-counter practice-left-on-picker">
+              <button
+                className="practice-step"
+                onClick={() => changeLeftOn(-LEFT_ON_STEP)}
+                disabled={leftOnMinutes <= MIN_PRACTICE_MINUTES}
+                aria-label={`${LEFT_ON_STEP} minutes less`}
+              >
+                −
+              </button>
+              <div className="practice-time" role="status">
+                {formatMinutes(leftOnMinutes)}
+              </div>
+              <button
+                className="practice-step"
+                onClick={() => changeLeftOn(LEFT_ON_STEP)}
+                disabled={leftOnMinutes >= MAX_PRACTICE_MINUTES}
+                aria-label={`${LEFT_ON_STEP} minutes more`}
+              >
+                +
+              </button>
+            </div>
+            <div className="practice-actions">
+              <button className="pill-btn-secondary" onClick={newPractice}>
+                Don’t save
+              </button>
+              <button className="pill-btn-primary" onClick={saveLeftOn}>
+                Save {formatMinutes(leftOnMinutes)}
+              </button>
+            </div>
           </>
         )}
 

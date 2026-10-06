@@ -14,6 +14,16 @@ export default function PracticeBadge({ onOpen }) {
     return () => clearInterval(id);
   }, []);
 
+  // A timer that stopped itself after being left on: tap to say how long
+  // the practice really was.
+  if (timer.status === 'leftOn') {
+    return (
+      <button className="practice-badge practice-badge-paused" onClick={onOpen} aria-label="Was the practice timer left on? Open the practice timer.">
+        <span aria-hidden="true">🙈</span>
+        Timer left on?
+      </button>
+    );
+  }
   if (timer.status !== 'running' && timer.status !== 'paused') return null;
   const running = timer.status === 'running';
   const label = `${running ? 'Practicing' : 'On a break'} · ${timer.minutes} min`;

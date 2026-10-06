@@ -970,12 +970,13 @@ export default function App() {
   };
 
   // Opening PitchPop, or coming back to it from another app, while a
-  // practice is on: straight to that player's practice timer. (Signed in,
+  // practice is on (or a timer was left on and needs its real time):
+  // straight to that player's practice timer. (Signed in,
   // once the family's players have loaded.)
   const resumePracticeRef = useRef(null);
   resumePracticeRef.current = () => {
     const timer = readPracticeTimer();
-    if (timer.status !== 'running' && timer.status !== 'paused') return;
+    if (!['running', 'paused', 'leftOn'].includes(timer.status)) return;
     if (timer.profileId && timer.profileId !== profile && profiles.some((p) => p.id === timer.profileId)) {
       changeProfile(timer.profileId, true);
     }

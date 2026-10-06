@@ -6,6 +6,10 @@ import { dayKey, streakFor } from './streak.js';
 // rules as the game streak (streak.js).
 const LOG_KEY = 'pitchpop-practice-log-v1';
 export const MIN_PRACTICE_MINUTES = 5;
+// A timer still running after this long was almost certainly left on by
+// mistake: it stops itself there and asks how long the practice really was
+// (PracticeMode.jsx).
+export const MAX_PRACTICE_MINUTES = 120;
 // Players collect a token for every TOKEN_MINUTES of a saved practice.
 // Tokens are worked out from the saved practices rather than stored, so
 // practices saved before tokens existed count too.

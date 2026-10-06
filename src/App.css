@@ -2260,6 +2260,24 @@ body {
   gap: 10px;
 }
 
+/* "Was the timer left on?" - a minutes picker for the real practice */
+.practice-left-on-emoji {
+  text-align: center;
+  font-size: 40px;
+  line-height: 1;
+  animation: cheer-dance 1.6s ease-in-out infinite;
+}
+
+.practice-left-on-picker .practice-time {
+  flex: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .practice-left-on-emoji {
+    animation: none;
+  }
+}
+
 .practice-actions > * {
   flex: 1;
 }
