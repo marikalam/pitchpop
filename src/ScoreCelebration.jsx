@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react';
+
 // The animation at the top of "All done!", picked by the round's score:
 //   90%+    a gold star spinning in, with sparkles and notes flying out
 //   70-89%  a rainbow drawing itself, notes floating up
@@ -150,6 +152,61 @@ function Snail() {
       </g>
       <Note x={40} y={50} className="celebrate-note celebrate-note-0" />
     </svg>
+  );
+}
+
+// A cheer for the work, not the score: one picked at random each round.
+export const CHEERS = [
+  { emoji: '💪', text: 'You stuck with it all the way to the end. That’s hard work!' },
+  { emoji: '🎹', text: 'Every note you practiced today counts. Way to show up!' },
+  { emoji: '⚡', text: 'Practice is a superpower, and you just used it!' },
+  { emoji: '🌟', text: 'Mistakes mean you’re trying. Awesome effort!' },
+  { emoji: '🎶', text: 'Your hard work is music to our ears!' },
+  { emoji: '🏁', text: 'Round finished! Great focus, great effort, great job!' },
+  { emoji: '🚀', text: 'Little by little, practice adds up. Keep it going!' },
+  { emoji: '🙌', text: 'You worked hard on that one. Give yourself a high five!' },
+  { emoji: '🥁', text: 'Drumroll please… for all that awesome practicing!' },
+  { emoji: '🧗', text: 'Tricky ones and all, you kept climbing. Way to go!' },
+];
+
+// After a saved practice in Practice Mode.
+export const PRACTICE_CHEERS = [
+  { emoji: '🎹', text: 'Every minute at the piano makes your fingers stronger. Way to work!' },
+  { emoji: '💪', text: 'That was real practice. Your hard work is paying off!' },
+  { emoji: '🌱', text: 'Practice is how music grows, and you just watered it!' },
+  { emoji: '🏆', text: 'You showed up and did the work. That’s what champions do!' },
+  { emoji: '🎶', text: 'Today’s practice is tomorrow’s beautiful music!' },
+  { emoji: '🐢', text: 'Slow and steady practice wins every time. Great job!' },
+  { emoji: '🚀', text: 'Look at you go! A little practice every day really adds up.' },
+  { emoji: '🙌', text: 'You did it! Give yourself a big high five for practicing.' },
+];
+
+// `say`, when given, reads the cheer out loud (it gets the cheer's text):
+// right away if `sayNow`, and again from the speaker button.
+export function EffortCheer({ cheers = CHEERS, say, sayNow = false }) {
+  const [cheer] = useState(() => cheers[Math.floor(Math.random() * cheers.length)]);
+  useEffect(() => {
+    if (say && sayNow) say(cheer.text);
+    // Only when it first appears.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  return (
+    <div className="cheer-card" role="status">
+      <span className="cheer-burst" aria-hidden="true">
+        {Array.from({ length: 10 }, (_, i) => (
+          <span key={i} />
+        ))}
+      </span>
+      <span className="cheer-emoji" aria-hidden="true">
+        {cheer.emoji}
+      </span>
+      <span className="cheer-text">{cheer.text}</span>
+      {say && (
+        <button className="cheer-hear" onClick={() => say(cheer.text)} aria-label="Hear it">
+          🔊
+        </button>
+      )}
+    </div>
   );
 }
 

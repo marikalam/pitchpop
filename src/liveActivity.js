@@ -12,8 +12,10 @@ let shown = null; // what the Lock Screen shows now, to skip repeat calls
 
 // practice: Practice Mode's saved timer state. elapsedMs: time practiced
 // so far. playerName may be '' when not known (the
-// native side then keeps the current player's name).
-export function showPracticeOnLockScreen({ status, elapsedMs, playerName }) {
+// native side then keeps the current player's name). staleAtMs: when a
+// running timer stops itself (it was left on); from then the Lock Screen
+// says "Still practicing?" instead of counting on.
+export function showPracticeOnLockScreen({ status, elapsedMs, playerName, staleAtMs }) {
   if (!PracticeActivity) return;
   const on = status === 'running' || status === 'paused';
   if (!on) {
@@ -28,5 +30,5 @@ export function showPracticeOnLockScreen({ status, elapsedMs, playerName }) {
     : `running:${playerName}:${Math.round((Date.now() - elapsedMs) / 1000)}`;
   if (key === shown) return;
   shown = key;
-  PracticeActivity.update({ playerName, elapsedMs, paused }).catch(() => {});
+  PracticeActivity.update({ playerName, elapsedMs, paused, staleAtMs }).catch(() => {});
 }

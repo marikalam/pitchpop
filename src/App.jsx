@@ -28,8 +28,8 @@ import {
 import { listenForAppLinks } from './appLink.js';
 import VolumeWarning from './VolumeWarning.jsx';
 import { useScreenHistory } from './screenHistory.js';
-import { colorToWorkOn, loadRoundHistory, recordRound, summarizeRound } from './roundHistory.js';
-import ScoreCelebration, { scoreTier, TIER_TEXT } from './ScoreCelebration.jsx';
+import { colorToWorkOn, focusColors, loadRoundHistory, practiceQueue, recordRound, summarizeRound } from './roundHistory.js';
+import ScoreCelebration, { EffortCheer, scoreTier, TIER_TEXT } from './ScoreCelebration.jsx';
 import { PlayTriangleIcon, SpeakerIcon, CheckIcon, XIcon, TokenIcon } from './icons.jsx';
 import { loadStreakDays, recordStreakDay, streakFor } from './streak.js';
 import { startHistorySync } from './historySync.js';
@@ -98,21 +98,12 @@ const PLAYER_DATA_KEYS = [
   'pitchpop-practice-log-v1',
 ];
 
-function shuffle(list) {
-  const copy = [...list];
-  for (let i = copy.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [copy[i], copy[j]] = [copy[j], copy[i]];
-  }
-  return copy;
-}
+const capName = (n) => n.charAt(0).toUpperCase() + n.slice(1);
 
-function buildQueue(names, total) {
-  let queue = [];
-  while (queue.length < total) {
-    queue = queue.concat(shuffle(names));
-  }
-  return queue.slice(0, total);
+// A round for this player, built from their recent rounds so the colors
+// they've been missing come back more (see practiceQueue).
+function buildQueue(names, total, profileId) {
+  return practiceQueue(names, total, loadRoundHistory()[profileId] || []);
 }
 
 // The order colors are usually learned in (red first).
@@ -373,6 +364,7 @@ function RoundSummary({ playerName, correct, wrong, streak, summary, history }) 
           {correct === summary.total ? 'Every chord right!' : text.sub}
         </p>
       </div>
+      <EffortCheer />
       <div className="stat-tiles stat-tiles-compact">
         <div className="stat-tile">
           <div className="stat-number">{correct}</div>
@@ -396,7 +388,8 @@ function RoundSummary({ playerName, correct, wrong, streak, summary, history }) 
               <br />
               <span className="workon-text">
                 {workOn.right} of {workOn.total} right
-                {workOn.mixedWith ? `, mixed up with ${cap(workOn.mixedWith)}` : ''}. Try it in Explore.
+                {workOn.mixedWith ? `, mixed up with ${cap(workOn.mixedWith)}` : ''}. It’ll come back more next
+                round, or try it in Explore.
               </span>
             </span>
           </>
@@ -521,13 +514,15 @@ export default function App() {
   // Read fresh each render so tokens earned in Practice Mode show at once.
   const homeTokens = view === 'home' ? practiceStats(loadPracticeLog()[profile]).tokens : 0;
   const [sessionQueue, setSessionQueue] = useState(
-    () => resumableSession.sessionQueue || buildQueue(profileColorNames, SESSION_ROUNDS),
+    () => resumableSession.sessionQueue || buildQueue(profileColorNames, SESSION_ROUNDS, profile),
   );
   const [roundIndex, setRoundIndex] = useState(resumableSession.roundIndex ?? 0);
   const [options, setOptions] = useState(() =>
     (resumableSession.optionNames || []).map((n) => COLORS.find((c) => c.name === n)).filter(Boolean),
   );
   const [answerCorrect, setAnswerCorrect] = useState(resumableSession.answerCorrect || false);
+  // The color just picked when it was wrong, for "Hear the difference".
+  const [wrongPick, setWrongPick] = useState(null);
   const [roundResults, setRoundResults] = useState(resumableSession.roundResults || {});
   // Tracks whether each round's FIRST attempt was correct, keyed by round
   // index. roundResults keeps incrementing on every retry, so a round the
@@ -575,7 +570,7 @@ export default function App() {
     setProfile((current) => {
       if (list.some((p) => p.id === current)) return current;
       setLastActiveProfile(list[0].id);
-      setSessionQueue(buildQueue(list[0].colors, SESSION_ROUNDS));
+      setSessionQueue(buildQueue(list[0].colors, SESSION_ROUNDS, list[0].id));
       setRoundIndex(0);
       setOptions([]);
       setRoundResults({});
@@ -800,7 +795,7 @@ export default function App() {
       // answer options. Reset to a clean state for whoever's playing now,
       // but stay on the play screen instead of bouncing to home if a
       // round was already in progress.
-      setSessionQueue(buildQueue(colorsFor(next), SESSION_ROUNDS));
+      setSessionQueue(buildQueue(colorsFor(next), SESSION_ROUNDS, next));
       setRoundIndex(0);
       setOptions([]);
       setRoundResults({});
@@ -817,7 +812,7 @@ export default function App() {
   }
 
   function startPlay() {
-    setSessionQueue(buildQueue(profileColorNames, SESSION_ROUNDS));
+    setSessionQueue(buildQueue(profileColorNames, SESSION_ROUNDS, profile));
     setRoundIndex(0);
     setRoundResults({});
     setRoundOutcomes({});
@@ -852,6 +847,7 @@ export default function App() {
   function chooseAnswer(color) {
     const correct = color.name === currentColor.name;
     setAnswerCorrect(correct);
+    setWrongPick(correct ? null : color);
 
     // Always track in roundResults (every attempt, including retries)
     setRoundResults((prev) => {
@@ -894,6 +890,21 @@ export default function App() {
     else playWrongBuzz();
     later(() => announceColor(currentColor, soundId), 350);
     setView('play-feedback');
+  }
+
+  // After a wrong answer: the color they picked, then the right one, each
+  // named and played, so they hear what tells the two apart.
+  async function hearTheDifference() {
+    if (!wrongPick) return;
+    const soundId = newSound();
+    await speakColorName(wrongPick.name);
+    if (!isCurrent(soundId)) return;
+    engineRef.current.playChord(wrongPick.notes);
+    later(async () => {
+      await speakColorName(currentColor.name);
+      if (!isCurrent(soundId)) return;
+      engineRef.current.playChord(currentColor.notes);
+    }, 1800);
   }
 
   function hearAgainFromFeedback() {
@@ -969,12 +980,13 @@ export default function App() {
   };
 
   // Opening PitchPop, or coming back to it from another app, while a
-  // practice is on: straight to that player's practice timer. (Signed in,
+  // practice is on (or a timer was left on and needs its real time):
+  // straight to that player's practice timer. (Signed in,
   // once the family's players have loaded.)
   const resumePracticeRef = useRef(null);
   resumePracticeRef.current = () => {
     const timer = readPracticeTimer();
-    if (timer.status !== 'running' && timer.status !== 'paused') return;
+    if (!['running', 'paused', 'leftOn'].includes(timer.status)) return;
     if (timer.profileId && timer.profileId !== profile && profiles.some((p) => p.id === timer.profileId)) {
       changeProfile(timer.profileId, true);
     }
@@ -1040,7 +1052,7 @@ export default function App() {
     // is playing (their colors may just have changed).
     const player = draftProfiles.find((p) => p.id === profile) || draftProfiles[0];
     setProfile(player.id);
-    setSessionQueue(buildQueue(player.colors, SESSION_ROUNDS));
+    setSessionQueue(buildQueue(player.colors, SESSION_ROUNDS, player.id));
     setRoundIndex(0);
     setOptions([]);
     setRoundResults({});
@@ -1075,7 +1087,7 @@ export default function App() {
     // main page); signing in from the account screen goes to the main page.
     const player = next.find((p) => p.id === profile) || next[0];
     setProfile(player.id);
-    setSessionQueue(buildQueue(player.colors, SESSION_ROUNDS));
+    setSessionQueue(buildQueue(player.colors, SESSION_ROUNDS, player.id));
     setRoundIndex(0);
     setOptions([]);
     setRoundResults({});
@@ -1519,6 +1531,9 @@ export default function App() {
             <ProgressDots current={roundIndex + 1} total={SESSION_ROUNDS} />
             <h2 className="screen-title">Listen to the chord</h2>
             <p className="screen-sub">Tap the rainbow to hear it</p>
+            {roundIndex === 0 && focusColors(loadRoundHistory()[profile], profileColorNames).length > 0 && (
+              <div className="warmup-pill">🧠 Warm-up: a tricky one from last time!</div>
+            )}
             <button className="rainbow-play-wrap" onClick={listenTap} aria-label="Play chord">
               <Rainbow colors={COLORS} activeName={null} visible pretty />
               <span className="rainbow-center-btn">
@@ -1634,7 +1649,13 @@ export default function App() {
               <span className="feedback-icon">{answerCorrect ? <CheckIcon /> : <XIcon />}</span>
             </div>
             <h2 className="screen-title">{answerCorrect ? 'Great job!' : 'Almost!'}</h2>
-            <p className="screen-sub">{answerCorrect ? "That's right!" : 'The correct answer is:'}</p>
+            <p className="screen-sub">
+              {answerCorrect
+                ? "That's right!"
+                : wrongPick
+                  ? `You picked ${capName(wrongPick.name)}. The correct answer is:`
+                  : 'The correct answer is:'}
+            </p>
             <div className="answer-card" style={{ background: currentColor.hex, color: currentColor.text }}>
               <div className="answer-name">{currentColor.name}</div>
               <div className="answer-notes">{currentColor.notes.join(' · ')}</div>
@@ -1650,9 +1671,16 @@ export default function App() {
                   </button>
                 </>
               ) : (
-                <button className="pill-btn-primary pill-btn-full" onClick={chooseDifferentAnswer}>
-                  Try again →
-                </button>
+                <>
+                  {wrongPick && (
+                    <button className="pill-btn-secondary" onClick={hearTheDifference}>
+                      🎧 {capName(wrongPick.name)} vs {capName(currentColor.name)}
+                    </button>
+                  )}
+                  <button className={`pill-btn-primary${wrongPick ? '' : ' pill-btn-full'}`} onClick={chooseDifferentAnswer}>
+                    Try again →
+                  </button>
+                </>
               )}
             </div>
           </>
