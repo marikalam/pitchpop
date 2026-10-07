@@ -3871,6 +3871,23 @@ body {
   box-shadow: 0 10px 22px -12px rgba(59, 111, 239, 0.7);
 }
 
+.warmup-pill {
+  align-self: center;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: #fff4d6;
+  color: #7a5200;
+  font-size: 13px;
+  font-weight: 600;
+  animation: cheer-pop 0.5s cubic-bezier(0.2, 1.5, 0.4, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .warmup-pill {
+    animation: none;
+  }
+}
+
 .hear-colors-link {
   appearance: none;
   cursor: pointer;
