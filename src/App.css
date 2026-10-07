@@ -61,6 +61,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
 }
 
 .logo {
@@ -3954,4 +3955,28 @@ body {
 .scale-key-black.scale-key-now {
   fill: #ffd45c;
   stroke: #e0a400;
+}
+
+/* The speaker button in the header: sound on (🔊) or off (orange 🔇). */
+.sound-btn {
+  appearance: none;
+  cursor: pointer;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--card-bg);
+  box-shadow: var(--shadow-sm);
+  font-size: 16px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.sound-btn-off {
+  background: #ffe4cc;
+  box-shadow: 0 0 0 2px #f08a24;
 }

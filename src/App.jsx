@@ -26,7 +26,7 @@ import {
   rememberedAccount,
 } from './cloud.js';
 import { listenForAppLinks, listenForWidgetLinks } from './appLink.js';
-import VolumeWarning from './VolumeWarning.jsx';
+import SoundButton, { SoundNotice } from './SoundButton.jsx';
 import { useScreenHistory } from './screenHistory.js';
 import { colorToWorkOn, loadRoundHistory, recordRound, summarizeRound } from './roundHistory.js';
 import ScoreCelebration, { scoreTier, TIER_TEXT } from './ScoreCelebration.jsx';
@@ -290,6 +290,7 @@ function AppHeader({
               onOpenSettings={onOpenSettings}
             />
           )}
+          <SoundButton />
           <AccountButton user={user} onClick={onOpenAccount} />
         </div>
       </div>
@@ -299,13 +300,13 @@ function AppHeader({
             ← Back
           </button>
           <div className="nav-row-right">
-            <VolumeWarning />
+            <SoundNotice />
             {onOpenPractice && <PracticeBadge onOpen={onOpenPractice} />}
           </div>
         </div>
       ) : (
         <div className="nav-row nav-row-home">
-          <VolumeWarning />
+          <SoundNotice />
           {onOpenPractice && <PracticeBadge onOpen={onOpenPractice} />}
         </div>
       )}

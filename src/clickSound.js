@@ -1,10 +1,11 @@
+import { trackContext, wakeContext } from './soundBus.js';
 let audioCtx = null;
 
 function ensureAudio() {
   if (!audioCtx) {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    audioCtx = trackContext(new (window.AudioContext || window.webkitAudioContext)());
   }
-  if (audioCtx.state === 'suspended') audioCtx.resume();
+  wakeContext(audioCtx);
   return audioCtx;
 }
 
