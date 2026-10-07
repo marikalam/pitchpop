@@ -3331,6 +3331,24 @@ body {
   text-wrap: pretty;
 }
 
+.cheer-hear {
+  appearance: none;
+  border: none;
+  flex-shrink: 0;
+  margin-left: auto;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: var(--shadow-sm);
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.cheer-hear:active {
+  transform: scale(0.92);
+}
+
 @keyframes cheer-pop {
   0% { transform: scale(0.4) rotate(-4deg); opacity: 0; }
   100% { transform: scale(1) rotate(0); opacity: 1; }

@@ -13,6 +13,9 @@ import Metronome from './Metronome.jsx';
 import { TokenIcon } from './icons.jsx';
 import CoffeeBreak from './CoffeeBreak.jsx';
 import { showPracticeOnLockScreen } from './liveActivity.js';
+import ScoreCelebration, { EffortCheer, PRACTICE_CHEERS } from './ScoreCelebration.jsx';
+import { speakCheer, unlockAudio } from './speech.js';
+import { newSound } from './soundBus.js';
 
 // A practice companion: a timer for the whole session, a tap counter for
 // repetitions ("5 times scales, then 5 times Hanon"), and each player's
@@ -163,6 +166,9 @@ export default function PracticeMode({ profileId, profileName, ready = true, sho
   const [now, setNow] = useState(Date.now);
   const [tab, setTab] = useState(loadTab);
   const [leftOnMinutes, setLeftOnMinutes] = useState(LEFT_ON_GUESS_MINUTES);
+  // Just saved a practice here (not reopened onto the Saved screen): the
+  // cheer is read out loud.
+  const [justSaved, setJustSaved] = useState(false);
 
   function chooseTab(id) {
     setTab(id);
@@ -265,10 +271,13 @@ export default function PracticeMode({ profileId, profileName, ready = true, sho
     }
     setLog((prev) => recordPractice(prev, profileId, minutes, new Date(t)));
     update({ status: 'saved', elapsedBefore: total, startedAt: null });
+    unlockAudio();
+    setJustSaved(true);
   }
 
   function newPractice() {
     update({ status: 'idle', startedAt: null, elapsedBefore: 0, resumedAt: undefined, elapsedAtResume: undefined });
+    setJustSaved(false);
     setLeftOnMinutes(LEFT_ON_GUESS_MINUTES);
   }
 
@@ -277,6 +286,13 @@ export default function PracticeMode({ profileId, profileName, ready = true, sho
     const ended = leftOnEndedAt(practice, leftOnMinutes);
     setLog((prev) => recordPractice(prev, profileId, leftOnMinutes, ended));
     update({ status: 'saved', elapsedBefore: leftOnMinutes * 60000, startedAt: null });
+    unlockAudio();
+    setJustSaved(true);
+  }
+
+  function sayCheer(text) {
+    newSound();
+    speakCheer(`Great practice, ${profileName}! ${text}`);
   }
 
   const changeLeftOn = (by) =>
@@ -324,8 +340,10 @@ export default function PracticeMode({ profileId, profileName, ready = true, sho
 
         {practice.status === 'saved' && (
           <>
+            <ScoreCelebration tier="star" />
             <div className="practice-time practice-time-done">{formatMinutes(minutes)}</div>
             <p className="practice-summary">Saved! Great practice, {profileName}.</p>
+            <EffortCheer cheers={PRACTICE_CHEERS} say={sayCheer} sayNow={justSaved} />
             {showTokens && earning > 0 && (
               <div className="token-earned" role="status">
                 <span className="token-earned-coin" aria-hidden="true">

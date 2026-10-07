@@ -179,6 +179,11 @@ export async function speakNoteName(letter) {
   await speak(`${letter}.`, `${LETTER_SOUNDS[letter] || letter}.`);
 }
 
+// A cheer read out loud (callers start it with newSound()).
+export async function speakCheer(text) {
+  await speak(text);
+}
+
 export async function speakResults(correct, total) {
   const wrong = total - correct;
   const text = correct === total ? `Perfect! You got all ${total} correct!` : `You got ${correct} correct and ${wrong} wrong.`;
