@@ -52,3 +52,22 @@ export function listenForAppLinks(onLink) {
     listener.then((l) => l.remove()).catch(() => {});
   };
 }
+
+// App side: the Lock Screen widgets open pitchpop://open/play (the color
+// game) or pitchpop://open/practice (the practice timer). Calls
+// onOpen('play' | 'practice') for each, including the one that launched
+// the app. Returns a function that stops listening.
+export function listenForWidgetLinks(onOpen) {
+  if (!Capacitor.isNativePlatform()) return () => {};
+  const handle = (url) => {
+    const match = /^pitchpop:\/\/open\/(play|practice)/.exec(url || '');
+    if (match) onOpen(match[1]);
+  };
+  CapacitorApp.getLaunchUrl()
+    .then((launch) => handle(launch?.url))
+    .catch(() => {});
+  const listener = CapacitorApp.addListener('appUrlOpen', (event) => handle(event.url));
+  return () => {
+    listener.then((l) => l.remove()).catch(() => {});
+  };
+}

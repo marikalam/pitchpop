@@ -25,7 +25,7 @@ import {
   signInFromLink,
   rememberedAccount,
 } from './cloud.js';
-import { listenForAppLinks } from './appLink.js';
+import { listenForAppLinks, listenForWidgetLinks } from './appLink.js';
 import VolumeWarning from './VolumeWarning.jsx';
 import { useScreenHistory } from './screenHistory.js';
 import { colorToWorkOn, loadRoundHistory, recordRound, summarizeRound } from './roundHistory.js';
@@ -998,6 +998,22 @@ export default function App() {
       appState?.then((handle) => handle.remove());
     };
   }, [opening]);
+
+  // A Lock Screen widget tapped: straight to the color game or the
+  // practice timer. Handled a moment after the app comes to the front (and
+  // after the loading screen), so it wins over the practice-resume above.
+  const [widgetOpen, setWidgetOpen] = useState(null);
+  useEffect(() => listenForWidgetLinks((target) => setTimeout(() => setWidgetOpen({ target }), 400)), []);
+  const openFromWidgetRef = useRef(null);
+  openFromWidgetRef.current = (target) => {
+    if (target === 'practice') openPracticeFromBadge();
+    else if (!view.startsWith('play-')) startPlay();
+  };
+  useEffect(() => {
+    if (opening || !widgetOpen) return;
+    openFromWidgetRef.current(widgetOpen.target);
+    setWidgetOpen(null);
+  }, [opening, widgetOpen]);
 
   function openTool(id) {
     newSound();
