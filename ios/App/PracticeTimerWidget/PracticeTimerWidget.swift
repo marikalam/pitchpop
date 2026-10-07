@@ -10,6 +10,8 @@ import WidgetKit
 struct PracticeTimerWidgetBundle: WidgetBundle {
     var body: some Widget {
         PracticeTimerLiveActivity()
+        PitchPopPlayWidget()
+        PitchPopPracticeWidget()
     }
 }
 
@@ -153,5 +155,104 @@ struct PracticeTimerLiveActivity: Widget {
                 IslandMark(state: context.state, size: 20)
             }
         }
+    }
+}
+
+
+// MARK: - Lock Screen widgets
+
+// Small Lock Screen widgets (under the clock) that open PitchPop straight
+// to the color game or to the practice timer, through the app's
+// pitchpop://open/... link (appLink.js). They never change, so one entry
+// is enough.
+private struct LaunchEntry: TimelineEntry {
+    let date: Date
+}
+
+private struct LaunchProvider: TimelineProvider {
+    func placeholder(in context: Context) -> LaunchEntry {
+        LaunchEntry(date: Date())
+    }
+
+    func getSnapshot(in context: Context, completion: @escaping (LaunchEntry) -> Void) {
+        completion(LaunchEntry(date: Date()))
+    }
+
+    func getTimeline(in context: Context, completion: @escaping (Timeline<LaunchEntry>) -> Void) {
+        completion(Timeline(entries: [LaunchEntry(date: Date())], policy: .never))
+    }
+}
+
+private struct LaunchView: View {
+    let title: String
+    let subtitle: String
+    let symbol: String
+    @Environment(\.widgetFamily) private var family
+
+    var body: some View {
+        switch family {
+        case .accessoryCircular:
+            ZStack {
+                AccessoryWidgetBackground()
+                VStack(spacing: 1) {
+                    Image(systemName: symbol)
+                        .font(.system(size: 17, weight: .bold))
+                    Image(systemName: "pianokeys")
+                        .font(.system(size: 12, weight: .semibold))
+                }
+            }
+        case .accessoryRectangular:
+            HStack(spacing: 8) {
+                Image(systemName: symbol)
+                    .font(.system(size: 22, weight: .bold))
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(title)
+                        .font(.headline)
+                    Text(subtitle)
+                        .font(.caption)
+                }
+                Spacer(minLength: 0)
+            }
+        default:
+            Label(title, systemImage: symbol)
+        }
+    }
+}
+
+private extension View {
+    // iOS 17 and later want every widget to name its background.
+    @ViewBuilder
+    func lockScreenWidgetBackground() -> some View {
+        if #available(iOSApplicationExtension 17.0, *) {
+            containerBackground(for: .widget) { Color.clear }
+        } else {
+            self
+        }
+    }
+}
+
+struct PitchPopPlayWidget: Widget {
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: "PitchPopPlay", provider: LaunchProvider()) { _ in
+            LaunchView(title: "PitchPop", subtitle: "Pitch Practice", symbol: "music.note")
+                .widgetURL(URL(string: "pitchpop://open/play"))
+                .lockScreenWidgetBackground()
+        }
+        .configurationDisplayName("Pitch Practice")
+        .description("Opens PitchPop's color game.")
+        .supportedFamilies([.accessoryCircular, .accessoryRectangular, .accessoryInline])
+    }
+}
+
+struct PitchPopPracticeWidget: Widget {
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: "PitchPopPractice", provider: LaunchProvider()) { _ in
+            LaunchView(title: "Practice", subtitle: "PitchPop timer", symbol: "timer")
+                .widgetURL(URL(string: "pitchpop://open/practice"))
+                .lockScreenWidgetBackground()
+        }
+        .configurationDisplayName("Practice timer")
+        .description("Opens PitchPop's Practice Mode.")
+        .supportedFamilies([.accessoryCircular, .accessoryRectangular, .accessoryInline])
     }
 }
