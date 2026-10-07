@@ -1,4 +1,4 @@
-import { currentSound, later, playBuffer, soundOutput } from './soundBus.js';
+import { currentSound, later, playBuffer, soundOutput, trackContext, wakeContext } from './soundBus.js';
 import { freqMidi, loadPianoSamples, pianoSample } from './pianoSamples.js';
 
 // Sharps are for the Piano screen's black keys; everything else uses the
@@ -228,7 +228,7 @@ export class PianoEngine {
 
   ensureAudio() {
     if (!this.ctx) {
-      this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+      this.ctx = trackContext(new (window.AudioContext || window.webkitAudioContext)());
     }
     return this.ctx;
   }
@@ -259,13 +259,7 @@ export class PianoEngine {
 
   async playChord(notes) {
     const ctx = this.ensureAudio();
-    if (ctx.state === 'suspended') {
-      try {
-        await ctx.resume();
-      } catch {
-        /* ignore - will retry resuming on the next tap */
-      }
-    }
+    await wakeContext(ctx);
     const buffer = await this.getChordBuffer(notes);
     playBuffer(ctx, buffer);
   }
@@ -300,13 +294,7 @@ export class PianoEngine {
 
   async playPitch(note, octave) {
     const ctx = this.ensureAudio();
-    if (ctx.state === 'suspended') {
-      try {
-        await ctx.resume();
-      } catch {
-        /* ignore - will retry resuming on the next tap */
-      }
-    }
+    await wakeContext(ctx);
     if (this.playPianoNote(ctx, freqMidi(freq(note, octave)))) return;
     const buffer = await this.getPitchBuffer(note, octave);
     playBuffer(ctx, buffer);
@@ -330,13 +318,7 @@ export class PianoEngine {
   // the first one has started; newSound() cancels the rest.
   async playMelody(freqs) {
     const ctx = this.ensureAudio();
-    if (ctx.state !== 'running') {
-      try {
-        await ctx.resume();
-      } catch {
-        /* ignore - will retry resuming on the next tap */
-      }
-    }
+    await wakeContext(ctx);
     if (pianoSample(60)) {
       // Each note let go as the next one sounds (legato), the last left
       // to ring.
@@ -360,13 +342,7 @@ export class PianoEngine {
   // gapMs apart; like playMelody, resolves once the first has started.
   async playChords(chords, gapMs) {
     const ctx = this.ensureAudio();
-    if (ctx.state !== 'running') {
-      try {
-        await ctx.resume();
-      } catch {
-        /* ignore - will retry resuming on the next tap */
-      }
-    }
+    await wakeContext(ctx);
     if (pianoSample(60)) {
       const start = ctx.currentTime + 0.05;
       const gap = gapMs / 1000;
@@ -394,13 +370,7 @@ export class PianoEngine {
   // started; newSound() stops the rest.
   async playTimed(events, volume = 0.5) {
     const ctx = this.ensureAudio();
-    if (ctx.state !== 'running') {
-      try {
-        await ctx.resume();
-      } catch {
-        /* ignore - will retry resuming on the next tap */
-      }
-    }
+    await wakeContext(ctx);
     if (pianoSample(60)) {
       // Each note held until the next one starts, like fingers on keys;
       // the last rings on.
@@ -423,13 +393,7 @@ export class PianoEngine {
 
   async playNoteSequence(notes) {
     const ctx = this.ensureAudio();
-    if (ctx.state === 'suspended') {
-      try {
-        await ctx.resume();
-      } catch {
-        /* ignore - will retry resuming on the next tap */
-      }
-    }
+    await wakeContext(ctx);
     const buffer = await this.getNoteSequenceBuffer(notes);
     playBuffer(ctx, buffer);
   }
@@ -439,9 +403,9 @@ let chimeCtx = null;
 
 function ensureChimeAudio() {
   if (!chimeCtx) {
-    chimeCtx = new (window.AudioContext || window.webkitAudioContext)();
+    chimeCtx = trackContext(new (window.AudioContext || window.webkitAudioContext)());
   }
-  if (chimeCtx.state === 'suspended') chimeCtx.resume();
+  wakeContext(chimeCtx);
   return chimeCtx;
 }
 

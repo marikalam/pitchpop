@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { trackContext, wakeContext } from './soundBus.js';
 
 // A basic metronome: one click per quarter note. Clicks are scheduled a
 // little ahead on the Web Audio clock (the usual "lookahead" approach), so
@@ -115,8 +116,8 @@ export default function Metronome({ hidden = false }) {
       return;
     }
     // Created on the tap itself: phones only allow audio started by a tap.
-    if (!ctxRef.current) ctxRef.current = new (window.AudioContext || window.webkitAudioContext)();
-    if (ctxRef.current.state === 'suspended') await ctxRef.current.resume();
+    if (!ctxRef.current) ctxRef.current = trackContext(new (window.AudioContext || window.webkitAudioContext)());
+    await wakeContext(ctxRef.current);
     if (!noiseRef.current) noiseRef.current = noiseBuffer(ctxRef.current);
     setRunning(true);
   }

@@ -1,12 +1,12 @@
-import { currentSound, isCurrent, playBuffer } from './soundBus.js';
+import { currentSound, isCurrent, isMuted, playBuffer, trackContext, wakeContext } from './soundBus.js';
 
 let audioCtx = null;
 
 function ensureAudio() {
   if (!audioCtx) {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    audioCtx = trackContext(new (window.AudioContext || window.webkitAudioContext)());
   }
-  if (audioCtx.state === 'suspended') audioCtx.resume();
+  wakeContext(audioCtx);
   return audioCtx;
 }
 
@@ -148,6 +148,8 @@ export function prewarmVoices() {
 // says instead: the two voices need different spellings for some words
 // (see speakNoteName).
 async function speak(text, fallbackText = text) {
+  // Muted with the speaker button: no voice either.
+  if (isMuted()) return;
   const soundId = currentSound();
   try {
     const { synthesizeSpeech } = await getPiperModule();
