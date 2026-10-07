@@ -501,7 +501,7 @@ export function AccountScreen({ user, playerCount, onSignedIn, onAccountDeleted,
       </div>
 
       <button className="back-link back-link-center" onClick={onDone}>
-        Continue without an account
+        Continue as guest
       </button>
     </div>
   );
