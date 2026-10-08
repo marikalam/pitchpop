@@ -1845,6 +1845,10 @@ body {
   font: 700 14px 'IBM Plex Sans', sans-serif;
 }
 
+.ns-segment:disabled {
+  cursor: default;
+}
+
 .ns-segment-active {
   background: var(--card-bg);
   color: var(--accent-blue);

@@ -9,7 +9,7 @@ import LogoMark from './LogoMark.jsx';
 import ProfileSwitcher from './ProfileSwitcher.jsx';
 import MainMenu from './MainMenu.jsx';
 import { PlayerSettingsCard, AddPlayerForm, AccountButton, AccountScreen, SyncStatus } from './Settings.jsx';
-import NoteSpeller from './NoteSpeller.jsx';
+import NoteSpeller, { PLAYER_SETTINGS_KEY as NOTESPELLER_PLAYERS_KEY } from './NoteSpeller.jsx';
 import Piano from './Piano.jsx';
 import PracticeMode, { readPracticeTimer, showTimerTab, stopPractice } from './PracticeMode.jsx';
 import PracticeBadge from './PracticeBadge.jsx';
@@ -87,8 +87,8 @@ const WELCOME_KEY = 'pitchpop-welcome-seen-v1';
 // Screens only a signed-in family can open.
 const SIGNED_IN_VIEWS = ['settings', 'notespeller', 'theory'];
 // Everything this device keeps about players: their lists, progress,
-// streaks and practice. Cleared when the account is deleted. (App-wide
-// preferences like the NoteSpeller clef or piano labels stay.)
+// streaks, practice and NoteSpeller settings. Cleared when the account is
+// deleted. (App-wide preferences like piano labels stay.)
 const PLAYER_DATA_KEYS = [
   PROFILES_KEY,
   GUEST_PROFILES_KEY,
@@ -97,6 +97,7 @@ const PLAYER_DATA_KEYS = [
   'pitchpop-streak-days-v1',
   'pitchpop-practice-v1',
   'pitchpop-practice-log-v1',
+  NOTESPELLER_PLAYERS_KEY,
 ];
 
 function shuffle(list) {
@@ -1214,7 +1215,9 @@ export default function App() {
             onBack={goHome}
           />
           <NoteSpeller
+            key={profile}
             engine={engineRef.current}
+            playerId={profile}
             onComplete={() => setStreakDays(recordStreakDay(streakDays, profile))}
           />
         </div>

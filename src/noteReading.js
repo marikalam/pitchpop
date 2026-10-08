@@ -34,11 +34,23 @@ const RANGES = {
   hard: { treble: [step('A', 3), step('C', 6)], bass: [step('C', 2), step('E', 4)] },
 };
 
-export function notesFor(clef, level = 'medium') {
+function rangeNotes(clef, level) {
   const [low, high] = RANGES[level][clef];
   const notes = [];
   for (let s = low; s <= high; s++) notes.push({ clef, ...fromStep(s) });
   return notes;
+}
+
+// letters (optional): only quiz these letter names, for a player working
+// on a few notes at a time (say just C and D). If the level's range has
+// fewer than two of them (Easy bass is F3-C4, so C and D gives only middle
+// C), they're taken from the Medium range instead, which has every letter
+// on both clefs.
+export function notesFor(clef, level = 'medium', letters = LETTERS) {
+  const wanted = new Set(letters);
+  const picked = rangeNotes(clef, level).filter((n) => wanted.has(n.letter));
+  if (picked.length >= 2) return picked;
+  return rangeNotes(clef, 'medium').filter((n) => wanted.has(n.letter));
 }
 
 // Staff position: 0 is the bottom line, 1 the space above it, 8 the top
@@ -66,18 +78,21 @@ function shuffle(list) {
 
 const sameNote = (a, b) => a && b && a.clef === b.clef && a.letter === b.letter && a.octave === b.octave;
 
-// The answer buttons for a level: easy only offers the letters it can ask,
-// so beginners pick from five instead of seven.
-export function lettersFor(clef, level = 'medium') {
-  const inPool = new Set(notesFor(clef, level).map((n) => n.letter));
+// The answer buttons: only the letters that can be asked, so Easy
+// beginners pick from five instead of seven, and a player on just C and D
+// picks between those two.
+export function lettersFor(clef, level = 'medium', letters = LETTERS) {
+  const inPool = new Set(notesFor(clef, level, letters).map((n) => n.letter));
   return LETTERS.filter((l) => inPool.has(l));
 }
 
 // clef: 'treble' or 'bass'. Works through shuffled passes of the whole
 // pool so every note comes up before any repeats, and never shows the
-// same note twice in a row.
-export function buildNoteQueue(clef, total, level = 'medium') {
-  const pool = notesFor(clef, level);
+// same note twice in a row. A pool of two (just C and D) would then
+// simply alternate, so those notes are picked at random instead.
+export function buildNoteQueue(clef, total, level = 'medium', letters = LETTERS) {
+  const pool = notesFor(clef, level, letters);
+  if (pool.length < 3) return Array.from({ length: total }, () => pool[Math.floor(Math.random() * pool.length)]);
   const queue = [];
   while (queue.length < total) {
     let pass = shuffle(pool);
