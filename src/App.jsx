@@ -5,6 +5,7 @@ import { PianoEngine, playCorrectChime, playWrongBuzz } from './piano.js';
 import { speakColorName, speakResults, prewarmVoices, unlockAudio } from './speech.js';
 import { isCurrent, later, newSound } from './soundBus.js';
 import Rainbow from './Rainbow.jsx';
+import LogoMark from './LogoMark.jsx';
 import ProfileSwitcher from './ProfileSwitcher.jsx';
 import MainMenu from './MainMenu.jsx';
 import { PlayerSettingsCard, AddPlayerForm, AccountButton, AccountScreen, SyncStatus } from './Settings.jsx';
@@ -201,13 +202,16 @@ function saveSession(data) {
 
 // The "PitchPop" word next to the logo. When hidden it stays measurable
 // (see useCompactLogo) but takes no room.
-function LogoWord({ hidden }) {
+// `playing` (from a logo tap) makes the P, o, p hop one after another.
+function LogoWord({ hidden, playing = 0 }) {
   return (
     <span className={`logo-word${hidden ? ' logo-word-hidden' : ''}`} aria-hidden={hidden || undefined}>
       <span className="ink">Pitch</span>
-      <span className="pop-blue">P</span>
-      <span className="pop-red">o</span>
-      <span className="pop-green">p</span>
+      <span key={playing} className={playing ? 'logo-word-play' : undefined}>
+        <span className="pop-blue">P</span>
+        <span className="pop-red">o</span>
+        <span className="pop-green">p</span>
+      </span>
     </span>
   );
 }
@@ -260,24 +264,27 @@ function AppHeader({
   const signedIn = !!user;
   const rowRef = useRef(null);
   const compact = useCompactLogo(rowRef);
+  const [logoPlaying, setLogoPlaying] = useState(0);
   return (
     <>
       <div className="brand-row" ref={rowRef}>
         <div className="brand-left">
           <MainMenu signedIn={signedIn} onOpen={onOpenTool} />
-          {showBack ? (
-            <button className="logo-btn" onClick={onBack}>
-              <h1 className="logo">
-                <img className="logo-mark" src={`${import.meta.env.BASE_URL}icon-192.png`} alt="" />
-                <LogoWord hidden={compact} />
-              </h1>
-            </button>
-          ) : (
+          {/* Tapping the logo plays its little animation (and, away from
+              the home page, also goes back home). */}
+          <button
+            className="logo-btn"
+            aria-label={showBack ? 'PitchPop - back to home' : 'PitchPop'}
+            onClick={() => {
+              setLogoPlaying((n) => n + 1);
+              if (showBack) onBack();
+            }}
+          >
             <h1 className="logo">
-              <img className="logo-mark" src={`${import.meta.env.BASE_URL}icon-192.png`} alt="" />
-              <LogoWord hidden={compact} />
+              <LogoMark playing={logoPlaying} />
+              <LogoWord hidden={compact} playing={logoPlaying} />
             </h1>
-          )}
+          </button>
         </div>
         <div className="brand-actions">
           {!hideProfile && (
