@@ -76,6 +76,10 @@ const HOME_CARDS = [
   { id: 'theory', icon: '📖', title: 'Music Theory', sub: 'Picture glossary', from: '#f06f9a', to: '#d94f7e', signedInOnly: true },
 ];
 const MELODY_SESSION_TAPS = 20;
+// The screen PitchPop was on when it last went into the background, to
+// reopen a piano tool (Scales, Hanon...) after the iPhone closed PitchPop
+// during a practice.
+const LAST_TOOL_KEY = 'pitchpop-last-tool-v1';
 // The loading screen when the app opens signed in (see `opening`).
 const OPENING_MIN_MS = 700;
 const OPENING_MAX_MS = 5000;
@@ -976,33 +980,59 @@ export default function App() {
     else openTool('practice');
   };
 
+  // The screen PitchPop was on when it went into the background, saved
+  // then so it can come back to it (Scales, Hanon...) even if the iPhone
+  // closed the app while it was away.
+  const saveScreen = () => {
+    try {
+      localStorage.setItem(LAST_TOOL_KEY, viewRef.current);
+    } catch {
+      /* storage unavailable */
+    }
+  };
+
   // Opening PitchPop, or coming back to it from another app, while a
-  // practice is on: straight to that player's practice timer. (Signed in,
-  // once the family's players have loaded.)
+  // practice is on: that player, on the screen they had open if it was one
+  // of the piano tools (Scales, Hanon, Piano, the timer...), otherwise the
+  // practice timer. (Signed in, once the family's players have loaded.)
   const resumePracticeRef = useRef(null);
-  resumePracticeRef.current = () => {
+  resumePracticeRef.current = (fresh) => {
     const timer = readPracticeTimer();
     if (timer.status !== 'running' && timer.status !== 'paused') return;
     if (timer.profileId && timer.profileId !== profile && profiles.some((p) => p.id === timer.profileId)) {
       changeProfile(timer.profileId, true);
     }
-    openPracticeFromBadge();
+    // Back from another app with PitchPop still open: it's still on the
+    // tool it was on.
+    if (!fresh && TOOL_VIEWS.includes(view)) return;
+    let lastTool = null;
+    try {
+      lastTool = localStorage.getItem(LAST_TOOL_KEY);
+    } catch {
+      /* storage unavailable */
+    }
+    if (fresh && lastTool && lastTool !== 'practice' && TOOL_VIEWS.includes(lastTool)) openTool(lastTool);
+    else openPracticeFromBadge();
   };
   useEffect(() => {
     if (opening) return undefined;
-    resumePracticeRef.current();
+    resumePracticeRef.current(true);
     const onVisible = () => {
-      if (!document.hidden) resumePracticeRef.current();
+      if (document.hidden) saveScreen();
+      else resumePracticeRef.current(false);
     };
     document.addEventListener('visibilitychange', onVisible);
+    window.addEventListener('pagehide', saveScreen);
     // The iPhone app also says so directly when it comes to the front.
     const appState = Capacitor.isNativePlatform()
       ? CapacitorApp.addListener('appStateChange', ({ isActive }) => {
-          if (isActive) resumePracticeRef.current();
+          if (isActive) resumePracticeRef.current(false);
+          else saveScreen();
         })
       : null;
     return () => {
       document.removeEventListener('visibilitychange', onVisible);
+      window.removeEventListener('pagehide', saveScreen);
       appState?.then((handle) => handle.remove());
     };
   }, [opening]);
