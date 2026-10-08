@@ -106,6 +106,22 @@ export function stopPractice() {
 }
 
 // Makes Practice Mode open on its Timer tab (used by the header pill).
+// The home page's Start practice button: the timer starts now, for this
+// player, and Practice Mode opens on it. (A practice already on just
+// opens.)
+export function startPracticeNow(profileId) {
+  const p = loadPractice();
+  if (p.status === 'running' || p.status === 'paused') return;
+  try {
+    localStorage.setItem(
+      PRACTICE_KEY,
+      JSON.stringify({ ...EMPTY, count: p.profileId === profileId ? p.count : 0, profileId, status: 'running', startedAt: Date.now() }),
+    );
+  } catch {
+    /* ignore */
+  }
+}
+
 export function showTimerTab() {
   try {
     localStorage.setItem(TAB_KEY, 'timer');
