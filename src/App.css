@@ -4043,3 +4043,29 @@ body {
     animation: none;
   }
 }
+
+/* The home page's Start practice button (in the hero card). */
+.home-practice {
+  appearance: none;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 4px 0 2px;
+  padding: 11px 22px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #f7a24f, #e8792f);
+  color: #fff;
+  font: 700 17px 'Fredoka', ui-rounded, system-ui, sans-serif;
+  box-shadow: 0 10px 20px -12px #e8792f;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.08s ease;
+}
+.home-practice:active {
+  transform: scale(0.97);
+}
+.home-practice-icon {
+  font-size: 15px;
+}

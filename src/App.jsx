@@ -11,7 +11,7 @@ import MainMenu from './MainMenu.jsx';
 import { PlayerSettingsCard, AddPlayerForm, AccountButton, AccountScreen, SyncStatus } from './Settings.jsx';
 import NoteSpeller from './NoteSpeller.jsx';
 import Piano from './Piano.jsx';
-import PracticeMode, { readPracticeTimer, showTimerTab, stopPractice } from './PracticeMode.jsx';
+import PracticeMode, { readPracticeTimer, showTimerTab, startPracticeNow, stopPractice } from './PracticeMode.jsx';
 import PracticeBadge from './PracticeBadge.jsx';
 import MusicTheory from './MusicTheory.jsx';
 import MethodInfo from './MethodInfo.jsx';
@@ -1441,6 +1441,22 @@ export default function App() {
                   ? 'What would you like to play today?'
                   : 'Hear a chord, pick its color, and train your ear one game at a time.'}
               </p>
+              {/* One tap to start the practice timer. (During a practice the
+                  header's timer pill takes you back to it instead.) */}
+              {!['running', 'paused'].includes(readPracticeTimer().status) && (
+                <button
+                  className="home-practice"
+                  onClick={() => {
+                    startPracticeNow(profile);
+                    openPracticeFromBadge();
+                  }}
+                >
+                  <span className="home-practice-icon" aria-hidden="true">
+                    {'▶\uFE0E'}
+                  </span>
+                  Start practice
+                </button>
+              )}
               <div className="home-stats">
                 <span className="home-stat">
                   🔥 {streak.current ? `${streak.current} ${streak.current === 1 ? 'day' : 'days'} in a row` : 'Start a streak'}
