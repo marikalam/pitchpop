@@ -3980,3 +3980,66 @@ body {
   background: #ffe4cc;
   box-shadow: 0 0 0 2px #f08a24;
 }
+
+/* ---------- Logo tap animation (LogoMark.jsx) ---------- */
+/* The logo is always tappable now; no fading on hover, which on an iPhone
+   stays stuck after a tap. */
+.brand-row .logo-btn:hover {
+  opacity: 1;
+}
+.logo-mark-svg {
+  display: block;
+  flex-shrink: 0;
+  overflow: visible;
+}
+.logo-mark-svg .lm-band,
+.logo-mark-svg .lm-note {
+  transform-box: fill-box;
+}
+.logo-mark-play {
+  animation: logo-mark-bounce 0.7s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+.logo-mark-play .lm-band {
+  transform-origin: 50% 100%;
+  animation: logo-band-hop 0.55s ease-out both;
+}
+.logo-mark-play .lm-note {
+  transform-origin: 50% 100%;
+  animation: logo-note-jump 0.8s ease-out 0.15s both;
+}
+@keyframes logo-mark-bounce {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.45) rotate(-8deg); }
+  100% { transform: scale(1); }
+}
+@keyframes logo-band-hop {
+  0% { transform: translateY(0) scale(1); filter: brightness(1); }
+  40% { transform: translateY(-28%) scale(1.15); filter: brightness(1.3); }
+  100% { transform: translateY(0) scale(1); filter: brightness(1); }
+}
+@keyframes logo-note-jump {
+  0% { transform: translateY(0) rotate(0); }
+  30% { transform: translateY(-38%) rotate(-16deg); }
+  55% { transform: translateY(0) rotate(10deg); }
+  75% { transform: rotate(-6deg); }
+  100% { transform: rotate(0); }
+}
+.logo-word-play > span {
+  display: inline-block;
+  animation: logo-letter-hop 0.45s ease-out both;
+}
+.logo-word-play > span:nth-child(2) { animation-delay: 0.08s; }
+.logo-word-play > span:nth-child(3) { animation-delay: 0.16s; }
+@keyframes logo-letter-hop {
+  0% { transform: translateY(0); }
+  40% { transform: translateY(-30%) scale(1.15); }
+  100% { transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .logo-mark-play,
+  .logo-mark-play .lm-band,
+  .logo-mark-play .lm-note,
+  .logo-word-play > span {
+    animation: none;
+  }
+}
