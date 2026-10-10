@@ -21,12 +21,18 @@ export const CLEFS = {
 //   the first ones piano beginners read;
 // - medium: the five lines plus one ledger line above and below (treble
 //   middle C to A5, bass E2 to middle C) - NoteSpeller's original range;
-// - hard: two ledger lines above and below (treble A3-C6, bass C2-E4).
+// - hard: two ledger lines above and below (treble A3-C6, bass C2-E4);
+// - mine: only the letters a parent picked for this player (Marcus: C and
+//   D), each once, in the octave next to middle C (treble C4-B4, bass
+//   D3-C4).
 export const LEVELS = [
   { id: 'easy', label: 'Easy', hint: '5 notes around middle C' },
   { id: 'medium', label: 'Medium', hint: 'The whole staff, plus one ledger line' },
   { id: 'hard', label: 'Hard', hint: 'Up to two ledger lines above and below' },
+  { id: 'mine', label: 'Custom', hint: 'Only the notes you pick' },
 ];
+
+export const DEFAULT_MY_LETTERS = ['C', 'D'];
 
 const RANGES = {
   easy: { treble: [step('C', 4), step('G', 4)], bass: [step('F', 3), step('C', 4)] },
@@ -34,7 +40,18 @@ const RANGES = {
   hard: { treble: [step('A', 3), step('C', 6)], bass: [step('C', 2), step('E', 4)] },
 };
 
-export function notesFor(clef, level = 'medium') {
+const MY_RANGE = { treble: [step('C', 4), step('B', 4)], bass: [step('D', 3), step('C', 4)] };
+
+export function notesFor(clef, level = 'medium', myLetters = DEFAULT_MY_LETTERS) {
+  if (level === 'mine') {
+    const [low, high] = MY_RANGE[clef];
+    const notes = [];
+    for (let s = low; s <= high; s++) {
+      const note = { clef, ...fromStep(s) };
+      if (myLetters.includes(note.letter)) notes.push(note);
+    }
+    return notes;
+  }
   const [low, high] = RANGES[level][clef];
   const notes = [];
   for (let s = low; s <= high; s++) notes.push({ clef, ...fromStep(s) });
@@ -68,17 +85,27 @@ const sameNote = (a, b) => a && b && a.clef === b.clef && a.letter === b.letter 
 
 // The answer buttons for a level: easy only offers the letters it can ask,
 // so beginners pick from five instead of seven.
-export function lettersFor(clef, level = 'medium') {
-  const inPool = new Set(notesFor(clef, level).map((n) => n.letter));
+export function lettersFor(clef, level = 'medium', myLetters) {
+  const inPool = new Set(notesFor(clef, level, myLetters).map((n) => n.letter));
   return LETTERS.filter((l) => inPool.has(l));
 }
 
 // clef: 'treble' or 'bass'. Works through shuffled passes of the whole
 // pool so every note comes up before any repeats, and never shows the
-// same note twice in a row.
-export function buildNoteQueue(clef, total, level = 'medium') {
-  const pool = notesFor(clef, level);
+// same note twice in a row. With only two or three notes that would make
+// the order easy to guess (C, D, C, D…), so then it's random, just never
+// three in a row.
+export function buildNoteQueue(clef, total, level = 'medium', myLetters) {
+  const pool = notesFor(clef, level, myLetters);
   const queue = [];
+  if (pool.length < 4) {
+    while (queue.length < total) {
+      const n = queue.length;
+      const choices = n >= 2 && sameNote(queue[n - 1], queue[n - 2]) ? pool.filter((p) => !sameNote(p, queue[n - 1])) : pool;
+      queue.push(choices[Math.floor(Math.random() * choices.length)]);
+    }
+    return queue;
+  }
   while (queue.length < total) {
     let pass = shuffle(pool);
     if (sameNote(pass[0], queue[queue.length - 1])) pass = [...pass.slice(1), pass[0]];

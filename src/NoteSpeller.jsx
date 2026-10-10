@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { playCorrectChime, playWrongBuzz } from './piano.js';
 import { speakNoteName, speakResults } from './speech.js';
 import { isCurrent, later, newSound } from './soundBus.js';
-import { LEVELS, buildNoteQueue, lettersFor } from './noteReading.js';
+import { DEFAULT_MY_LETTERS, LETTERS, LEVELS, buildNoteQueue, lettersFor } from './noteReading.js';
 import Staff from './Staff.jsx';
 
 // Note reading: a note is drawn on a treble or bass staff, the player
@@ -12,6 +12,31 @@ import Staff from './Staff.jsx';
 const SESSION_ROUNDS = 10;
 const CLEF_KEY = 'pitchpop-notespeller-clef-v1';
 const LEVEL_KEY = 'pitchpop-notespeller-level-v1';
+// Each player's level and picked notes ({ [playerId]: ... }); the old
+// device-wide level is the starting point for a player who has none.
+const PLAYER_LEVEL_KEY = 'pitchpop-notespeller-player-level-v1';
+const MY_NOTES_KEY = 'pitchpop-notespeller-my-notes-v1';
+
+function loadMap(key) {
+  try {
+    return JSON.parse(localStorage.getItem(key)) || {};
+  } catch {
+    return {};
+  }
+}
+
+function saveToMap(key, id, value) {
+  try {
+    localStorage.setItem(key, JSON.stringify({ ...loadMap(key), [id]: value }));
+  } catch {
+    /* ignore */
+  }
+}
+
+function loadMyLetters(playerId) {
+  const saved = loadMap(MY_NOTES_KEY)[playerId];
+  return Array.isArray(saved) && saved.filter((l) => LETTERS.includes(l)).length >= 2 ? saved : DEFAULT_MY_LETTERS;
+}
 const CLEF_MODES = [
   { id: 'treble', label: 'Treble clef' },
   { id: 'bass', label: 'Bass clef' },
@@ -27,7 +52,9 @@ function loadClefMode() {
   return 'treble';
 }
 
-function loadLevel() {
+function loadLevel(playerId) {
+  const mine = loadMap(PLAYER_LEVEL_KEY)[playerId];
+  if (LEVELS.some((l) => l.id === mine)) return mine;
   try {
     const saved = localStorage.getItem(LEVEL_KEY);
     if (LEVELS.some((l) => l.id === saved)) return saved;
@@ -55,10 +82,11 @@ function ProgressDots({ current, total }) {
   );
 }
 
-export default function NoteSpeller({ engine, onComplete }) {
+export default function NoteSpeller({ engine, playerId, onComplete }) {
   const [clefMode, setClefMode] = useState(loadClefMode);
-  const [level, setLevel] = useState(loadLevel);
-  const [queue, setQueue] = useState(() => buildNoteQueue(clefMode, SESSION_ROUNDS, level));
+  const [level, setLevel] = useState(() => loadLevel(playerId));
+  const [myLetters, setMyLetters] = useState(() => loadMyLetters(playerId));
+  const [queue, setQueue] = useState(() => buildNoteQueue(clefMode, SESSION_ROUNDS, level, myLetters));
   const [roundIndex, setRoundIndex] = useState(0);
   const [answered, setAnswered] = useState(null);
   const [correctCount, setCorrectCount] = useState(0);
@@ -72,8 +100,8 @@ export default function NoteSpeller({ engine, onComplete }) {
     queue.forEach((n) => engine.getPitchBuffer(n.letter, n.octave));
   }, [queue, engine]);
 
-  function restart(mode = clefMode, lvl = level) {
-    setQueue(buildNoteQueue(mode, SESSION_ROUNDS, lvl));
+  function restart(mode = clefMode, lvl = level, letters = myLetters) {
+    setQueue(buildNoteQueue(mode, SESSION_ROUNDS, lvl, letters));
     setRoundIndex(0);
     setAnswered(null);
     setCorrectCount(0);
@@ -94,12 +122,18 @@ export default function NoteSpeller({ engine, onComplete }) {
   function chooseLevel(lvl) {
     if (lvl === level) return;
     setLevel(lvl);
-    try {
-      localStorage.setItem(LEVEL_KEY, lvl);
-    } catch {
-      /* ignore */
-    }
+    saveToMap(PLAYER_LEVEL_KEY, playerId, lvl);
     restart(clefMode, lvl);
+  }
+
+  // Turns a letter on or off for "My notes" (always at least two).
+  function toggleLetter(letter) {
+    const on = myLetters.includes(letter);
+    if (on && myLetters.length <= 2) return;
+    const letters = LETTERS.filter((l) => (l === letter ? !on : myLetters.includes(l)));
+    setMyLetters(letters);
+    saveToMap(MY_NOTES_KEY, playerId, letters);
+    restart(clefMode, level, letters);
   }
 
   // Says the letter, then plays the note - unless another sound has started
@@ -176,6 +210,25 @@ export default function NoteSpeller({ engine, onComplete }) {
           ))}
         </div>
       </div>
+      {level === 'mine' && (
+        <div className="ns-setting-row">
+          <span className="ns-setting-label" id="ns-notes-label">
+            Notes
+          </span>
+          <div className="ns-letter-picks" role="group" aria-labelledby="ns-notes-label">
+            {LETTERS.map((l) => (
+              <button
+                key={l}
+                aria-pressed={myLetters.includes(l)}
+                className={`ns-letter-pick${myLetters.includes(l) ? ' ns-letter-pick-on' : ''}`}
+                onClick={() => toggleLetter(l)}
+              >
+                {l}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 
@@ -238,7 +291,7 @@ export default function NoteSpeller({ engine, onComplete }) {
           </div>
         ) : (
           <div className="note-answer-grid">
-            {lettersFor(clefMode, level).map((letter) => (
+            {lettersFor(clefMode, level, myLetters).map((letter) => (
               <button key={letter} className="notespeller-key" onClick={() => answer(letter)}>
                 {letter}
               </button>
