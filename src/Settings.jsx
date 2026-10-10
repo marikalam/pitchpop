@@ -3,7 +3,17 @@ import { deleteAccount, requestPasswordReset, signIn, signOut, signUp, updatePas
 import { firstDay, streakFor } from './streak.js';
 import { setTypesNotes, typesNotes } from './typeNotes.js';
 import { setSmartRounds, smartRoundsOn } from './smartRound.js';
-import { LETTERS, readingLetters, setReadingLetters } from './noteReading.js';
+import {
+  CLEF_MODES,
+  LETTERS,
+  LEVELS,
+  readingClef,
+  readingLetters,
+  readingLevel,
+  setReadingClef,
+  setReadingLetters,
+  setReadingLevel,
+} from './noteReading.js';
 
 // A password input with an eye button that shows or hides what's typed.
 function PasswordField({ label, value, onChange, autoComplete, placeholder }) {
@@ -74,6 +84,8 @@ export function PlayerSettingsCard({ profile, colors, onUpdate, onRemove, canRem
   }
   const [smartOn, setSmartOn] = useState(() => smartRoundsOn(profile.id));
   const [readLetters, setReadLetters] = useState(() => readingLetters(profile.id));
+  const [readClef, setReadClef] = useState(() => readingClef(profile.id));
+  const [readLevel, setReadLevel] = useState(() => readingLevel(profile.id));
 
   // NoteSpeller's letters for this player (at least two stay on).
   function toggleReadLetter(letter) {
@@ -128,11 +140,42 @@ export function PlayerSettingsCard({ profile, colors, onUpdate, onRemove, canRem
       </label>
       <div className="type-notes-setting reading-notes-setting">
         <span>
-          <b>🎼 NoteSpeller notes</b>
-          <span>
-            {readLetters.length === LETTERS.length ? 'All notes. Tap to leave some out' : `Only ${readLetters.join(', ')}`}
-          </span>
+          <b>🎼 NoteSpeller</b>
         </span>
+        <div className="ns-segmented" role="radiogroup" aria-label="Clef">
+          {CLEF_MODES.map((m) => (
+            <button
+              key={m.id}
+              role="radio"
+              aria-checked={readClef === m.id}
+              className={`ns-segment${readClef === m.id ? ' ns-segment-active' : ''}`}
+              onClick={() => {
+                setReadClef(m.id);
+                setReadingClef(profile.id, m.id);
+              }}
+            >
+              {m.label}
+            </button>
+          ))}
+        </div>
+        <div className="ns-segmented" role="radiogroup" aria-label="Which part of the staff">
+          {LEVELS.map((l) => (
+            <button
+              key={l.id}
+              role="radio"
+              aria-checked={readLevel === l.id}
+              className={`ns-segment${readLevel === l.id ? ' ns-segment-active' : ''}`}
+              onClick={() => {
+                setReadLevel(l.id);
+                setReadingLevel(profile.id, l.id);
+              }}
+            >
+              {l.label}
+            </button>
+          ))}
+        </div>
+        <span>{LEVELS.find((l) => l.id === readLevel).hint}</span>
+        <span>{readLetters.length === LETTERS.length ? 'All notes. Tap to leave some out' : `Only ${readLetters.join(', ')}`}</span>
         <div className="ns-letter-picks" role="group" aria-label="NoteSpeller notes">
           {LETTERS.map((l) => (
             <button

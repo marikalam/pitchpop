@@ -1881,12 +1881,57 @@ body {
   cursor: default;
 }
 
-.ns-only-notes {
-  margin: 0;
-  padding: 0 0 4px;
-  text-align: center;
+.reading-notes-setting {
+  gap: 8px;
+}
+
+.reading-notes-setting > span {
+  font-size: 13px;
+  color: #6b7090;
+}
+
+.reading-notes-setting .ns-segmented,
+.reading-notes-setting .ns-letter-picks {
+  align-self: stretch;
+}
+
+.reading-notes-setting .ns-segmented {
+  background: #e4e8f2;
+}
+
+.reading-notes-setting .ns-segment {
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+/* NoteSpeller's one-line summary of the player's settings. */
+.ns-summary {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.ns-screen .ns-summary {
+  padding: 8px 8px 8px 14px;
+}
+
+.ns-summary-text {
+  min-width: 0;
   color: var(--ink-dim);
-  font-size: 12.5px;
+  font: 700 13px 'IBM Plex Sans', sans-serif;
+}
+
+.ns-summary-change {
+  appearance: none;
+  flex-shrink: 0;
+  border: none;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #eef1f7;
+  color: var(--accent-blue);
+  font: 700 13px 'IBM Plex Sans', sans-serif;
 }
 
 .ns-level-hint {

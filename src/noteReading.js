@@ -25,36 +25,70 @@ export const CLEFS = {
 // A player can also be given only some letters (Players & colors, e.g.
 // Marcus: C and D): then a level asks only those (see notesFor).
 export const LEVELS = [
-  { id: 'easy', label: 'Easy', hint: '5 notes around middle C' },
-  { id: 'medium', label: 'Medium', hint: 'The whole staff, plus one ledger line' },
-  { id: 'hard', label: 'Hard', hint: 'Up to two ledger lines above and below' },
+  { id: 'easy', label: 'Middle C', hint: '5 notes around middle C' },
+  { id: 'medium', label: 'Whole staff', hint: 'The whole staff, plus one ledger line' },
+  { id: 'hard', label: 'Ledger lines', hint: 'Up to two ledger lines above and below' },
 ];
 
-// Which letters each player reads ({ [playerId]: ['C', 'D'] }); all of
-// them unless a parent picked some in Players & colors.
-const LETTERS_KEY = 'pitchpop-notespeller-my-notes-v1';
+export const CLEF_MODES = [
+  { id: 'treble', label: 'Treble clef' },
+  { id: 'bass', label: 'Bass clef' },
+];
 
-function loadLetterMap() {
+// Each player's NoteSpeller settings, set in Players & colors:
+// { [playerId]: value } maps for the clef, the level (which part of the
+// staff) and the letters. The old device-wide clef and level are where a
+// player without their own starts.
+const CLEF_KEY = 'pitchpop-notespeller-clef-v1';
+const LEVEL_KEY = 'pitchpop-notespeller-level-v1';
+const PLAYER_CLEF_KEY = 'pitchpop-notespeller-player-clef-v1';
+const PLAYER_LEVEL_KEY = 'pitchpop-notespeller-player-level-v1';
+
+function loadMap(key) {
   try {
-    return JSON.parse(localStorage.getItem(LETTERS_KEY)) || {};
+    return JSON.parse(localStorage.getItem(key)) || {};
   } catch {
     return {};
   }
 }
 
-export function readingLetters(playerId) {
-  const saved = loadLetterMap()[playerId];
-  const letters = Array.isArray(saved) ? LETTERS.filter((l) => saved.includes(l)) : [];
-  return letters.length >= 2 ? letters : LETTERS;
-}
-
-export function setReadingLetters(playerId, letters) {
+function saveToMap(key, id, value) {
   try {
-    localStorage.setItem(LETTERS_KEY, JSON.stringify({ ...loadLetterMap(), [playerId]: letters }));
+    localStorage.setItem(key, JSON.stringify({ ...loadMap(key), [id]: value }));
   } catch {
     /* ignore */
   }
 }
+
+function loadSetting(playerKey, deviceKey, playerId, options, fallback) {
+  const ok = (v) => options.some((o) => o.id === v);
+  const mine = loadMap(playerKey)[playerId];
+  if (ok(mine)) return mine;
+  try {
+    const saved = localStorage.getItem(deviceKey);
+    if (ok(saved)) return saved;
+  } catch {
+    /* ignore */
+  }
+  return fallback;
+}
+
+export const readingClef = (playerId) => loadSetting(PLAYER_CLEF_KEY, CLEF_KEY, playerId, CLEF_MODES, 'treble');
+export const setReadingClef = (playerId, clef) => saveToMap(PLAYER_CLEF_KEY, playerId, clef);
+export const readingLevel = (playerId) => loadSetting(PLAYER_LEVEL_KEY, LEVEL_KEY, playerId, LEVELS, 'medium');
+export const setReadingLevel = (playerId, level) => saveToMap(PLAYER_LEVEL_KEY, playerId, level);
+
+// Which letters each player reads ({ [playerId]: ['C', 'D'] }); all of
+// them unless a parent picked some in Players & colors.
+const LETTERS_KEY = 'pitchpop-notespeller-my-notes-v1';
+
+export function readingLetters(playerId) {
+  const saved = loadMap(LETTERS_KEY)[playerId];
+  const letters = Array.isArray(saved) ? LETTERS.filter((l) => saved.includes(l)) : [];
+  return letters.length >= 2 ? letters : LETTERS;
+}
+
+export const setReadingLetters = (playerId, letters) => saveToMap(LETTERS_KEY, playerId, letters);
 
 const RANGES = {
   easy: { treble: [step('C', 4), step('G', 4)], bass: [step('F', 3), step('C', 4)] },

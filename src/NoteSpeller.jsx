@@ -2,7 +2,16 @@ import { useEffect, useState } from 'react';
 import { playCorrectChime, playWrongBuzz } from './piano.js';
 import { speakNoteName, speakResults } from './speech.js';
 import { isCurrent, later, newSound } from './soundBus.js';
-import { LETTERS, LEVELS, buildNoteQueue, lettersFor, readingLetters } from './noteReading.js';
+import {
+  CLEF_MODES,
+  LETTERS,
+  LEVELS,
+  buildNoteQueue,
+  lettersFor,
+  readingClef,
+  readingLetters,
+  readingLevel,
+} from './noteReading.js';
 import Staff from './Staff.jsx';
 
 // Note reading: a note is drawn on a treble or bass staff, the player
@@ -10,54 +19,6 @@ import Staff from './Staff.jsx';
 // every answer, right or wrong, links the written note to its name and
 // its sound.
 const SESSION_ROUNDS = 10;
-const CLEF_KEY = 'pitchpop-notespeller-clef-v1';
-const LEVEL_KEY = 'pitchpop-notespeller-level-v1';
-// Each player's level ({ [playerId]: 'easy' }); the old device-wide level
-// is the starting point for a player who has none.
-const PLAYER_LEVEL_KEY = 'pitchpop-notespeller-player-level-v1';
-
-function loadMap(key) {
-  try {
-    return JSON.parse(localStorage.getItem(key)) || {};
-  } catch {
-    return {};
-  }
-}
-
-function saveToMap(key, id, value) {
-  try {
-    localStorage.setItem(key, JSON.stringify({ ...loadMap(key), [id]: value }));
-  } catch {
-    /* ignore */
-  }
-}
-const CLEF_MODES = [
-  { id: 'treble', label: 'Treble clef' },
-  { id: 'bass', label: 'Bass clef' },
-];
-
-function loadClefMode() {
-  try {
-    const saved = localStorage.getItem(CLEF_KEY);
-    if (CLEF_MODES.some((m) => m.id === saved)) return saved;
-  } catch {
-    /* ignore */
-  }
-  return 'treble';
-}
-
-function loadLevel(playerId) {
-  const mine = loadMap(PLAYER_LEVEL_KEY)[playerId];
-  if (LEVELS.some((l) => l.id === mine)) return mine;
-  try {
-    const saved = localStorage.getItem(LEVEL_KEY);
-    if (LEVELS.some((l) => l.id === saved)) return saved;
-  } catch {
-    /* ignore */
-  }
-  return 'medium';
-}
-
 function ProgressDots({ current, total }) {
   const items = [];
   for (let i = 1; i <= total; i++) {
@@ -76,12 +37,14 @@ function ProgressDots({ current, total }) {
   );
 }
 
-export default function NoteSpeller({ engine, playerId, onComplete }) {
-  const [clefMode, setClefMode] = useState(loadClefMode);
-  const [level, setLevel] = useState(() => loadLevel(playerId));
-  // The letters picked for this player in Players & colors (all by
-  // default).
-  const [myLetters] = useState(() => readingLetters(playerId));
+export default function NoteSpeller({ engine, playerId, onComplete, onOpenSettings }) {
+  // Clef, part of the staff and letters are set per player in Players &
+  // colors.
+  const [{ clefMode, level, myLetters }] = useState(() => ({
+    clefMode: readingClef(playerId),
+    level: readingLevel(playerId),
+    myLetters: readingLetters(playerId),
+  }));
   const [queue, setQueue] = useState(() => buildNoteQueue(clefMode, SESSION_ROUNDS, level, myLetters));
   const [roundIndex, setRoundIndex] = useState(0);
   const [answered, setAnswered] = useState(null);
@@ -96,30 +59,12 @@ export default function NoteSpeller({ engine, playerId, onComplete }) {
     queue.forEach((n) => engine.getPitchBuffer(n.letter, n.octave));
   }, [queue, engine]);
 
-  function restart(mode = clefMode, lvl = level, letters = myLetters) {
-    setQueue(buildNoteQueue(mode, SESSION_ROUNDS, lvl, letters));
+  function restart() {
+    setQueue(buildNoteQueue(clefMode, SESSION_ROUNDS, level, myLetters));
     setRoundIndex(0);
     setAnswered(null);
     setCorrectCount(0);
     setDone(false);
-  }
-
-  function chooseClef(mode) {
-    if (mode === clefMode) return;
-    setClefMode(mode);
-    try {
-      localStorage.setItem(CLEF_KEY, mode);
-    } catch {
-      /* ignore */
-    }
-    restart(mode);
-  }
-
-  function chooseLevel(lvl) {
-    if (lvl === level) return;
-    setLevel(lvl);
-    saveToMap(PLAYER_LEVEL_KEY, playerId, lvl);
-    restart(clefMode, lvl);
   }
 
   // Says the letter, then plays the note - unless another sound has started
@@ -156,48 +101,17 @@ export default function NoteSpeller({ engine, playerId, onComplete }) {
     setAnswered(null);
   }
 
-  // Clef and level on one small card, each on its own labelled row.
+  // What this player reads, and where to change it.
   const clefPicker = (
-    <div className="ns-settings">
-      <div className="ns-setting-row">
-        <span className="ns-setting-label" id="ns-clef-label">
-          Clef
-        </span>
-        <div className="ns-segmented" role="radiogroup" aria-labelledby="ns-clef-label">
-          {CLEF_MODES.map((m) => (
-            <button
-              key={m.id}
-              role="radio"
-              aria-checked={clefMode === m.id}
-              className={`ns-segment${clefMode === m.id ? ' ns-segment-active' : ''}`}
-              onClick={() => chooseClef(m.id)}
-            >
-              {m.label}
-            </button>
-          ))}
-        </div>
-      </div>
-      <div className="ns-setting-row">
-        <span className="ns-setting-label" id="ns-level-label">
-          Level
-        </span>
-        <div className="ns-segmented" role="radiogroup" aria-labelledby="ns-level-label">
-          {LEVELS.map((l) => (
-            <button
-              key={l.id}
-              role="radio"
-              aria-checked={level === l.id}
-              className={`ns-segment${level === l.id ? ' ns-segment-active' : ''}`}
-              title={l.hint}
-              onClick={() => chooseLevel(l.id)}
-            >
-              {l.label}
-            </button>
-          ))}
-        </div>
-      </div>
-      {myLetters.length < LETTERS.length && (
-        <p className="ns-only-notes">Only {myLetters.join(', ')} · change in Players &amp; colors</p>
+    <div className="ns-settings ns-summary">
+      <span className="ns-summary-text">
+        {CLEF_MODES.find((m) => m.id === clefMode).label} · {LEVELS.find((l) => l.id === level).label} ·{' '}
+        {myLetters.length === LETTERS.length ? 'All notes' : myLetters.join(' ')}
+      </span>
+      {onOpenSettings && (
+        <button className="ns-summary-change" onClick={onOpenSettings}>
+          ⚙️ Change
+        </button>
       )}
     </div>
   );
