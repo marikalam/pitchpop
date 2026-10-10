@@ -181,6 +181,16 @@ export async function speakNoteName(letter) {
   await speak(`${letter}.`, `${LETTER_SOUNDS[letter] || letter}.`);
 }
 
+// A chord's color and its letters, bottom to top ("Brown. G. C. E."), for
+// the type-the-notes level.
+export async function speakChordNotes(name, notes) {
+  const color = name.charAt(0).toUpperCase() + name.slice(1);
+  await speak(
+    `${color}. ${notes.map((l) => `${l}.`).join(' ')}`,
+    `${color}. ${notes.map((l) => `${LETTER_SOUNDS[l] || l}.`).join(' ')}`,
+  );
+}
+
 export async function speakResults(correct, total) {
   const wrong = total - correct;
   const text = correct === total ? `Perfect! You got all ${total} correct!` : `You got ${correct} correct and ${wrong} wrong.`;
