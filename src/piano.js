@@ -11,7 +11,7 @@ function freq(note, octave) {
   return 440 * Math.pow(2, semitone / 12);
 }
 
-function bassOctave(note) {
+export function bassOctave(note) {
   return note === 'A' || note === 'B' ? 3 : 4;
 }
 

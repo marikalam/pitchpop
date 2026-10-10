@@ -1,29 +1,52 @@
-import { useState } from 'react';
-import { buildVoicing, playCorrectChime, playWrongBuzz } from './piano.js';
+import { useEffect, useRef, useState } from 'react';
+import { bassOctave, playCorrectChime, playWrongBuzz } from './piano.js';
 import { later, newSound } from './soundBus.js';
+import { speakChordNotes } from './speech.js';
 
 // After naming a chord's color, players on the notes level play its three
 // notes, bottom to top (red: C, E, G), on a one-octave piano with the
-// letter on every key. Each key plays as it's tapped and lights up in the
-// chord's color with its number; three right keys play the chord. A wrong
-// try shows the right keys and letters and lets her try again.
+// letter on every key. The piano starts on the chord's first note, so its
+// notes always go up left to right (brown: G … C … E). Each key plays as
+// it's tapped and lights up in the chord's color with its number. Three
+// right keys: the color and letters are said out loud ("Brown. G. C. E.")
+// and the next chord comes by itself. A wrong try shows the right keys,
+// says the letters and lets her try again.
 const LETTERS = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
 // Black keys sit after these white keys. They're only for looks (taps go
 // through to the white key), so every tap lands on a letter.
 const BLACK_AFTER = ['C', 'D', 'F', 'G', 'A'];
 
+// One octave of white keys from `first` up, each with its octave (it goes
+// up one past B).
+function keysFrom(first) {
+  const start = LETTERS.indexOf(first);
+  let octave = bassOctave(first);
+  return LETTERS.map((_, i) => {
+    const letter = LETTERS[(start + i) % LETTERS.length];
+    if (i > 0 && letter === 'C') octave += 1;
+    return { letter, octave };
+  });
+}
+
 export default function TypeNotes({ color, engine, onNext, nextLabel }) {
   const [typed, setTyped] = useState([]);
   const [result, setResult] = useState(null); // null | 'right' | 'wrong'
+  const keys = keysFrom(color.notes[0]);
+  // Moving on by itself only while this chord is still on screen (not
+  // after Next was tapped, or the player left).
+  const alive = useRef(true);
+  useEffect(() => {
+    alive.current = true;
+    return () => {
+      alive.current = false;
+    };
+  }, []);
 
-  function tap(letter) {
+  function tap(letter, octave) {
     if (result || typed.length >= 3) return;
     newSound();
     const next = [...typed, letter];
-    // Each letter sounds above the one before, as in the chord (black's
-    // A, C, F goes up from A, not down to C).
-    const voiced = buildVoicing(next);
-    engine.playPitch(letter, voiced[voiced.length - 1].octave);
+    engine.playPitch(letter, octave);
     setTyped(next);
     if (next.length < 3) return;
     const right = next.every((l, i) => l === color.notes[i]);
@@ -32,7 +55,10 @@ export default function TypeNotes({ color, engine, onNext, nextLabel }) {
       if (right) playCorrectChime();
       else playWrongBuzz();
     }, 350);
-    later(() => (right ? engine.playChord(color.notes) : engine.playNoteSequence(color.notes)), 900);
+    later(async () => {
+      await speakChordNotes(color.name, color.notes);
+      if (right) later(() => alive.current && onNext(), 700);
+    }, 900);
   }
 
   function undo() {
@@ -72,7 +98,7 @@ export default function TypeNotes({ color, engine, onNext, nextLabel }) {
         })}
       </div>
       <div className={`tn-piano${result ? ' tn-piano-done' : ''}`}>
-        {LETTERS.map((letter) => {
+        {keys.map(({ letter, octave }, k) => {
           const order = typed.indexOf(letter);
           // After a wrong try the chord's own keys light up (numbered in
           // order) and keys she tapped that aren't in it turn pink.
@@ -84,13 +110,13 @@ export default function TypeNotes({ color, engine, onNext, nextLabel }) {
               key={letter}
               className={`tn-key${lit ? ' tn-key-lit' : ''}${wrongKey ? ' tn-key-wrong' : ''}`}
               style={lit ? { background: color.hex, color: color.text } : undefined}
-              onClick={() => tap(letter)}
+              onClick={() => tap(letter, octave)}
               disabled={!!result}
               aria-label={letter}
             >
               {lit && <span className="tn-key-num">{litAt + 1}</span>}
               <span className="tn-key-letter">{letter}</span>
-              {BLACK_AFTER.includes(letter) && <span className="tn-black" aria-hidden="true" />}
+              {BLACK_AFTER.includes(letter) && k < keys.length - 1 && <span className="tn-black" aria-hidden="true" />}
             </button>
           );
         })}
@@ -118,13 +144,6 @@ export default function TypeNotes({ color, engine, onNext, nextLabel }) {
           </button>
           <button className="pill-btn-primary" onClick={tryAgain}>
             Try again
-          </button>
-        </div>
-      )}
-      {result === 'right' && (
-        <div className="feedback-actions">
-          <button className="pill-btn-primary pill-btn-full" onClick={onNext}>
-            {nextLabel} →
           </button>
         </div>
       )}
