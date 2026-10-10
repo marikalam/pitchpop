@@ -1312,6 +1312,7 @@ export default function App() {
             key={profile}
             engine={engineRef.current}
             playerId={profile}
+            onOpenSettings={openSettings}
             onComplete={() => setStreakDays(recordStreakDay(streakDays, profile))}
           />
         </div>
