@@ -1309,7 +1309,9 @@ export default function App() {
             onBack={goHome}
           />
           <NoteSpeller
+            key={profile}
             engine={engineRef.current}
+            playerId={profile}
             onComplete={() => setStreakDays(recordStreakDay(streakDays, profile))}
           />
         </div>

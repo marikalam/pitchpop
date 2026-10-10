@@ -1852,6 +1852,29 @@ body {
   box-shadow: 0 1px 4px rgba(23, 26, 43, 0.14);
 }
 
+.ns-letter-picks {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.ns-letter-pick {
+  appearance: none;
+  border: 2px solid #dfe3ee;
+  cursor: pointer;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--card-bg);
+  color: var(--ink-dim);
+  font: 700 15px 'Fredoka', sans-serif;
+}
+
+.ns-letter-pick-on {
+  border-color: var(--accent-blue);
+  background: var(--accent-blue);
+  color: #fff;
+}
+
 .ns-level-hint {
   margin: 0;
   padding-left: 62px;
