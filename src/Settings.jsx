@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { deleteAccount, requestPasswordReset, signIn, signOut, signUp, updatePassword } from './cloud.js';
 import { firstDay, streakFor } from './streak.js';
+import { setTypesNotes, typesNotes } from './typeNotes.js';
 
 // A password input with an eye button that shows or hides what's typed.
 function PasswordField({ label, value, onChange, autoComplete, placeholder }) {
@@ -63,6 +64,13 @@ function PlayerHistory({ days }) {
 }
 
 export function PlayerSettingsCard({ profile, colors, onUpdate, onRemove, canRemove, playDays }) {
+  // The notes level is kept on this device, and changes straight away.
+  const [notesOn, setNotesOn] = useState(() => typesNotes(profile.id));
+  function toggleNotes(on) {
+    setNotesOn(on);
+    setTypesNotes(profile.id, on);
+  }
+
   function toggleColor(name) {
     const next = profile.colors.includes(name)
       ? profile.colors.filter((c) => c !== name)
@@ -87,6 +95,13 @@ export function PlayerSettingsCard({ profile, colors, onUpdate, onRemove, canRem
       <p className="settings-help">
         Color {profile.colors.length}: {profile.colors.join(' / ')}
       </p>
+      <label className="type-notes-setting">
+        <input type="checkbox" checked={notesOn} onChange={(e) => toggleNotes(e.target.checked)} />
+        <span>
+          <b>🎹 Type the notes</b>
+          <span>After the color, type the chord's letters (red: C, E, G)</span>
+        </span>
+      </label>
       <div className="color-settings-grid">
         {colors.map((color) => (
           <button
