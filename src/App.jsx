@@ -12,6 +12,7 @@ import { PlayerSettingsCard, AddPlayerForm, AccountButton, AccountScreen, SyncSt
 import NoteSpeller from './NoteSpeller.jsx';
 import TypeNotes from './TypeNotes.jsx';
 import { typesNotes } from './typeNotes.js';
+import { buildSmartRound, comebackQueue, smartRoundsOn } from './smartRound.js';
 import Piano from './Piano.jsx';
 import PracticeMode, { readPracticeTimer, showTimerTab, startPracticeNow, stopPractice } from './PracticeMode.jsx';
 import PracticeBadge from './PracticeBadge.jsx';
@@ -364,7 +365,23 @@ function ProgressDots({ current, total }) {
 
 // "All done!": an animation for the score, the numbers, the color to
 // practice next, and this player's recent rounds.
-function RoundSummary({ playerName, correct, wrong, streak, summary, history }) {
+// "Today's focus" at the start of a smart round.
+function FocusTag({ focus }) {
+  const color = COLORS.find((c) => c.name === focus.name);
+  const cap = (n) => n.charAt(0).toUpperCase() + n.slice(1);
+  if (!color) return null;
+  return (
+    <div className="focus-tag">
+      <span className="focus-swatch" style={{ background: color.hex }} aria-hidden="true" />
+      <span>
+        🎯 Today's focus: <b>{cap(focus.name)}</b>
+        {focus.partner ? ` (mixed up with ${cap(focus.partner)})` : ''}
+      </span>
+    </div>
+  );
+}
+
+function RoundSummary({ playerName, correct, wrong, streak, summary, history, focus }) {
   const tier = scoreTier(correct, summary.total);
   const text = TIER_TEXT[tier];
   const workOn = colorToWorkOn(summary);
@@ -401,6 +418,34 @@ function RoundSummary({ playerName, correct, wrong, streak, summary, history }) 
           <div className="stat-label">{streak.current === 1 ? 'Day' : 'Days'} in a row</div>
         </div>
       </div>
+      {focus && summary.colors[focus.name] && (() => {
+        // This round's focus color, against the last round it was in.
+        const today = summary.colors[focus.name];
+        const before = history
+          .slice(0, -1)
+          .reverse()
+          .find((r) => r.colors?.[focus.name]?.total)?.colors[focus.name];
+        const color = COLORS.find((c) => c.name === focus.name);
+        return (
+          <div className="focus-result">
+            <span className="workon-swatch" style={{ background: color.hex }} aria-hidden="true" />
+            <span>
+              <span className="workon-title">
+                🎯 {cap(focus.name)}: {today.right} of {today.total} today
+              </span>
+              {before && (
+                <>
+                  <br />
+                  <span className="workon-text">
+                    Last time {before.right} of {before.total}
+                    {today.right / today.total > before.right / before.total ? ' — getting better!' : ''}
+                  </span>
+                </>
+              )}
+            </span>
+          </div>
+        );
+      })()}
       <div className="workon-card">
         {color ? (
           <>
@@ -552,6 +597,9 @@ export default function App() {
   // What was picked first when a chord's first answer was wrong, by round
   // index (for "what to work on").
   const [roundMixups, setRoundMixups] = useState(resumableSession.roundMixups || {});
+  // The color this round focuses on, from the player's recent mistakes
+  // (smartRound.js), or null: { name, partner }.
+  const [roundFocus, setRoundFocus] = useState(resumableSession.roundFocus || null);
 
   const [melodyTaps, setMelodyTaps] = useState(initialSession.melodyTaps || 0);
   const [melodyColorCounts, setMelodyColorCounts] = useState(initialSession.melodyColorCounts || {});
@@ -589,7 +637,7 @@ export default function App() {
     setProfile((current) => {
       if (list.some((p) => p.id === current)) return current;
       setLastActiveProfile(list[0].id);
-      setSessionQueue(buildQueue(list[0].colors, SESSION_ROUNDS));
+      newRound(list[0].id, list[0].colors);
       setRoundIndex(0);
       setOptions([]);
       setRoundResults({});
@@ -739,6 +787,7 @@ export default function App() {
       profile,
       lastActiveProfile,
       sessionQueue,
+      roundFocus,
       roundIndex,
       optionNames: options.map((c) => c.name),
       answerCorrect,
@@ -753,6 +802,7 @@ export default function App() {
     profile,
     lastActiveProfile,
     sessionQueue,
+    roundFocus,
     roundIndex,
     options,
     answerCorrect,
@@ -814,7 +864,7 @@ export default function App() {
       // answer options. Reset to a clean state for whoever's playing now,
       // but stay on the play screen instead of bouncing to home if a
       // round was already in progress.
-      setSessionQueue(buildQueue(colorsFor(next), SESSION_ROUNDS));
+      newRound(next, colorsFor(next));
       setRoundIndex(0);
       setOptions([]);
       setRoundResults({});
@@ -830,8 +880,16 @@ export default function App() {
     setView('home');
   }
 
+  // A new round's 20 chords: a smart round (more of the colors this
+  // player missed lately) unless they're switched to plain rounds.
+  function newRound(profileId, colorNames) {
+    const round = buildSmartRound(profileId, colorNames, SESSION_ROUNDS, buildQueue);
+    setSessionQueue(round.queue);
+    setRoundFocus(round.focus);
+  }
+
   function startPlay() {
-    setSessionQueue(buildQueue(profileColorNames, SESSION_ROUNDS));
+    newRound(profile, profileColorNames);
     setRoundIndex(0);
     setRoundResults({});
     setRoundOutcomes({});
@@ -882,6 +940,11 @@ export default function App() {
     // The session score only reflects each round's FIRST attempt - a
     // player can retry until they get it, but that shouldn't erase a miss.
     setRoundOutcomes((prev) => (roundIndex in prev ? prev : { ...prev, [roundIndex]: correct }));
+    // Missed on the first try: in a smart round, it comes back a few
+    // chords later.
+    if (!correct && !(roundIndex in roundOutcomes) && smartRoundsOn(profile)) {
+      setSessionQueue((q) => comebackQueue(q, roundIndex, currentColor.name));
+    }
     if (!correct) setRoundMixups((prev) => (roundIndex in prev ? prev : { ...prev, [roundIndex]: color.name }));
 
     // Long-term accuracy needs every attempt counted in "total", not just
@@ -1096,7 +1159,7 @@ export default function App() {
     // is playing (their colors may just have changed).
     const player = draftProfiles.find((p) => p.id === profile) || draftProfiles[0];
     setProfile(player.id);
-    setSessionQueue(buildQueue(player.colors, SESSION_ROUNDS));
+    newRound(player.id, player.colors);
     setRoundIndex(0);
     setOptions([]);
     setRoundResults({});
@@ -1131,7 +1194,7 @@ export default function App() {
     // main page); signing in from the account screen goes to the main page.
     const player = next.find((p) => p.id === profile) || next[0];
     setProfile(player.id);
-    setSessionQueue(buildQueue(player.colors, SESSION_ROUNDS));
+    newRound(player.id, player.colors);
     setRoundIndex(0);
     setOptions([]);
     setRoundResults({});
@@ -1591,6 +1654,7 @@ export default function App() {
             <ProgressDots current={roundIndex + 1} total={SESSION_ROUNDS} />
             <h2 className="screen-title">Listen to the chord</h2>
             <p className="screen-sub">Tap the rainbow to hear it</p>
+            {roundIndex === 0 && roundFocus && <FocusTag focus={roundFocus} />}
             <button className="rainbow-play-wrap" onClick={listenTap} aria-label="Play chord">
               <Rainbow colors={COLORS} activeName={null} visible pretty />
               <span className="rainbow-center-btn">
@@ -1774,6 +1838,7 @@ export default function App() {
               streak={streak}
               summary={summarizeRound(sessionQueue, roundOutcomes, roundMixups)}
               history={loadRoundHistory()[profile] || []}
+              focus={roundFocus}
             />
             <div className="feedback-actions">
               <button className="pill-btn-secondary" onClick={goHome}>
