@@ -21,18 +21,40 @@ export const CLEFS = {
 //   the first ones piano beginners read;
 // - medium: the five lines plus one ledger line above and below (treble
 //   middle C to A5, bass E2 to middle C) - NoteSpeller's original range;
-// - hard: two ledger lines above and below (treble A3-C6, bass C2-E4);
-// - mine: only the letters a parent picked for this player (Marcus: C and
-//   D), each once, in the octave next to middle C (treble C4-B4, bass
-//   D3-C4).
+// - hard: two ledger lines above and below (treble A3-C6, bass C2-E4).
+// A player can also be given only some letters (Players & colors, e.g.
+// Marcus: C and D): then a level asks only those (see notesFor).
 export const LEVELS = [
   { id: 'easy', label: 'Easy', hint: '5 notes around middle C' },
   { id: 'medium', label: 'Medium', hint: 'The whole staff, plus one ledger line' },
   { id: 'hard', label: 'Hard', hint: 'Up to two ledger lines above and below' },
-  { id: 'mine', label: 'Custom', hint: 'Only the notes you pick' },
 ];
 
-export const DEFAULT_MY_LETTERS = ['C', 'D'];
+// Which letters each player reads ({ [playerId]: ['C', 'D'] }); all of
+// them unless a parent picked some in Players & colors.
+const LETTERS_KEY = 'pitchpop-notespeller-my-notes-v1';
+
+function loadLetterMap() {
+  try {
+    return JSON.parse(localStorage.getItem(LETTERS_KEY)) || {};
+  } catch {
+    return {};
+  }
+}
+
+export function readingLetters(playerId) {
+  const saved = loadLetterMap()[playerId];
+  const letters = Array.isArray(saved) ? LETTERS.filter((l) => saved.includes(l)) : [];
+  return letters.length >= 2 ? letters : LETTERS;
+}
+
+export function setReadingLetters(playerId, letters) {
+  try {
+    localStorage.setItem(LETTERS_KEY, JSON.stringify({ ...loadLetterMap(), [playerId]: letters }));
+  } catch {
+    /* ignore */
+  }
+}
 
 const RANGES = {
   easy: { treble: [step('C', 4), step('G', 4)], bass: [step('F', 3), step('C', 4)] },
@@ -40,22 +62,22 @@ const RANGES = {
   hard: { treble: [step('A', 3), step('C', 6)], bass: [step('C', 2), step('E', 4)] },
 };
 
-const MY_RANGE = { treble: [step('C', 4), step('B', 4)], bass: [step('D', 3), step('C', 4)] };
+// The octave next to middle C, for a picked letter the level's range
+// doesn't have (treble easy has no A or B).
+const NEAR_MIDDLE_C = { treble: [step('C', 4), step('B', 4)], bass: [step('D', 3), step('C', 4)] };
 
-export function notesFor(clef, level = 'medium', myLetters = DEFAULT_MY_LETTERS) {
-  if (level === 'mine') {
-    const [low, high] = MY_RANGE[clef];
-    const notes = [];
-    for (let s = low; s <= high; s++) {
-      const note = { clef, ...fromStep(s) };
-      if (myLetters.includes(note.letter)) notes.push(note);
-    }
-    return notes;
-  }
-  const [low, high] = RANGES[level][clef];
+function notesIn([low, high], clef) {
   const notes = [];
   for (let s = low; s <= high; s++) notes.push({ clef, ...fromStep(s) });
   return notes;
+}
+
+// The level's notes, only the picked letters (all by default).
+export function notesFor(clef, level = 'medium', letters = LETTERS) {
+  const notes = notesIn(RANGES[level][clef], clef).filter((n) => letters.includes(n.letter));
+  const missing = letters.filter((l) => !notes.some((n) => n.letter === l));
+  notes.push(...notesIn(NEAR_MIDDLE_C[clef], clef).filter((n) => missing.includes(n.letter)));
+  return notes.sort((a, b) => step(a.letter, a.octave) - step(b.letter, b.octave));
 }
 
 // Staff position: 0 is the bottom line, 1 the space above it, 8 the top

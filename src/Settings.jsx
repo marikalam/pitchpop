@@ -3,6 +3,7 @@ import { deleteAccount, requestPasswordReset, signIn, signOut, signUp, updatePas
 import { firstDay, streakFor } from './streak.js';
 import { setTypesNotes, typesNotes } from './typeNotes.js';
 import { setSmartRounds, smartRoundsOn } from './smartRound.js';
+import { LETTERS, readingLetters, setReadingLetters } from './noteReading.js';
 
 // A password input with an eye button that shows or hides what's typed.
 function PasswordField({ label, value, onChange, autoComplete, placeholder }) {
@@ -72,6 +73,16 @@ export function PlayerSettingsCard({ profile, colors, onUpdate, onRemove, canRem
     setTypesNotes(profile.id, on);
   }
   const [smartOn, setSmartOn] = useState(() => smartRoundsOn(profile.id));
+  const [readLetters, setReadLetters] = useState(() => readingLetters(profile.id));
+
+  // NoteSpeller's letters for this player (at least two stay on).
+  function toggleReadLetter(letter) {
+    const on = readLetters.includes(letter);
+    if (on && readLetters.length <= 2) return;
+    const next = LETTERS.filter((l) => (l === letter ? !on : readLetters.includes(l)));
+    setReadLetters(next);
+    setReadingLetters(profile.id, next);
+  }
   function toggleSmart(on) {
     setSmartOn(on);
     setSmartRounds(profile.id, on);
@@ -115,6 +126,26 @@ export function PlayerSettingsCard({ profile, colors, onUpdate, onRemove, canRem
           <span>More of the colors missed in the last 3 rounds, mix-ups side by side, and a missed chord comes back</span>
         </span>
       </label>
+      <div className="type-notes-setting reading-notes-setting">
+        <span>
+          <b>🎼 NoteSpeller notes</b>
+          <span>
+            {readLetters.length === LETTERS.length ? 'All notes. Tap to leave some out' : `Only ${readLetters.join(', ')}`}
+          </span>
+        </span>
+        <div className="ns-letter-picks" role="group" aria-label="NoteSpeller notes">
+          {LETTERS.map((l) => (
+            <button
+              key={l}
+              aria-pressed={readLetters.includes(l)}
+              className={`ns-letter-pick${readLetters.includes(l) ? ' ns-letter-pick-on' : ''}`}
+              onClick={() => toggleReadLetter(l)}
+            >
+              {l}
+            </button>
+          ))}
+        </div>
+      </div>
       <div className="color-settings-grid">
         {colors.map((color) => (
           <button
