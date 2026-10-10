@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { deleteAccount, requestPasswordReset, signIn, signOut, signUp, updatePassword } from './cloud.js';
 import { firstDay, streakFor } from './streak.js';
 import { setTypesNotes, typesNotes } from './typeNotes.js';
+import { setSmartRounds, smartRoundsOn } from './smartRound.js';
 
 // A password input with an eye button that shows or hides what's typed.
 function PasswordField({ label, value, onChange, autoComplete, placeholder }) {
@@ -70,6 +71,11 @@ export function PlayerSettingsCard({ profile, colors, onUpdate, onRemove, canRem
     setNotesOn(on);
     setTypesNotes(profile.id, on);
   }
+  const [smartOn, setSmartOn] = useState(() => smartRoundsOn(profile.id));
+  function toggleSmart(on) {
+    setSmartOn(on);
+    setSmartRounds(profile.id, on);
+  }
 
   function toggleColor(name) {
     const next = profile.colors.includes(name)
@@ -100,6 +106,13 @@ export function PlayerSettingsCard({ profile, colors, onUpdate, onRemove, canRem
         <span>
           <b>🎹 Type the notes</b>
           <span>After the color, type the chord's letters (red: C, E, G)</span>
+        </span>
+      </label>
+      <label className="type-notes-setting">
+        <input type="checkbox" checked={smartOn} onChange={(e) => toggleSmart(e.target.checked)} />
+        <span>
+          <b>🎯 Smart practice</b>
+          <span>More of the colors missed in the last 3 rounds, mix-ups side by side, and a missed chord comes back</span>
         </span>
       </label>
       <div className="color-settings-grid">

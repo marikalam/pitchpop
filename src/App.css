@@ -4203,3 +4203,39 @@ body {
   transform: scale(0.7);
   margin: -8px 0;
 }
+
+/* ---------- Smart rounds: today's focus ---------- */
+.focus-tag {
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 2px 0;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: #fff4e0;
+  color: #6b4a22;
+  font-size: 14px;
+  font-weight: 500;
+}
+.focus-tag b {
+  color: #3d2a10;
+}
+.focus-swatch {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+}
+.focus-result {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: #fff4e0;
+  color: #6b4a22;
+}
+.focus-result .workon-title {
+  color: #3d2a10;
+}
