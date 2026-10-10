@@ -863,17 +863,6 @@ export default function App() {
     playChord(currentColor);
   }
 
-  // Tapping a flag raises it for a moment before the answer shows.
-  const [raisedFlag, setRaisedFlag] = useState(null);
-  function raiseFlag(color) {
-    if (raisedFlag) return;
-    setRaisedFlag(color.name);
-    setTimeout(() => {
-      setRaisedFlag(null);
-      chooseAnswer(color);
-    }, 420);
-  }
-
   function chooseAnswer(color) {
     const correct = color.name === currentColor.name;
     setAnswerCorrect(correct);
@@ -1672,20 +1661,14 @@ export default function App() {
               // tall each, so a few colors don't turn into huge slabs.
               style={{ maxHeight: Math.ceil(options.length / (options.length > 4 ? 3 : 2)) * 144 }}
             >
-              {/* The answers are flags on sticks, like the ones held up
-                  at lessons: the tapped one is raised, then the answer
-                  shows. */}
               {options.map((color) => (
                 <button
                   key={color.name}
-                  className={`option-btn flag-btn${raisedFlag === color.name ? ' flag-raised' : ''}`}
-                  disabled={!!raisedFlag}
-                  onClick={() => raiseFlag(color)}
+                  className="option-btn"
+                  style={{ background: color.hex, color: color.text }}
+                  onClick={() => chooseAnswer(color)}
                 >
-                  <span className="flag-stick" aria-hidden="true" />
-                  <span className="flag-cloth" style={{ background: color.hex, color: color.text }}>
-                    {color.name}
-                  </span>
+                  {color.name}
                 </button>
               ))}
             </div>
@@ -1728,15 +1711,12 @@ export default function App() {
             {!(answerCorrect && typesNotes(profile)) && (
               <p className="screen-sub">{answerCorrect ? "That's right!" : 'The correct answer is:'}</p>
             )}
-            {/* Players on the notes level type the notes, so the flag
+            {/* Players on the notes level type the notes, so the card
                 doesn't give them away. */}
             {answerCorrect && typesNotes(profile) ? (
               <>
-                <div className="answer-flag answer-flag-compact">
-                  <span className="flag-stick" aria-hidden="true" />
-                  <div className="answer-card flag-cloth" style={{ background: currentColor.hex, color: currentColor.text }}>
-                    <div className="answer-name">{currentColor.name}</div>
-                  </div>
+                <div className="answer-card answer-card-compact" style={{ background: currentColor.hex, color: currentColor.text }}>
+                  <div className="answer-name">{currentColor.name}</div>
                 </div>
                 <TypeNotes
                   key={roundIndex}
@@ -1747,12 +1727,9 @@ export default function App() {
                 />
               </>
             ) : (
-              <div className="answer-flag">
-                <span className="flag-stick" aria-hidden="true" />
-                <div className="answer-card flag-cloth" style={{ background: currentColor.hex, color: currentColor.text }}>
-                  <div className="answer-name">{currentColor.name}</div>
-                  <div className="answer-notes">{currentColor.notes.join(' · ')}</div>
-                </div>
+              <div className="answer-card" style={{ background: currentColor.hex, color: currentColor.text }}>
+                <div className="answer-name">{currentColor.name}</div>
+                <div className="answer-notes">{currentColor.notes.join(' · ')}</div>
               </div>
             )}
             {!(answerCorrect && typesNotes(profile)) && (

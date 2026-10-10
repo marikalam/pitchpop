@@ -4071,91 +4071,6 @@ body {
   font-size: 15px;
 }
 
-/* ---------- Flags (the color game's answers, like the lesson flags) ---------- */
-.flag-btn {
-  display: flex;
-  align-items: center;
-  padding: 0;
-  background: none;
-  box-shadow: none;
-  border-radius: 0;
-  overflow: visible;
-  transform-origin: 0 50%;
-  transition: transform 0.25s cubic-bezier(0.3, 1.5, 0.5, 1);
-}
-.flag-btn:disabled {
-  cursor: default;
-}
-/* The wooden stick, poking out to the left like the flags on the table. */
-.flag-stick {
-  flex: none;
-  width: 22px;
-  height: 7px;
-  border-radius: 4px 0 0 4px;
-  background: linear-gradient(#f3dfb4, #d9bd84);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
-}
-.flag-cloth {
-  flex: 1;
-  align-self: stretch;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 96px;
-  border-radius: 6px;
-  box-shadow: 0 10px 18px -12px rgba(20, 24, 50, 0.55), inset 0 0 0 1px rgba(0, 0, 0, 0.06);
-  /* A soft sheen, like the paper on the real flags. */
-  background-image: linear-gradient(160deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0) 55%) !important;
-  background-blend-mode: normal;
-}
-.flag-btn:active .flag-cloth {
-  filter: brightness(0.96);
-}
-/* Raised: tipped up, like a child holding it up. */
-.flag-raised {
-  transform: translateY(-6px) rotate(-8deg) scale(1.04);
-  z-index: 1;
-  position: relative;
-}
-.flag-raised .flag-cloth {
-  box-shadow: 0 18px 26px -14px rgba(20, 24, 50, 0.7);
-}
-
-.answer-flag {
-  display: flex;
-  align-items: center;
-  align-self: center;
-  width: min(100%, 320px);
-  margin: 14px 0 10px;
-  transform: rotate(-4deg);
-  transform-origin: 0 50%;
-  animation: flag-up 0.45s cubic-bezier(0.3, 1.5, 0.5, 1);
-}
-.answer-flag .flag-stick {
-  width: 34px;
-  height: 9px;
-}
-.answer-flag .answer-card {
-  flex-direction: column;
-  min-height: 110px;
-  border-radius: 8px;
-}
-@keyframes flag-up {
-  from {
-    transform: rotate(4deg) translateY(10px);
-  }
-  to {
-    transform: rotate(-4deg);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .flag-btn,
-  .answer-flag {
-    transition: none;
-    animation: none;
-  }
-}
-
 /* ---------- Type the notes (players on the notes level) ---------- */
 .type-notes {
   display: flex;
@@ -4275,17 +4190,12 @@ body {
   color: var(--ink);
 }
 
-/* While typing the notes the flag is smaller, so the letters fit on a
-   small phone. */
-.answer-flag-compact {
-  width: min(100%, 260px);
-  margin: 4px 0 2px;
-}
-.answer-flag-compact .answer-card {
-  min-height: 0;
+/* While typing the notes the color card is smaller, so the letters fit
+   on a small phone. */
+.answer-card-compact {
   padding: 12px 16px;
 }
-.answer-flag-compact .answer-name {
+.answer-card-compact .answer-name {
   font-size: 24px;
 }
 
