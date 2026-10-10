@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { playCorrectChime, playWrongBuzz } from './piano.js';
+import { buildVoicing, playCorrectChime, playWrongBuzz } from './piano.js';
 import { later, newSound } from './soundBus.js';
 
 // After naming a chord's color, players on the notes level type its three
@@ -15,8 +15,11 @@ export default function TypeNotes({ color, engine, onNext, nextLabel }) {
   function tap(letter) {
     if (result || typed.length >= 3) return;
     newSound();
-    engine.playPitch(letter, 4);
     const next = [...typed, letter];
+    // Each letter sounds above the one before, as in the chord (black's
+    // A, C, F goes up from A, not down to C).
+    const voiced = buildVoicing(next);
+    engine.playPitch(letter, voiced[voiced.length - 1].octave);
     setTyped(next);
     if (next.length < 3) return;
     const right = next.every((l, i) => l === color.notes[i]);
