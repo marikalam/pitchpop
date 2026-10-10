@@ -2,11 +2,15 @@ import { useState } from 'react';
 import { buildVoicing, playCorrectChime, playWrongBuzz } from './piano.js';
 import { later, newSound } from './soundBus.js';
 
-// After naming a chord's color, players on the notes level type its three
-// notes, bottom to top (red: C, E, G). Each letter plays as it's tapped;
-// three right letters play the chord. A wrong try shows the right letters
-// and lets her try again.
+// After naming a chord's color, players on the notes level play its three
+// notes, bottom to top (red: C, E, G), on a one-octave piano with the
+// letter on every key. Each key plays as it's tapped and lights up in the
+// chord's color with its number; three right keys play the chord. A wrong
+// try shows the right keys and letters and lets her try again.
 const LETTERS = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+// Black keys sit after these white keys. They're only for looks (taps go
+// through to the white key), so every tap lands on a letter.
+const BLACK_AFTER = ['C', 'D', 'F', 'G', 'A'];
 
 export default function TypeNotes({ color, engine, onNext, nextLabel }) {
   const [typed, setTyped] = useState([]);
@@ -49,9 +53,9 @@ export default function TypeNotes({ color, engine, onNext, nextLabel }) {
           ? `Yes! ${color.notes.join(', ')}`
           : result === 'wrong'
             ? `${color.name[0].toUpperCase()}${color.name.slice(1)} is ${color.notes.join(', ')}`
-            : `Now type ${color.name}'s notes`}
+            : `Now play ${color.name}'s notes`}
       </p>
-      <div className="type-notes-slots">
+      <div className={`type-notes-slots${result === 'wrong' ? ' type-notes-slots-fixed' : ''}`}>
         {[0, 1, 2].map((i) => {
           const letter = typed[i];
           const wrong = result === 'wrong' && letter !== color.notes[i];
@@ -67,22 +71,45 @@ export default function TypeNotes({ color, engine, onNext, nextLabel }) {
           );
         })}
       </div>
-      {!result && (
-        <>
-          <div className="type-notes-keys">
-            {LETTERS.map((letter) => (
-              <button key={letter} className="type-notes-key" onClick={() => tap(letter)}>
-                {letter}
-              </button>
-            ))}
-            <button className="type-notes-key type-notes-undo" onClick={undo} disabled={!typed.length} aria-label="Undo">
-              ⌫
+      <div className={`tn-piano${result ? ' tn-piano-done' : ''}`}>
+        {LETTERS.map((letter) => {
+          const order = typed.indexOf(letter);
+          // After a wrong try the chord's own keys light up (numbered in
+          // order) and keys she tapped that aren't in it turn pink.
+          const wrongKey = result === 'wrong' && order >= 0 && !color.notes.includes(letter);
+          const litAt = result === 'wrong' ? color.notes.indexOf(letter) : order;
+          const lit = litAt >= 0;
+          return (
+            <button
+              key={letter}
+              className={`tn-key${lit ? ' tn-key-lit' : ''}${wrongKey ? ' tn-key-wrong' : ''}`}
+              style={lit ? { background: color.hex, color: color.text } : undefined}
+              onClick={() => tap(letter)}
+              disabled={!!result}
+              aria-label={letter}
+            >
+              {lit && <span className="tn-key-num">{litAt + 1}</span>}
+              <span className="tn-key-letter">{letter}</span>
+              {BLACK_AFTER.includes(letter) && <span className="tn-black" aria-hidden="true" />}
             </button>
-          </div>
-          <button className="type-notes-hear" onClick={() => { newSound(); engine.playChord(color.notes); }}>
+          );
+        })}
+      </div>
+      {!result && (
+        <div className="tn-tools">
+          <button className="type-notes-hear" onClick={undo} disabled={!typed.length}>
+            ⌫ Undo
+          </button>
+          <button
+            className="type-notes-hear"
+            onClick={() => {
+              newSound();
+              engine.playChord(color.notes);
+            }}
+          >
             🔊 Hear the chord
           </button>
-        </>
+        </div>
       )}
       {result === 'wrong' && (
         <div className="feedback-actions">

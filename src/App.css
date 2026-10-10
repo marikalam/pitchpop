@@ -4121,33 +4121,6 @@ body {
   color: #2a8a4a;
   text-decoration: none;
 }
-.type-notes-keys {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
-}
-.type-notes-key {
-  appearance: none;
-  border: none;
-  cursor: pointer;
-  height: 62px;
-  border-radius: 16px;
-  background: var(--card-bg, #fff);
-  box-shadow: var(--shadow);
-  color: var(--ink);
-  font: 700 28px 'Fredoka', ui-rounded, system-ui, sans-serif;
-  -webkit-tap-highlight-color: transparent;
-}
-.type-notes-key:active {
-  transform: scale(0.96);
-}
-.type-notes-undo {
-  font-size: 24px;
-  color: #6b7090;
-}
-.type-notes-undo:disabled {
-  opacity: 0.4;
-}
 .type-notes-hear {
   appearance: none;
   border: none;
@@ -4157,7 +4130,6 @@ body {
   font: 600 15px 'IBM Plex Sans', sans-serif;
   color: var(--accent-blue);
 }
-.type-notes-slot-wrong + .type-notes-slot,
 .type-notes .feedback-actions {
   margin-top: 6px;
 }
@@ -4238,4 +4210,100 @@ body {
 }
 .focus-result .workon-title {
   color: #3d2a10;
+}
+
+/* The piano for playing a chord's notes (TypeNotes.jsx): one octave, C to
+   B, with the letter on each wide white key. */
+.tn-piano {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 3px;
+  height: clamp(120px, 20vh, 190px);
+  padding: 6px 6px 8px;
+  border-radius: 18px;
+  background: #1d2140;
+}
+.tn-key {
+  appearance: none;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  padding: 0 0 12px;
+  border-radius: 0 0 10px 10px;
+  background: #fff;
+  color: var(--ink);
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.06s ease;
+}
+.tn-key:active:not(:disabled) {
+  transform: translateY(2px);
+  background: #e8ecf7;
+}
+.tn-key:disabled {
+  cursor: default;
+}
+.tn-key-letter {
+  font: 700 26px 'Fredoka', ui-rounded, system-ui, sans-serif;
+  line-height: 1;
+}
+.tn-key-num {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--ink);
+  font: 700 14px 'Fredoka', ui-rounded, system-ui, sans-serif;
+}
+.tn-key-wrong {
+  background: #fde3e1;
+  color: #e5473c;
+  box-shadow: inset 0 0 0 3px #e5473c;
+}
+/* A black key, between this white key and the next. Taps pass through it. */
+.tn-black {
+  position: absolute;
+  top: 0;
+  right: -12px;
+  z-index: 1;
+  width: 22px;
+  height: 52%;
+  border-radius: 0 0 5px 5px;
+  background: #1d2140;
+  pointer-events: none;
+}
+.tn-tools {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 6px;
+}
+.tn-tools .type-notes-hear:disabled {
+  opacity: 0.35;
+}
+
+/* Room under the boxes for the right letters after a wrong try. */
+.type-notes-slots-fixed {
+  margin-bottom: 18px;
+}
+@media (max-height: 700px) {
+  /* "Great job!" says it; the tick can go to make room for the piano. */
+  .feedback-icon-small {
+    display: none;
+  }
+  .type-notes-slot {
+    width: 60px;
+    height: 60px;
+    font-size: 28px;
+  }
+  .type-notes {
+    gap: 10px;
+  }
 }
