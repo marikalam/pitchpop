@@ -10,6 +10,7 @@ import ProfileSwitcher from './ProfileSwitcher.jsx';
 import MainMenu from './MainMenu.jsx';
 import { PlayerSettingsCard, AddPlayerForm, AccountButton, AccountScreen, SyncStatus } from './Settings.jsx';
 import NoteSpeller from './NoteSpeller.jsx';
+import TinyTots from './TinyTots.jsx';
 import TypeNotes from './TypeNotes.jsx';
 import { typesNotes } from './typeNotes.js';
 import { buildSmartRound, comebackQueue, smartRoundsOn } from './smartRound.js';
@@ -551,6 +552,8 @@ export default function App() {
   const [streakDays, setStreakDays] = useState(loadStreakDays);
 
   const currentProfile = profiles.find((p) => p.id === profile) || profiles[0];
+  // Tiny Tots shows the player's colors, in the order they learned them.
+  const totsColors = (currentProfile.colors || []).map((n) => COLORS.find((c) => c.name === n)).filter(Boolean);
   const lastProfile = profiles.find((p) => p.id === lastActiveProfile) || profiles[0];
   const profileColorNames = currentProfile.colors;
   const streak = streakFor(streakDays[profile]);
@@ -1035,7 +1038,7 @@ export default function App() {
   // Piano, Practice Mode and Music Theory are side trips like Explore:
   // closing one goes back to wherever the player was (a quiz in progress
   // included) instead of restarting the color game.
-  const TOOL_VIEWS = ['piano', 'practice', 'theory', 'method', 'scales', 'hanon'];
+  const TOOL_VIEWS = ['piano', 'practice', 'theory', 'method', 'scales', 'hanon', 'tinytots'];
 
   // The header's practice pill, on every screen: back to the timer (in
   // Practice Mode itself, to its Timer tab).
@@ -1324,7 +1327,7 @@ export default function App() {
     return <Piano engine={engineRef.current} onClose={closeTool} />;
   }
 
-  if (view === 'practice' || view === 'theory' || view === 'method' || view === 'scales' || view === 'hanon') {
+  if (view === 'practice' || view === 'theory' || view === 'method' || view === 'scales' || view === 'hanon' || view === 'tinytots') {
     // Practice Mode fits on one screen (its tools are tabs); the Music
     // Theory glossary and the method explanation are reading pages and
     // scroll.
@@ -1357,6 +1360,8 @@ export default function App() {
             <Hanon engine={engineRef.current} />
           ) : view === 'method' ? (
             <MethodInfo colors={COLORS} signedIn={!!cloudUser} />
+          ) : view === 'tinytots' ? (
+            <TinyTots colors={totsColors} engine={engineRef.current} />
           ) : (
             <MusicTheory />
           )}
@@ -1565,6 +1570,18 @@ export default function App() {
                 <span className="home-cta-text">
                   <span className="pitch-explore-title">Explore sounds</span>
                   <span className="pitch-explore-sub">Learn each color's chord</span>
+                </span>
+                <span className="pitch-explore-arrow" aria-hidden="true">
+                  →
+                </span>
+              </button>
+              <button className="pitch-explore" onClick={() => openTool('tinytots')}>
+                <span className="pitch-explore-icon" aria-hidden="true">
+                  🧸
+                </span>
+                <span className="home-cta-text">
+                  <span className="pitch-explore-title">Tiny Tots</span>
+                  <span className="pitch-explore-sub">Tap a color, hear its chord</span>
                 </span>
                 <span className="pitch-explore-arrow" aria-hidden="true">
                   →
