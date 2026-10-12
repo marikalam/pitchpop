@@ -11,6 +11,7 @@ import MainMenu from './MainMenu.jsx';
 import { PlayerSettingsCard, AddPlayerForm, AccountButton, AccountScreen, SyncStatus } from './Settings.jsx';
 import NoteSpeller from './NoteSpeller.jsx';
 import TinyTots from './TinyTots.jsx';
+import { inTinyTots } from './tinyTots.js';
 import TypeNotes from './TypeNotes.jsx';
 import { typesNotes } from './typeNotes.js';
 import { buildSmartRound, comebackQueue, smartRoundsOn } from './smartRound.js';
@@ -892,6 +893,11 @@ export default function App() {
   }
 
   function startPlay() {
+    // Tiny Tots players get big colors to tap instead of the game.
+    if (inTinyTots(profile)) {
+      openTool('tinytots');
+      return;
+    }
     newRound(profile, profileColorNames);
     setRoundIndex(0);
     setRoundResults({});
@@ -1488,7 +1494,7 @@ export default function App() {
           ? ' question-fit'
           : '';
   return (
-    <div className={fitClass ? 'page page-fit' : 'page'}>
+    <div className={fitClass ? `page page-fit${view === 'home' ? ' page-home' : ''}` : 'page'}>
       <div className={`app${fitClass ? ' app-fit' : ''}${fitClass}`}>
         {view === 'home' && (
           <>
@@ -1557,7 +1563,9 @@ export default function App() {
                 </span>
                 <span className="home-cta-text">
                   <span className="home-cta-title">Pitch Practice</span>
-                  <span className="home-cta-sub">Hear a chord, pick its color</span>
+                  <span className="home-cta-sub">
+                    {inTinyTots(profile) ? 'Tiny Tots: tap a color, hear its chord' : 'Hear a chord, pick its color'}
+                  </span>
                 </span>
                 <span className="home-cta-arrow" aria-hidden="true">
                   →
@@ -1570,18 +1578,6 @@ export default function App() {
                 <span className="home-cta-text">
                   <span className="pitch-explore-title">Explore sounds</span>
                   <span className="pitch-explore-sub">Learn each color's chord</span>
-                </span>
-                <span className="pitch-explore-arrow" aria-hidden="true">
-                  →
-                </span>
-              </button>
-              <button className="pitch-explore" onClick={() => openTool('tinytots')}>
-                <span className="pitch-explore-icon" aria-hidden="true">
-                  🧸
-                </span>
-                <span className="home-cta-text">
-                  <span className="pitch-explore-title">Tiny Tots</span>
-                  <span className="pitch-explore-sub">Tap a color, hear its chord</span>
                 </span>
                 <span className="pitch-explore-arrow" aria-hidden="true">
                   →

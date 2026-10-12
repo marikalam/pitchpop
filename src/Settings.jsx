@@ -3,6 +3,7 @@ import { deleteAccount, requestPasswordReset, signIn, signOut, signUp, updatePas
 import { firstDay, streakFor } from './streak.js';
 import { setTypesNotes, typesNotes } from './typeNotes.js';
 import { setSmartRounds, smartRoundsOn } from './smartRound.js';
+import { inTinyTots, setTinyTots } from './tinyTots.js';
 import {
   CLEF_MODES,
   LETTERS,
@@ -83,6 +84,7 @@ export function PlayerSettingsCard({ profile, colors, onUpdate, onRemove, canRem
     setTypesNotes(profile.id, on);
   }
   const [smartOn, setSmartOn] = useState(() => smartRoundsOn(profile.id));
+  const [totsOn, setTotsOn] = useState(() => inTinyTots(profile.id));
   const [readLetters, setReadLetters] = useState(() => readingLetters(profile.id));
   const [readClef, setReadClef] = useState(() => readingClef(profile.id));
   const [readLevel, setReadLevel] = useState(() => readingLevel(profile.id));
@@ -124,6 +126,20 @@ export function PlayerSettingsCard({ profile, colors, onUpdate, onRemove, canRem
       <p className="settings-help">
         Color {profile.colors.length}: {profile.colors.join(' / ')}
       </p>
+      <label className="type-notes-setting">
+        <input
+          type="checkbox"
+          checked={totsOn}
+          onChange={(e) => {
+            setTotsOn(e.target.checked);
+            setTinyTots(profile.id, e.target.checked);
+          }}
+        />
+        <span>
+          <b>🧸 Tiny Tots</b>
+          <span>Pitch Practice becomes big colors to tap: each one plays its chord and says its name. No right or wrong.</span>
+        </span>
+      </label>
       <label className="type-notes-setting">
         <input type="checkbox" checked={notesOn} onChange={(e) => toggleNotes(e.target.checked)} />
         <span>

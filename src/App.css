@@ -1950,6 +1950,12 @@ body {
   padding-bottom: max(14px, env(safe-area-inset-bottom));
 }
 
+/* The home page fits one screen when it can; on a short screen it scrolls
+   rather than squeezing the cards. */
+.page-home {
+  overflow-y: auto;
+}
+
 .app-fit {
   min-height: 0;
   gap: 10px;
@@ -2723,7 +2729,7 @@ body {
 }
 
 .home-fit .home-card {
-  min-height: 0;
+  min-height: 62px;
   padding: 12px 18px;
   justify-content: center;
   overflow: hidden;
@@ -4488,4 +4494,7 @@ body {
 /* An odd last color gets the whole row. */
 .tots-grid-3 .tots-tile:last-child:nth-child(odd) {
   grid-column: 1 / -1;
+}
+.page-home .home-fit .home-grid {
+  flex: 1 0 auto;
 }
