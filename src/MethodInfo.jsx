@@ -9,7 +9,7 @@ const FAMILIES = [
   { chord: 'G chords', colors: ['pink', 'blue', 'green'] },
 ];
 
-export default function MethodInfo({ colors, signedIn }) {
+export default function MethodInfo({ colors }) {
   const byName = (name) => colors.find((c) => c.name === name);
 
   return (
@@ -90,9 +90,7 @@ export default function MethodInfo({ colors, signedIn }) {
           <li>
             <strong>Start with one color</strong>, red (C–E–G), and add the next one when your child is ready (see
             below).
-            {signedIn
-              ? ' Choose each player’s colors in Players & colors.'
-              : ' With a family account, you choose each player’s colors in Players & colors.'}
+            {' '}Choose each player’s colors in Players &amp; colors.
           </li>
           <li>
             <strong>Have a piano?</strong> Play the chords yourself and let your child point to the color, like the

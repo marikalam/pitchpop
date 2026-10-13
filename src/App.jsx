@@ -38,6 +38,7 @@ import { colorToWorkOn, loadRoundHistory, recordRound, summarizeRound } from './
 import ScoreCelebration, { scoreTier, TIER_TEXT } from './ScoreCelebration.jsx';
 import { PlayTriangleIcon, SpeakerIcon, CheckIcon, XIcon, TokenIcon } from './icons.jsx';
 import { loadStreakDays, recordStreakDay, streakFor } from './streak.js';
+import { setKeepRecords } from './records.js';
 import { startHistorySync } from './historySync.js';
 import { loadPracticeLog, practiceStats } from './practiceLog.js';
 
@@ -77,8 +78,8 @@ const HOME_CARDS = [
   { id: 'practice', icon: '⏱️', title: 'Practice Mode', sub: 'Timer, metronome, tokens', guestSub: 'Timer, metronome, counter', from: '#f7a24f', to: '#e8792f' },
   { id: 'scales', icon: '🎶', title: 'Scales', sub: 'Major & minor, with fingering', from: '#2fb3c4', to: '#1f8fa0' },
   { id: 'hanon', icon: '🏋️', title: 'Hanon', sub: 'Finger exercises 1–20', from: '#5b6ee8', to: '#3f4fc4' },
-  { id: 'notespeller', icon: '🎼', title: 'NoteSpeller', sub: 'Read notes on the staff', from: '#3fbf7f', to: '#2a9d63', signedInOnly: true },
-  { id: 'theory', icon: '📖', title: 'Music Theory', sub: 'Picture glossary', from: '#f06f9a', to: '#d94f7e', signedInOnly: true },
+  { id: 'notespeller', icon: '🎼', title: 'NoteSpeller', sub: 'Read notes on the staff', from: '#3fbf7f', to: '#2a9d63' },
+  { id: 'theory', icon: '📖', title: 'Music Theory', sub: 'Picture glossary', from: '#f06f9a', to: '#d94f7e' },
 ];
 const MELODY_SESSION_TAPS = 20;
 // The screen PitchPop was on when it last went into the background, to
@@ -94,7 +95,6 @@ const PROFILES_KEY = 'pitchpop-profiles-v1';
 const GUEST_PROFILES_KEY = 'pitchpop-guest-profiles-v1';
 const WELCOME_KEY = 'pitchpop-welcome-seen-v1';
 // Screens only a signed-in family can open.
-const SIGNED_IN_VIEWS = ['settings', 'notespeller', 'theory'];
 // Everything this device keeps about players: their lists, progress,
 // streaks and practice. Cleared when the account is deleted. (App-wide
 // preferences like the NoteSpeller clef or piano labels stay.)
@@ -270,7 +270,6 @@ function AppHeader({
   showBack,
   hideProfile = false,
 }) {
-  const signedIn = !!user;
   const rowRef = useRef(null);
   const compact = useCompactLogo(rowRef);
   const [logoPlaying, setLogoPlaying] = useState(0);
@@ -278,7 +277,7 @@ function AppHeader({
     <>
       <div className="brand-row" ref={rowRef}>
         <div className="brand-left">
-          <MainMenu signedIn={signedIn} onOpen={onOpenTool} />
+          <MainMenu onOpen={onOpenTool} />
           {/* Tapping the logo plays its little animation (and, away from
               the home page, also goes back home). */}
           <button
@@ -301,7 +300,6 @@ function AppHeader({
               profile={profile}
               profiles={profiles}
               colors={COLORS}
-              signedIn={signedIn}
               onChange={onChangeProfile}
               onOpenSettings={onOpenSettings}
             />
@@ -741,13 +739,9 @@ export default function App() {
     return () => window.removeEventListener('pitchpop-history-synced', reload);
   }, []);
 
-  // Players & colors and the Learn screens are for signed-in families. A
-  // guest who lands on one (a saved screen from before signing out, or
-  // after signing out right there) goes back to the color test.
-  const signedIn = !!cloudUser;
-  useEffect(() => {
-    if (authChecked && !signedIn && SIGNED_IN_VIEWS.includes(view)) goHome();
-  }, [authChecked, signedIn, view]);
+  // Guests see everything, but only signed-in families keep records
+  // (streaks, rounds, practice time).
+  setKeepRecords(!!cloudUser);
 
   // Clicking the link in a "reset your password" email lands back here with
   // a recovery session already active - Supabase surfaces that as this
@@ -1365,7 +1359,7 @@ export default function App() {
           ) : view === 'hanon' ? (
             <Hanon engine={engineRef.current} />
           ) : view === 'method' ? (
-            <MethodInfo colors={COLORS} signedIn={!!cloudUser} />
+            <MethodInfo colors={COLORS} />
           ) : view === 'tinytots' ? (
             <TinyTots colors={totsColors} engine={engineRef.current} />
           ) : (
@@ -1404,7 +1398,8 @@ export default function App() {
                 onUpdate={(changes) => updateDraftProfile(p.id, changes)}
                 onRemove={() => removePlayer(p.id)}
                 canRemove={draftProfiles.length > 1}
-                playDays={streakDays[p.id]}
+                playDays={cloudUser ? streakDays[p.id] : null}
+                onSignIn={cloudUser ? null : openAccount}
               />
             ))}
           </div>
@@ -1537,9 +1532,15 @@ export default function App() {
                 </button>
               )}
               <div className="home-stats">
-                <span className="home-stat">
-                  🔥 {streak.current ? `${streak.current} ${streak.current === 1 ? 'day' : 'days'} in a row` : 'Start a streak'}
-                </span>
+                {cloudUser ? (
+                  <span className="home-stat">
+                    🔥 {streak.current ? `${streak.current} ${streak.current === 1 ? 'day' : 'days'} in a row` : 'Start a streak'}
+                  </span>
+                ) : (
+                  <button className="home-stat home-stat-signin" onClick={openAccount}>
+                    🔥 Sign in to keep streaks
+                  </button>
+                )}
                 {cloudUser && (
                   <span className="home-stat"><TokenIcon /> {homeTokens} {homeTokens === 1 ? 'token' : 'tokens'}</span>
                 )}
@@ -1587,7 +1588,7 @@ export default function App() {
 
             <h3 className="home-section-title">Piano tools</h3>
             <div className="home-grid">
-              {HOME_CARDS.filter((card) => cloudUser || !card.signedInOnly).map((card) => (
+              {HOME_CARDS.map((card) => (
                 <button
                   key={card.id}
                   className="home-card"

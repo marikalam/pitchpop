@@ -1242,6 +1242,24 @@ body {
   color: var(--ink);
 }
 
+.home-stat-signin {
+  appearance: none;
+  border: none;
+  cursor: pointer;
+  color: var(--accent-blue);
+}
+
+.link-btn {
+  appearance: none;
+  border: none;
+  padding: 0;
+  background: none;
+  cursor: pointer;
+  color: var(--accent-blue);
+  font: inherit;
+  font-weight: 700;
+}
+
 .home-cta {
   appearance: none;
   border: none;
