@@ -1,16 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 import { bassOctave, playCorrectChime, playWrongBuzz } from './piano.js';
 import { later, newSound } from './soundBus.js';
-import { speakChordNotes } from './speech.js';
 
 // After naming a chord's color, players on the notes level play its three
 // notes, bottom to top (red: C, E, G), on a one-octave piano with the
 // letter on every key. The piano starts on the chord's first note, so its
 // notes always go up left to right (brown: G … C … E). Each key plays as
 // it's tapped and lights up in the chord's color with its number. Three
-// right keys: the color and letters are said out loud ("Brown. G. C. E.")
-// and the next chord comes by itself. A wrong try shows the right keys,
-// says the letters and lets her try again.
+// right keys: a chime, and the next chord comes by itself. A wrong try
+// shows the right keys and lets her try again. (Nothing is spoken: the
+// letters read out loud broke the mood.)
 const LETTERS = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
 // Black keys sit after these white keys. They're only for looks (taps go
 // through to the white key), so every tap lands on a letter.
@@ -55,10 +54,7 @@ export default function TypeNotes({ color, engine, onNext, nextLabel }) {
       if (right) playCorrectChime();
       else playWrongBuzz();
     }, 350);
-    later(async () => {
-      await speakChordNotes(color.name, color.notes);
-      if (right) later(() => alive.current && onNext(), 700);
-    }, 900);
+    if (right) later(() => alive.current && onNext(), 1500);
   }
 
   function undo() {
