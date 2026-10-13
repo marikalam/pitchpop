@@ -19,7 +19,9 @@ export function loadRoundHistory() {
 
 // queue: the round's colors in order; outcomes: { roundIndex: firstTryRight };
 // mixups: { roundIndex: color picked first when wrong }.
-export function summarizeRound(queue, outcomes, mixups) {
+// focus (smartRound.js), when there was one: how the mix-up checks and
+// the warm-up of last round's misses went.
+export function summarizeRound(queue, outcomes, mixups, focus = null) {
   const colors = {};
   queue.forEach((name, i) => {
     const c = colors[name] || { right: 0, total: 0, mixedWith: {} };
@@ -29,7 +31,13 @@ export function summarizeRound(queue, outcomes, mixups) {
     colors[name] = c;
   });
   const correct = Object.values(outcomes).filter(Boolean).length;
-  return { correct, total: queue.length, colors };
+  const tally = (kind) => {
+    const at = queue.map((_, i) => i).filter((i) => focus?.kinds?.[i] === kind);
+    return at.length ? { right: at.filter((i) => outcomes[i]).length, total: at.length } : null;
+  };
+  const checks = focus?.checks && tally('check') ? { pair: focus.checks, ...tally('check') } : null;
+  const warmup = tally('warmup');
+  return { correct, total: queue.length, colors, ...(checks && { checks }), ...(warmup && { warmup }) };
 }
 
 export function recordRound(profileId, summary, ended = new Date()) {

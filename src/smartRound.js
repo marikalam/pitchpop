@@ -204,13 +204,80 @@ export function buildSmartRound(profileId, names, total, plainQueue) {
       }
     }
   }
-  return { queue, focus: { name: main, partner } };
+  // Kinds of chord, for the color-coded progress dots and the labels: an
+  // easy start and finish, the chords missed last round (3rd to 5th) and
+  // "mix-up checks" where only the main color and its partner are answers.
+  const kinds = queue.map((_, i) => (i < opening.length || i >= queue.length - closing.length ? 'easy' : 'regular'));
+  const warmup = lastMisses(profileId, names);
+  warmup.forEach((name, k) => {
+    const at = opening.length + k;
+    queue[at] = name;
+    kinds[at] = 'warmup';
+  });
+  let checks = null;
+  if (partner && names.length > 2) {
+    checks = [main, partner];
+    CHECK_SLOTS.filter((at) => at < queue.length - closing.length).forEach((at) => {
+      // Either color, never making three of one in a row.
+      let pick = Math.random() < 0.5 ? main : partner;
+      const q = [...queue];
+      q[at] = pick;
+      if (tripleAt(q, at) || tripleAt(q, at + 1) || tripleAt(q, at + 2)) pick = pick === main ? partner : main;
+      queue[at] = pick;
+      kinds[at] = 'check';
+    });
+  }
+  // The warm-up and checks can make three of one color in a row: swap a
+  // regular chord of the three with another regular chord.
+  for (let i = 2; i < queue.length; i++) {
+    if (!tripleAt(queue, i)) continue;
+    const mine = [i, i - 1, i - 2].find((k) => kinds[k] === 'regular');
+    if (mine === undefined) continue;
+    for (let j = 0; j < queue.length; j++) {
+      if (kinds[j] !== 'regular' || queue[j] === queue[mine]) continue;
+      const q = [...queue];
+      [q[mine], q[j]] = [q[j], q[mine]];
+      if (!q.some((_, k) => tripleAt(q, k))) {
+        queue = q;
+        break;
+      }
+    }
+  }
+  return { queue, focus: { name: main, partner, kinds, checks, warmup } };
+}
+
+// Where the mix-up checks go in a round of 20.
+const CHECK_SLOTS = [6, 9, 13, 16];
+
+// The colors missed in the player's last round (most missed first, each
+// once, up to 3), for the warm-up.
+function lastMisses(profileId, names) {
+  const last = (loadRoundHistory()[profileId] || []).slice(-1)[0];
+  if (!last?.colors) return [];
+  return Object.entries(last.colors)
+    .filter(([name, c]) => names.includes(name) && c.right < c.total)
+    .sort((a, b) => b[1].total - b[1].right - (a[1].total - a[1].right))
+    .slice(0, 3)
+    .map(([name]) => name);
+}
+
+// The answer buttons for a chord: in a mix-up check, just the two colors
+// (when the chord is one of them; a missed chord coming back can land on a
+// check's spot).
+export function checkPairFor(focus, index, name) {
+  const pair = focus?.checks;
+  return focus?.kinds?.[index] === 'check' && pair && pair.includes(name) ? pair : null;
 }
 
 // A chord missed at `index` comes back three chords later (taking the
 // place of another color's chord there), unless it's already coming up.
-export function comebackQueue(queue, index, name) {
-  const at = index + 3;
+// It skips over a warm-up chord, and over a mix-up check unless it's one
+// of that check's two colors (focus: the round's plan).
+export function comebackQueue(queue, index, name, focus = null) {
+  let at = index + 3;
+  const blocked = (i) =>
+    focus?.kinds?.[i] === 'warmup' || (focus?.kinds?.[i] === 'check' && !focus.checks?.includes(name));
+  while (blocked(at)) at += 1;
   if (at >= queue.length - 1) return queue;
   if (queue.slice(index + 1, at + 2).includes(name)) return queue;
   const next = [...queue];
