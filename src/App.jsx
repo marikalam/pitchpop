@@ -12,6 +12,8 @@ import { PlayerSettingsCard, AddPlayerForm, AccountButton, AccountScreen, SyncSt
 import NoteSpeller from './NoteSpeller.jsx';
 import TinyTots from './TinyTots.jsx';
 import Progress from './Progress.jsx';
+import Popo from './Popo.jsx';
+import { popoOutfit } from './popo.js';
 import { stickerFor, BOOK_SIZE } from './stickers.js';
 import { weekProgress } from './progress.js';
 import { scheduleReminders } from './reminders.js';
@@ -40,7 +42,7 @@ import SoundButton, { SoundNotice } from './SoundButton.jsx';
 import { useScreenHistory } from './screenHistory.js';
 import { colorToWorkOn, loadRoundHistory, recordRound, summarizeRound } from './roundHistory.js';
 import ScoreCelebration, { scoreTier, TIER_TEXT } from './ScoreCelebration.jsx';
-import { PlayTriangleIcon, SpeakerIcon, CheckIcon, XIcon, TokenIcon } from './icons.jsx';
+import { PlayTriangleIcon, SpeakerIcon, TokenIcon } from './icons.jsx';
 import { dayKey, loadStreakDays, recordStreakDay, streakFor } from './streak.js';
 import { setKeepRecords } from './records.js';
 import { startHistorySync } from './historySync.js';
@@ -598,6 +600,13 @@ export default function App() {
   useEffect(() => {
     scheduleReminders(reminderPlayersRef.current());
   }, [cloudUser, profiles, streakDays]);
+
+  // Popo's outfit for this player (unlocked with stickers, popo.js).
+  const stickerCount = cloudUser ? (streakDays[profile] || []).length : 0;
+  const [, setOutfitTick] = useState(0);
+  const myOutfit = popoOutfit(profile, stickerCount);
+  // Tapping Popo on the home page makes it dance again.
+  const [popoDance, setPopoDance] = useState(0);
 
   // Tiny Tots shows the player's colors, in the order they learned them.
   const totsColors = (currentProfile.colors || []).map((n) => COLORS.find((c) => c.name === n)).filter(Boolean);
@@ -1422,6 +1431,9 @@ export default function App() {
               signedIn={!!cloudUser}
               onSignIn={openAccount}
               reminderPlayers={reminderPlayers}
+              playerId={profile}
+              outfit={myOutfit}
+              onOutfit={() => setOutfitTick((n) => n + 1)}
             />
           ) : view === 'tinytots' ? (
             <TinyTots colors={totsColors} engine={engineRef.current} />
@@ -1578,6 +1590,14 @@ export default function App() {
               onOpenPractice={openPracticeFromBadge}
             />
             <section className="home-hero">
+              <button
+                key={popoDance}
+                className="home-popo"
+                onClick={() => setPopoDance((n) => n + 1)}
+                aria-label="Popo"
+              >
+                <Popo size={50} outfit={myOutfit} dance={popoDance > 0} />
+              </button>
               <div className="home-hero-rainbow">
                 <Rainbow colors={COLORS} activeName={null} visible pretty />
               </div>
@@ -1846,7 +1866,7 @@ export default function App() {
             />
             <ProgressDots current={roundIndex + 1} total={SESSION_ROUNDS} />
             <div
-              className={`feedback-icon-wrap${answerCorrect ? ' feedback-correct' : ' feedback-incorrect'}${answerCorrect && typesNotes(profile) ? ' feedback-icon-small' : ''}`}
+              className={`feedback-icon-wrap feedback-popo${answerCorrect && typesNotes(profile) ? ' feedback-icon-small' : ''}`}
             >
               {answerCorrect && (
                 <div className="feedback-confetti" aria-hidden="true">
@@ -1860,7 +1880,8 @@ export default function App() {
                   <span />
                 </div>
               )}
-              <span className="feedback-icon">{answerCorrect ? <CheckIcon /> : <XIcon />}</span>
+              {/* Popo dances for a right answer and says "oh!" for a wrong one. */}
+              <Popo size={84} mood={answerCorrect ? 'happy' : 'oops'} dance={answerCorrect} outfit={myOutfit} />
             </div>
             <h2 className="screen-title">{answerCorrect ? 'Great job!' : 'Almost!'}</h2>
             {!(answerCorrect && typesNotes(profile)) && (

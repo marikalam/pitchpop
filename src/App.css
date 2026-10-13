@@ -4854,3 +4854,122 @@ body {
 .prog-grow .prog-color-track {
   flex: none;
 }
+
+/* ---------- Popo, the mascot (Popo.jsx) ---------- */
+.popo {
+  position: relative;
+  display: inline-block;
+  flex: none;
+}
+.popo svg {
+  display: block;
+  overflow: visible;
+}
+.popo-dance {
+  animation: popo-dance 0.9s ease-in-out 2;
+  transform-origin: 50% 90%;
+}
+.popo-wear {
+  position: absolute;
+  line-height: 1;
+  transform: translate(-50%, -50%);
+}
+.popo-wear-crown,
+.popo-wear-tophat,
+.popo-wear-cap {
+  left: 44%;
+  top: 40%;
+}
+.popo-wear-bow {
+  left: 26%;
+  top: 52%;
+}
+.popo-wear-shades {
+  left: 47%;
+  top: 65%;
+}
+.popo-wear-wand {
+  left: 4%;
+  top: 74%;
+}
+@keyframes popo-dance {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0);
+  }
+  25% {
+    transform: translateY(-14%) rotate(-8deg);
+  }
+  50% {
+    transform: translateY(0) rotate(0);
+  }
+  75% {
+    transform: translateY(-10%) rotate(8deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .popo-dance {
+    animation: none;
+  }
+}
+
+/* Popo in place of the check / cross after an answer. */
+.feedback-popo {
+  width: auto;
+  height: auto;
+  background: none !important;
+  border-radius: 0;
+}
+.feedback-popo.feedback-icon-small {
+  transform: scale(0.7);
+  margin: -14px 0;
+}
+.home-popo {
+  appearance: none;
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.prog-popo {
+  display: flex;
+  justify-content: center;
+  padding: 4px 0 10px;
+}
+.prog-outfits {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.prog-outfit {
+  appearance: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 4px;
+  border: 2px solid transparent;
+  border-radius: 16px;
+  background: #f3f5fb;
+  color: var(--ink);
+  cursor: pointer;
+  font: inherit;
+}
+.prog-outfit:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.prog-outfit-on {
+  border-color: var(--accent-blue);
+  background: #eef3fe;
+}
+.prog-outfit-emoji {
+  font-size: 28px;
+}
+.prog-outfit b {
+  font-size: 13px;
+}
