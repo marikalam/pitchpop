@@ -1,0 +1,66 @@
+# Sends a TestFlight build of PitchPop to App Store review (see
+# .github/appstore/submit.mjs). Run it by hand from the Actions tab.
+# Uses the same App Store Connect API key secrets as testflight.yml.
+name: App Store
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: App Store version (e.g. 1.1)
+        required: true
+      build:
+        description: Build number (empty = the newest one of that version)
+        required: false
+        default: ''
+      whats_new:
+        description: What's New text
+        required: true
+      release:
+        description: AFTER_APPROVAL (goes out when approved) or MANUAL
+        required: true
+        default: AFTER_APPROVAL
+
+jobs:
+  submit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # Same cleanup as testflight.yml: rebuild a clean PEM from the secret.
+      - name: Write the API key
+        env:
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/keys"
+          python3 - "$RUNNER_TEMP/keys/AuthKey.p8" <<'PY'
+          import base64, os, re, sys, textwrap
+          raw = os.environ.get('ASC_KEY_P8', '')
+          body = re.sub(r'(BEGIN|END)\s*PRIVATE\s*KEY', '', raw)
+          body = re.sub(r'[^A-Za-z0-9+/=]', '', body)
+          if len(base64.b64decode(body)) < 100:
+              sys.exit('ASC_KEY_P8 does not look like a complete .p8 key.')
+          pem = '-----BEGIN PRIVATE KEY-----\n' + '\n'.join(textwrap.wrap(body, 64)) + '\n-----END PRIVATE KEY-----\n'
+          with open(sys.argv[1], 'w') as f:
+              f.write(pem)
+          PY
+
+      - name: Submit for review
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_PATH: ${{ runner.temp }}/keys/AuthKey.p8
+          VERSION: ${{ inputs.version }}
+          BUILD: ${{ inputs.build }}
+          WHATS_NEW: ${{ inputs.whats_new }}
+          RELEASE: ${{ inputs.release }}
+        run: node .github/appstore/submit.mjs
+
+      - name: Remove the key
+        if: always()
+        run: rm -rf "$RUNNER_TEMP/keys"
