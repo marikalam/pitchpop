@@ -11,6 +11,7 @@ import {
   readingClef,
   readingLetters,
   readingLevel,
+  setReadingClef,
 } from './noteReading.js';
 import Staff from './Staff.jsx';
 
@@ -40,8 +41,9 @@ function ProgressDots({ current, total }) {
 export default function NoteSpeller({ engine, playerId, onComplete, onOpenSettings }) {
   // Clef, part of the staff and letters are set per player in Players &
   // colors.
-  const [{ clefMode, level, myLetters }] = useState(() => ({
-    clefMode: readingClef(playerId),
+  // The clef can be switched right here too (saved for the player).
+  const [clefMode, setClefMode] = useState(() => readingClef(playerId));
+  const [{ level, myLetters }] = useState(() => ({
     level: readingLevel(playerId),
     myLetters: readingLetters(playerId),
   }));
@@ -59,12 +61,20 @@ export default function NoteSpeller({ engine, playerId, onComplete, onOpenSettin
     queue.forEach((n) => engine.getPitchBuffer(n.letter, n.octave));
   }, [queue, engine]);
 
-  function restart() {
-    setQueue(buildNoteQueue(clefMode, SESSION_ROUNDS, level, myLetters));
+  function restart(clef = clefMode) {
+    setQueue(buildNoteQueue(clef, SESSION_ROUNDS, level, myLetters));
     setRoundIndex(0);
     setAnswered(null);
     setCorrectCount(0);
     setDone(false);
+  }
+
+  function chooseClef(clef) {
+    if (clef === clefMode) return;
+    newSound();
+    setClefMode(clef);
+    setReadingClef(playerId, clef);
+    restart(clef);
   }
 
   // Says the letter, then plays the note - unless another sound has started
@@ -104,13 +114,25 @@ export default function NoteSpeller({ engine, playerId, onComplete, onOpenSettin
   // What this player reads, and where to change it.
   const clefPicker = (
     <div className="ns-settings ns-summary">
+      <div className="ns-segmented ns-clef-switch" role="radiogroup" aria-label="Clef">
+        {CLEF_MODES.map((m) => (
+          <button
+            key={m.id}
+            role="radio"
+            aria-checked={clefMode === m.id}
+            className={`ns-segment${clefMode === m.id ? ' ns-segment-active' : ''}`}
+            onClick={() => chooseClef(m.id)}
+          >
+            {m.label.replace(' clef', '')}
+          </button>
+        ))}
+      </div>
       <span className="ns-summary-text">
-        {CLEF_MODES.find((m) => m.id === clefMode).label} · {LEVELS.find((l) => l.id === level).label} ·{' '}
-        {myLetters.length === LETTERS.length ? 'All notes' : myLetters.join(' ')}
+        {LEVELS.find((l) => l.id === level).label} · {myLetters.length === LETTERS.length ? 'All notes' : myLetters.join(' ')}
       </span>
       {onOpenSettings && (
-        <button className="ns-summary-change" onClick={onOpenSettings}>
-          ⚙️ Change
+        <button className="ns-summary-change" onClick={onOpenSettings} aria-label="NoteSpeller settings">
+          ⚙️
         </button>
       )}
     </div>
