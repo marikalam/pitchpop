@@ -41,11 +41,10 @@ import SoundButton, { SoundNotice } from './SoundButton.jsx';
 import { useScreenHistory } from './screenHistory.js';
 import { colorToWorkOn, loadRoundHistory, recordRound, summarizeRound } from './roundHistory.js';
 import ScoreCelebration, { scoreTier, TIER_TEXT } from './ScoreCelebration.jsx';
-import { PlayTriangleIcon, SpeakerIcon, CheckIcon, XIcon, TokenIcon } from './icons.jsx';
+import { PlayTriangleIcon, SpeakerIcon, CheckIcon, XIcon } from './icons.jsx';
 import { dayKey, loadStreakDays, recordStreakDay, streakFor } from './streak.js';
 import { setKeepRecords } from './records.js';
 import { startHistorySync } from './historySync.js';
-import { loadPracticeLog, practiceStats } from './practiceLog.js';
 
 const COLORS = [
   { name: 'black', hex: '#232323', text: '#FFFFFF', notes: ['A', 'C', 'F'] },
@@ -707,8 +706,6 @@ export default function App() {
   useScreenHistory(view, setView);
   const [preExploreView, setPreExploreView] = useState('home');
   const [preToolView, setPreToolView] = useState('home');
-  // Read fresh each render so tokens earned in Practice Mode show at once.
-  const homeTokens = view === 'home' ? practiceStats(loadPracticeLog()[profile]).tokens : 0;
   const [sessionQueue, setSessionQueue] = useState(
     () => resumableSession.sessionQueue || buildQueue(profileColorNames, SESSION_ROUNDS),
   );
@@ -1698,20 +1695,6 @@ export default function App() {
                   Start practice
                 </button>
               )}
-              <div className="home-stats">
-                {cloudUser ? (
-                  <button className="home-stat home-stat-link" onClick={() => openTool('progress')}>
-                    🔥 {streak.current ? `${streak.current} ${streak.current === 1 ? 'day' : 'days'} in a row` : 'Start a streak'} ›
-                  </button>
-                ) : (
-                  <button className="home-stat home-stat-signin" onClick={openAccount}>
-                    🔥 Sign in to keep streaks
-                  </button>
-                )}
-                {cloudUser && (
-                  <span className="home-stat"><TokenIcon /> {homeTokens} {homeTokens === 1 ? 'token' : 'tokens'}</span>
-                )}
-              </div>
             </section>
 
             {/* The Eguchi perfect-pitch training together in one card: the
