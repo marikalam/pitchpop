@@ -1934,8 +1934,20 @@ body {
   padding: 8px 8px 8px 14px;
 }
 
+.ns-clef-switch {
+  flex: none;
+}
+
+.ns-clef-switch .ns-segment {
+  padding: 6px 14px;
+}
+
 .ns-summary-text {
+  flex: 1;
   min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   color: var(--ink-dim);
   font: 700 13px 'IBM Plex Sans', sans-serif;
 }
