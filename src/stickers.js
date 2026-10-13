@@ -46,6 +46,11 @@ export const STICKERS = [
     <ellipse cx="50" cy="54" rx="32" ry="28" fill="#ffa94d"/>
     <path d="M50 27 L46 37 M50 27 L54 37" stroke="#f08c00" stroke-width="3" stroke-linecap="round"/>
     ${eyes(39, 61, 52)}${blush(31, 69, 62)}
+    <g opacity="0">
+      <rect x="33" y="47" width="12" height="10" fill="#ffa94d"/><rect x="55" y="47" width="12" height="10" fill="#ffa94d"/>
+      <path d="M35 52 q4 3 8 0 M57 52 q4 3 8 0" fill="none" stroke="#3a2e3f" stroke-width="2.2" stroke-linecap="round"/>
+      <animate attributeName="opacity" values="0;0;1;0" keyTimes="0;0.9;0.94;1" dur="3.5s" repeatCount="indefinite"/>
+    </g>
     <path d="M47 60 L53 60 L50 63Z" fill="#ff6b9a"/><path d="M44 66 q3 3 6 0 q3 3 6 0" fill="none" stroke="#3a2e3f" stroke-width="2.2" stroke-linecap="round"/>`],
   ['Bunny', `
     <ellipse cx="38" cy="26" rx="8" ry="20" fill="#f1f3f5"/><ellipse cx="62" cy="26" rx="8" ry="20" fill="#f1f3f5"/>
@@ -73,6 +78,48 @@ export const STICKERS = [
   ['Flower', `
     ${[0, 60, 120, 180, 240, 300].map((a) => `<ellipse cx="50" cy="27" rx="12" ry="17" fill="#ffffff" stroke="#ffd8e6" stroke-width="2" transform="rotate(${a} 50 50)"/>`).join('')}
     <circle cx="50" cy="50" r="14" fill="#ffd43b"/>${eyes(45, 55, 48, 2.2)}${smile(50, 53, 2.6)}`],
+  ['Doggy', `
+    <g>
+      <ellipse cx="24" cy="44" rx="10" ry="20" transform="rotate(20 24 44)" fill="#8d5b3c"/>
+      <animateTransform attributeName="transform" type="rotate" values="0 30 28;-14 30 28;0 30 28" dur="1.4s" repeatCount="indefinite"/>
+    </g>
+    <g>
+      <ellipse cx="76" cy="44" rx="10" ry="20" transform="rotate(-20 76 44)" fill="#8d5b3c"/>
+      <animateTransform attributeName="transform" type="rotate" values="0 70 28;14 70 28;0 70 28" dur="1.4s" repeatCount="indefinite"/>
+    </g>
+    <circle cx="50" cy="52" r="28" fill="#f5d9b8"/>
+    <ellipse cx="62" cy="46" rx="9" ry="8" fill="#c99a6e"/>
+    ${eyes(41, 61, 47)}
+    <ellipse cx="50" cy="62" rx="12" ry="9" fill="#fff4e6"/>
+    <ellipse cx="50" cy="58" rx="5" ry="3.6" fill="#3a2e3f"/>
+    <path d="M44 64 q6 5 12 0" fill="none" stroke="#3a2e3f" stroke-width="2.2" stroke-linecap="round"/>
+    <path d="M47 66 q3 9 6 0Z" fill="#ff6b9a"/>${blush(33, 67, 58)}`],
+  ['Diamond', `
+    <path d="M24 38 L36 22 L64 22 L76 38 L50 84Z" fill="#74c0fc"/>
+    <path d="M24 38 L76 38 L50 84Z" fill="#4dabf7"/>
+    <path d="M36 22 L44 38 L50 22 L56 38 L64 22" fill="none" stroke="#d0ebff" stroke-width="2" stroke-linejoin="round"/>
+    <path d="M24 38 L76 38 M44 38 L50 84 L56 38" fill="none" stroke="#a5d8ff" stroke-width="2" stroke-linejoin="round"/>
+    <path d="M30 37 L38 25 L42 25 L36 37Z" fill="#fff" opacity=".7"/>
+    ${[[18, 20, 0], [82, 26, 0.6], [80, 66, 1.2]].map(([x, y, d]) => `<path d="M${x} ${y - 7} L${x + 2} ${y - 2} L${x + 7} ${y} L${x + 2} ${y + 2} L${x} ${y + 7} L${x - 2} ${y + 2} L${x - 7} ${y} L${x - 2} ${y - 2}Z" fill="#ffd43b" opacity="0"><animate attributeName="opacity" values="0;1;0" dur="1.8s" begin="${d}s" repeatCount="indefinite"/></path>`).join('')}`],
+  ['Super hero', `
+    <path d="M30 56 L18 90 L82 90 L70 56Z" fill="#ff6b6b"/>
+    <path d="M34 60 L66 60 L70 90 L30 90Z" fill="#4dabf7"/>
+    <path d="M50 66 L53 73 L60 73 L54 77 L57 84 L50 80 L43 84 L46 77 L40 73 L47 73Z" fill="#ffd43b"/>
+    <circle cx="50" cy="38" r="22" fill="#f5d0a9"/>
+    <path d="M28 36 C28 18 72 18 72 36 C66 26 56 24 50 26 C42 24 34 28 28 36Z" fill="#5c3d2e"/>
+    <path d="M28 38 Q50 30 72 38 L72 46 Q50 40 28 46Z" fill="#4dabf7"/>
+    <ellipse cx="41" cy="41" rx="4.6" ry="3.6" fill="#fff"/><ellipse cx="59" cy="41" rx="4.6" ry="3.6" fill="#fff"/>
+    <circle cx="41.5" cy="41.5" r="2.2" fill="#3a2e3f"/><circle cx="59.5" cy="41.5" r="2.2" fill="#3a2e3f"/>
+    ${smile(50, 50, 4)}${blush(34, 66, 50)}`],
+  ['Spider', `
+    <line x1="50" y1="2" x2="50" y2="30" stroke="#adb5bd" stroke-width="2"/>
+    <g stroke="#7048e8" stroke-width="4" stroke-linecap="round" fill="none">
+      <path d="M32 48 q-12 -8 -18 -2"/><path d="M30 56 q-14 -2 -18 6"/><path d="M32 64 q-10 4 -12 14"/><path d="M36 70 q-4 8 -2 16"/>
+      <path d="M68 48 q12 -8 18 -2"/><path d="M70 56 q14 -2 18 6"/><path d="M68 64 q10 4 12 14"/><path d="M64 70 q4 8 2 16"/>
+    </g>
+    <circle cx="50" cy="56" r="22" fill="#9775fa"/>
+    <ellipse cx="50" cy="64" rx="12" ry="9" fill="#b197fc"/>
+    ${eyes(42, 58, 52, 4)}${smile(50, 61, 4)}${blush(36, 64, 60)}`],
   ['Sunshine', `
     ${Array.from({ length: 8 }, (_, i) => `<rect x="47" y="8" width="6" height="14" rx="3" fill="#ffc107" transform="rotate(${i * 45} 50 50)"/>`).join('')}
     <circle cx="50" cy="50" r="24" fill="#ffd43b"/>${eyes(42, 58, 48)}${smile(50, 56, 4)}${blush(36, 64, 56)}`],
@@ -108,9 +155,34 @@ export const STICKERS = [
     <path d="M50 10 C58 16 62 22 64 28 L36 28 C38 22 42 16 50 10Z" fill="#ff6b6b"/>
     <circle cx="50" cy="42" r="8" fill="#74c0fc" stroke="#4dabf7" stroke-width="3"/>
     <path d="M36 52 L24 70 L37 66Z M64 52 L76 70 L63 66Z" fill="#ff6b6b"/>
-    <path d="M42 66 Q50 92 58 66Z" fill="#ffa94d"/><path d="M46 66 Q50 82 54 66Z" fill="#ffd43b"/>`],
+    <g transform="translate(50 66)"><g>
+      <path d="M-8 0 Q0 26 8 0Z" fill="#ffa94d"/><path d="M-4 0 Q0 16 4 0Z" fill="#ffd43b"/>
+      <animateTransform attributeName="transform" type="scale" values="1 1;1.1 1.35;1 1" dur="0.45s" repeatCount="indefinite"/>
+    </g></g>`],
 ];
 export const BOOK_SIZE = STICKERS.length;
+
+// How each sticker moves (App.css .sticker-<move>): gentle and looping.
+const MOVES = {
+  Heart: 'pulse',
+  Star: 'twinkle',
+  Balloon: 'float',
+  Kitty: 'wiggle',
+  Bunny: 'hop',
+  Whale: 'rock',
+  Butterfly: 'flutter',
+  Flower: 'spin',
+  Doggy: 'wiggle',
+  Diamond: 'pulse',
+  'Super hero': 'float',
+  Spider: 'dangle',
+  Sunshine: 'spin',
+  Moon: 'rock',
+  'Music notes': 'wiggle',
+  Rocket: 'shake',
+  Donut: 'spin',
+};
+export const stickerMove = (index) => MOVES[STICKERS[index][0]] || 'bob';
 
 // The sticker earned on the nth practice day (1st day: index 0).
 export function stickerFor(index) {
