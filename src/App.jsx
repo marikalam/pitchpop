@@ -20,7 +20,7 @@ import { scheduleReminders } from './reminders.js';
 import { inTinyTots } from './tinyTots.js';
 import TypeNotes from './TypeNotes.jsx';
 import { typesNotes } from './typeNotes.js';
-import { buildSmartRound, comebackQueue } from './smartRound.js';
+import { buildSmartRound, checkPairFor, comebackQueue } from './smartRound.js';
 import Piano from './Piano.jsx';
 import PracticeMode, { readPracticeTimer, showTimerTab, startPracticeNow, stopPractice } from './PracticeMode.jsx';
 import PracticeBadge from './PracticeBadge.jsx';
@@ -113,6 +113,8 @@ const PLAYER_DATA_KEYS = [
   'pitchpop-practice-v1',
   'pitchpop-practice-log-v1',
 ];
+
+const capName = (n) => n.charAt(0).toUpperCase() + n.slice(1);
 
 function shuffle(list) {
   const copy = [...list];
@@ -351,10 +353,18 @@ function StreakBadge({ streak }) {
   );
 }
 
-function ProgressDots({ current, total }) {
+// kinds (a smart round's plan, smartRound.js) colors the dots: an easy
+// start and finish, last round's misses and the mix-up checks.
+function ProgressDots({ current, total, kinds }) {
   const items = [];
   for (let i = 1; i <= total; i++) {
-    items.push(<span key={`d${i}`} className={`progress-dot${i <= current ? ' progress-dot-filled' : ''}`} />);
+    const kind = kinds?.[i - 1];
+    items.push(
+      <span
+        key={`d${i}`}
+        className={`progress-dot${i <= current ? ' progress-dot-filled' : ''}${kind && kind !== 'regular' ? ` progress-dot-${kind}` : ''}${i === current ? ' progress-dot-now' : ''}`}
+      />,
+    );
     if (i < total) {
       items.push(<span key={`l${i}`} className={`progress-line${i < current ? ' progress-line-filled' : ''}`} />);
     }
@@ -367,6 +377,15 @@ function ProgressDots({ current, total }) {
       </span>
     </div>
   );
+}
+
+// The label over a warm-up chord or a mix-up check.
+function KindChip({ focus, index, name }) {
+  const kind = focus?.kinds?.[index];
+  if (kind === 'check' && !checkPairFor(focus, index, name)) return null;
+  if (kind === 'warmup') return <span className="kind-chip kind-chip-warmup">🔁 Missed last time</span>;
+  if (kind === 'check') return <span className="kind-chip kind-chip-check">🎯 Mix-up check</span>;
+  return null;
 }
 
 // "All done!": an animation for the score, the numbers, the color to
@@ -382,6 +401,17 @@ function FocusTag({ focus }) {
       <span>
         🎯 Today's focus: <b>{cap(focus.name)}</b>
         {focus.partner ? ` (mixed up with ${cap(focus.partner)})` : ''}
+        {focus.kinds && (
+          <span className="focus-legend">
+            <span><i className="legend-easy" />Easy win</span>
+            {focus.warmup?.length > 0 && (
+              <span><i className="legend-warmup" />Missed last time</span>
+            )}
+            {focus.checks && (
+              <span><i className="legend-check" />Mix-up check</span>
+            )}
+          </span>
+        )}
       </span>
     </div>
   );
@@ -444,6 +474,52 @@ function RoundSummary({ playerName, correct, wrong, streak, summary, history, fo
           <div className="stat-label">{streak.current === 1 ? 'Day' : 'Days'} in a row</div>
         </div>
       </div>
+      {summary.checks && (() => {
+        // The mix-up checks: this round against the last one with the
+        // same two colors.
+        const [a, b] = summary.checks.pair;
+        const before = history
+          .slice(0, -1)
+          .reverse()
+          .find((r) => r.checks && r.checks.pair.includes(a) && r.checks.pair.includes(b))?.checks;
+        const bar = (c) => (
+          <span className="checks-track">
+            <span style={{ width: `${(100 * c.right) / c.total}%` }} />
+          </span>
+        );
+        return (
+          <div className="checks-card">
+            <b>
+              🎯 {cap(a)} vs {cap(b)}
+            </b>
+            {before && (
+              <div className="checks-row">
+                <span>Last time</span>
+                {bar(before)}
+                <b>
+                  {before.right}/{before.total}
+                </b>
+              </div>
+            )}
+            <div className="checks-row checks-row-now">
+              <span>Today</span>
+              {bar(summary.checks)}
+              <b>
+                {summary.checks.right}/{summary.checks.total}
+              </b>
+            </div>
+            {before && summary.checks.right / summary.checks.total > before.right / before.total && (
+              <span className="checks-better">Getting better! 💪</span>
+            )}
+          </div>
+        );
+      })()}
+      {summary.warmup && (
+        <p className="warmup-result">
+          🔁 Missed last time: {summary.warmup.right} of {summary.warmup.total} right today
+          {summary.warmup.right === summary.warmup.total ? ' — all fixed!' : ''}
+        </p>
+      )}
       {focus && summary.colors[focus.name] && (() => {
         // This round's focus color, against the last round it was in.
         const today = summary.colors[focus.name];
@@ -577,6 +653,8 @@ export default function App() {
   const [streakDays, setStreakDays] = useState(loadStreakDays);
   // The sticker shown on the "All done!" screen (see stickers.js).
   const [roundSticker, setRoundSticker] = useState(null);
+  // The color picked in a wrong answer, for "listen to both".
+  const [wrongPick, setWrongPick] = useState(null);
 
   const currentProfile = profiles.find((p) => p.id === profile) || profiles[0];
   // What the daily reminder and the Sunday summary say (reminders.js).
@@ -971,9 +1049,15 @@ export default function App() {
     setView(preExploreView);
   }
 
+  // A chord's answer buttons: all the player's colors, or just two in a
+  // mix-up check.
+  function optionsFor(index, name) {
+    return buildOptions(checkPairFor(roundFocus, index, name) || profileColorNames);
+  }
+
   function listenTap() {
     playChord(currentColor);
-    setOptions(buildOptions(profileColorNames));
+    setOptions(optionsFor(roundIndex, currentColor.name));
     setView('play-question');
   }
 
@@ -1003,7 +1087,7 @@ export default function App() {
     // Missed on the first try: in a smart round, it comes back a few
     // chords later.
     if (!correct && !(roundIndex in roundOutcomes)) {
-      setSessionQueue((q) => comebackQueue(q, roundIndex, currentColor.name));
+      setSessionQueue((q) => comebackQueue(q, roundIndex, currentColor.name, roundFocus));
     }
     if (!correct) setRoundMixups((prev) => (roundIndex in prev ? prev : { ...prev, [roundIndex]: color.name }));
 
@@ -1027,9 +1111,16 @@ export default function App() {
     });
 
     const soundId = newSound();
-    if (correct) playCorrectChime();
-    else playWrongBuzz();
-    later(() => announceColor(currentColor, soundId), 350);
+    setWrongPick(correct ? null : color);
+    if (correct) {
+      playCorrectChime();
+      later(() => announceColor(currentColor, soundId), 350);
+    } else {
+      // Hear both: the color picked, then the right one (with its name).
+      playWrongBuzz();
+      later(() => engineRef.current.playChord(color.notes), 450);
+      later(() => announceColor(currentColor, soundId), 2100);
+    }
     setView('play-feedback');
   }
 
@@ -1052,7 +1143,7 @@ export default function App() {
         !cloudUser ? null : before.includes(dayKey()) ? { earned: false, ...stickerFor(before.length - 1) } : { earned: true, number: before.length + 1, ...stickerFor(before.length) },
       );
       setStreakDays(recordStreakDay(streakDays, profile));
-      recordRound(profile, summarizeRound(sessionQueue, roundOutcomes, roundMixups));
+      recordRound(profile, summarizeRound(sessionQueue, roundOutcomes, roundMixups, roundFocus));
       setView('play-complete');
       return;
     }
@@ -1065,7 +1156,7 @@ export default function App() {
       setView('play-listen');
       return;
     }
-    setOptions(buildOptions(profileColorNames));
+    setOptions(optionsFor(roundIndex + 1, nextColor.name));
     setView('play-question');
     later(() => playChord(nextColor), 300);
   }
@@ -1762,7 +1853,7 @@ export default function App() {
               onBack={goHome}
             />
             <StreakBadge streak={streak} />
-            <ProgressDots current={roundIndex + 1} total={SESSION_ROUNDS} />
+            <ProgressDots current={roundIndex + 1} total={SESSION_ROUNDS} kinds={roundFocus?.kinds} />
             <h2 className="screen-title">Listen to the chord</h2>
             <p className="screen-sub">Tap the rainbow to hear it</p>
             {roundIndex === 0 && roundFocus && <FocusTag focus={roundFocus} />}
@@ -1793,7 +1884,7 @@ export default function App() {
               showBack
               onBack={goHome}
             />
-            <ProgressDots current={roundIndex + 1} total={SESSION_ROUNDS} />
+            <ProgressDots current={roundIndex + 1} total={SESSION_ROUNDS} kinds={roundFocus?.kinds} />
             <h2 className="screen-title">Listen to the chord again?</h2>
             <button className="rainbow-play-wrap" onClick={relistenTap} aria-label="Replay chord">
               <Rainbow colors={COLORS} activeName={null} visible pretty />
@@ -1822,8 +1913,13 @@ export default function App() {
               showBack
               onBack={goHome}
             />
-            <ProgressDots current={roundIndex + 1} total={SESSION_ROUNDS} />
-            <h2 className="screen-title">What chord did you hear?</h2>
+            <ProgressDots current={roundIndex + 1} total={SESSION_ROUNDS} kinds={roundFocus?.kinds} />
+            <KindChip focus={roundFocus} index={roundIndex} name={currentColor.name} />
+            <h2 className="screen-title">
+              {options.length === 2 && roundFocus?.kinds?.[roundIndex] === 'check'
+                ? `${capName(options[0].name)} or ${capName(options[1].name)}?`
+                : 'What chord did you hear?'}
+            </h2>
             <button className="rainbow-play-wrap rainbow-play-wrap-compact" onClick={relistenTap} aria-label="Play chord again">
               <Rainbow colors={COLORS} activeName={null} visible pretty />
               <span className="rainbow-center-btn">
@@ -1864,7 +1960,7 @@ export default function App() {
               showBack
               onBack={goHome}
             />
-            <ProgressDots current={roundIndex + 1} total={SESSION_ROUNDS} />
+            <ProgressDots current={roundIndex + 1} total={SESSION_ROUNDS} kinds={roundFocus?.kinds} />
             <div
               className={`feedback-icon-wrap feedback-popo${answerCorrect && typesNotes(profile) ? ' feedback-icon-small' : ''}`}
             >
@@ -1883,10 +1979,9 @@ export default function App() {
               {/* Popo dances for a right answer and says "oh!" for a wrong one. */}
               <Popo size={84} mood={answerCorrect ? 'happy' : 'oops'} dance={answerCorrect} outfit={myOutfit} />
             </div>
-            <h2 className="screen-title">{answerCorrect ? 'Great job!' : 'Almost!'}</h2>
-            {!(answerCorrect && typesNotes(profile)) && (
-              <p className="screen-sub">{answerCorrect ? "That's right!" : 'The correct answer is:'}</p>
-            )}
+            <h2 className="screen-title">{answerCorrect ? 'Great job!' : wrongPick ? 'Almost! Listen to both:' : 'Almost!'}</h2>
+            {answerCorrect && !typesNotes(profile) && <p className="screen-sub">That's right!</p>}
+            {!answerCorrect && !wrongPick && <p className="screen-sub">The correct answer is:</p>}
             {/* Players on the notes level type the notes, so the card
                 doesn't give them away. */}
             {answerCorrect && typesNotes(profile) ? (
@@ -1901,6 +1996,39 @@ export default function App() {
                   onNext={nextChord}
                   nextLabel={roundIndex + 1 >= SESSION_ROUNDS ? 'Finish' : 'Next chord'}
                 />
+              </>
+            ) : !answerCorrect && wrongPick ? (
+              // A wrong answer: the color picked and the right one, played
+              // one after the other (chooseAnswer).
+              <>
+                <div className="both-card">
+                  <div className="both-row both-row-picked">
+                    <span className="both-swatch" style={{ background: wrongPick.hex, color: wrongPick.text }}>
+                      {capName(wrongPick.name)}
+                    </span>
+                    <span>
+                      <b>You picked {capName(wrongPick.name)}</b>
+                      <span className="both-notes">{wrongPick.notes.join(' · ')} · 🔊 1st</span>
+                    </span>
+                  </div>
+                  <div className="both-row both-row-right">
+                    <span className="both-swatch" style={{ background: currentColor.hex, color: currentColor.text }}>
+                      {capName(currentColor.name)}
+                    </span>
+                    <span>
+                      <b>It was {capName(currentColor.name)}</b>
+                      <span className="both-notes">{currentColor.notes.join(' · ')} · 🔊 2nd</span>
+                    </span>
+                  </div>
+                </div>
+                {(() => {
+                  const back = sessionQueue.indexOf(currentColor.name, roundIndex + 1) - roundIndex;
+                  return back > 0 && back <= 5 ? (
+                    <p className="both-comeback">
+                      🔁 {capName(currentColor.name)} comes back in {back} {back === 1 ? 'chord' : 'chords'}
+                    </p>
+                  ) : null;
+                })()}
               </>
             ) : (
               <div className="answer-card" style={{ background: currentColor.hex, color: currentColor.text }}>
@@ -1920,9 +2048,23 @@ export default function App() {
                   </button>
                 </>
               ) : (
-                <button className="pill-btn-primary pill-btn-full" onClick={chooseDifferentAnswer}>
-                  Try again →
-                </button>
+                <>
+                  {wrongPick && (
+                    <button
+                      className="pill-btn-secondary"
+                      onClick={() => {
+                        const id = newSound();
+                        engineRef.current.playChord(wrongPick.notes);
+                        later(() => isCurrent(id) && engineRef.current.playChord(currentColor.notes), 1600);
+                      }}
+                    >
+                      🔁 Both again
+                    </button>
+                  )}
+                  <button className={`pill-btn-primary${wrongPick ? '' : ' pill-btn-full'}`} onClick={chooseDifferentAnswer}>
+                    Try again →
+                  </button>
+                </>
               )}
             </div>
             )}
@@ -1948,7 +2090,7 @@ export default function App() {
               correct={roundCorrect}
               wrong={roundWrong}
               streak={streak}
-              summary={summarizeRound(sessionQueue, roundOutcomes, roundMixups)}
+              summary={summarizeRound(sessionQueue, roundOutcomes, roundMixups, roundFocus)}
               history={loadRoundHistory()[profile] || []}
               focus={roundFocus}
               sticker={roundSticker}
