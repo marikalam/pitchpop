@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { deleteAccount, requestPasswordReset, signIn, signOut, signUp, updatePassword } from './cloud.js';
 import { firstDay, streakFor } from './streak.js';
 import { setTypesNotes, typesNotes } from './typeNotes.js';
-import { setSmartRounds, smartRoundsOn } from './smartRound.js';
 import { inTinyTots, setTinyTots } from './tinyTots.js';
 import {
   CLEF_MODES,
@@ -83,7 +82,6 @@ export function PlayerSettingsCard({ profile, colors, onUpdate, onRemove, canRem
     setNotesOn(on);
     setTypesNotes(profile.id, on);
   }
-  const [smartOn, setSmartOn] = useState(() => smartRoundsOn(profile.id));
   const [totsOn, setTotsOn] = useState(() => inTinyTots(profile.id));
   const [readLetters, setReadLetters] = useState(() => readingLetters(profile.id));
   const [readClef, setReadClef] = useState(() => readingClef(profile.id));
@@ -96,10 +94,6 @@ export function PlayerSettingsCard({ profile, colors, onUpdate, onRemove, canRem
     const next = LETTERS.filter((l) => (l === letter ? !on : readLetters.includes(l)));
     setReadLetters(next);
     setReadingLetters(profile.id, next);
-  }
-  function toggleSmart(on) {
-    setSmartOn(on);
-    setSmartRounds(profile.id, on);
   }
 
   function toggleColor(name) {
@@ -173,22 +167,13 @@ export function PlayerSettingsCard({ profile, colors, onUpdate, onRemove, canRem
         {totsOn ? (
           <p className="ps-hint ps-hint-indent">Big colors to tap: each plays its chord and says its name. No right or wrong.</p>
         ) : (
-          <>
-            <label className="ps-switch-row">
-              <span className="ps-switch-text">
-                <b>🎹 Type the notes</b>
-                <span>After the color, play its letters (red: C, E, G)</span>
-              </span>
-              <input type="checkbox" className="ps-switch" checked={notesOn} onChange={(e) => toggleNotes(e.target.checked)} />
-            </label>
-            <label className="ps-switch-row">
-              <span className="ps-switch-text">
-                <b>🎯 Smart practice</b>
-                <span>More of the colors missed lately</span>
-              </span>
-              <input type="checkbox" className="ps-switch" checked={smartOn} onChange={(e) => toggleSmart(e.target.checked)} />
-            </label>
-          </>
+          <label className="ps-switch-row">
+            <span className="ps-switch-text">
+              <b>🎹 Type the notes</b>
+              <span>After the color, play its letters (red: C, E, G)</span>
+            </span>
+            <input type="checkbox" className="ps-switch" checked={notesOn} onChange={(e) => toggleNotes(e.target.checked)} />
+          </label>
         )}
       </div>
 

@@ -4,14 +4,13 @@ import { loadRoundHistory } from './roundHistory.js';
 // a player missed in their last few rounds come up more often, the color
 // they mix one up with is played right next to it, the first two chords
 // and the last are ones they know (to start and end on a win), and a
-// missed chord comes back a few chords later (see comebackQueue). Players
-// can be switched back to plain even rounds (Players & colors).
+// missed chord comes back a few chords later (see comebackQueue). Always
+// on, for every player.
 
 const LOOKBACK = 3;
 // The newest round counts most.
 const ROUND_WEIGHTS = [3, 2, 1];
 const MAX_SHARE = 1 / 3;
-const OFF_KEY = 'pitchpop-smart-off-v1';
 
 function shuffle(list) {
   const copy = [...list];
@@ -20,29 +19,6 @@ function shuffle(list) {
     [copy[i], copy[j]] = [copy[j], copy[i]];
   }
   return copy;
-}
-
-function loadOff() {
-  try {
-    return JSON.parse(localStorage.getItem(OFF_KEY)) || {};
-  } catch {
-    return {};
-  }
-}
-
-export function smartRoundsOn(profileId) {
-  return !loadOff()[profileId];
-}
-
-export function setSmartRounds(profileId, on) {
-  const next = { ...loadOff() };
-  if (on) delete next[profileId];
-  else next[profileId] = true;
-  try {
-    localStorage.setItem(OFF_KEY, JSON.stringify(next));
-  } catch {
-    /* ignore */
-  }
 }
 
 // Each color's weighted first-try score over the last rounds, what it was
@@ -148,7 +124,7 @@ const tripleAt = (q, k) => k >= 2 && q[k] === q[k - 1] && q[k] === q[k - 2];
 // Builds a round: { queue, focus } where focus is null or
 // { name, partner } for the "Today's focus" tag.
 export function buildSmartRound(profileId, names, total, plainQueue) {
-  if (!smartRoundsOn(profileId) || names.length < 2) return { queue: plainQueue(names, total), focus: null };
+  if (names.length < 2) return { queue: plainQueue(names, total), focus: null };
   const scores = recentScores(profileId, names);
   const focus = focusColors(scores);
   if (!focus.length) return { queue: plainQueue(names, total), focus: null };

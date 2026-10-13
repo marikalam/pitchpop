@@ -14,7 +14,7 @@ import TinyTots from './TinyTots.jsx';
 import { inTinyTots } from './tinyTots.js';
 import TypeNotes from './TypeNotes.jsx';
 import { typesNotes } from './typeNotes.js';
-import { buildSmartRound, comebackQueue, smartRoundsOn } from './smartRound.js';
+import { buildSmartRound, comebackQueue } from './smartRound.js';
 import Piano from './Piano.jsx';
 import PracticeMode, { readPracticeTimer, showTimerTab, startPracticeNow, stopPractice } from './PracticeMode.jsx';
 import PracticeBadge from './PracticeBadge.jsx';
@@ -951,7 +951,7 @@ export default function App() {
     setRoundOutcomes((prev) => (roundIndex in prev ? prev : { ...prev, [roundIndex]: correct }));
     // Missed on the first try: in a smart round, it comes back a few
     // chords later.
-    if (!correct && !(roundIndex in roundOutcomes) && smartRoundsOn(profile)) {
+    if (!correct && !(roundIndex in roundOutcomes)) {
       setSessionQueue((q) => comebackQueue(q, roundIndex, currentColor.name));
     }
     if (!correct) setRoundMixups((prev) => (roundIndex in prev ? prev : { ...prev, [roundIndex]: color.name }));
