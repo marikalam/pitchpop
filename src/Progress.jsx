@@ -2,8 +2,6 @@ import { useState } from 'react';
 import { weekProgress } from './progress.js';
 import { BOOK_SIZE, stickerFor } from './stickers.js';
 import { loadReminder, remindersAvailable, setReminder } from './reminders.js';
-import Popo from './Popo.jsx';
-import { OUTFITS, setPopoOutfit } from './popo.js';
 
 // The parent progress page: the player's last 7 days (rounds, streak,
 // first-try score, each color), a tip (the colors they mix up, or that
@@ -52,7 +50,7 @@ function ReminderCard({ reminderPlayers }) {
   );
 }
 
-export default function Progress({ player, rounds, days, colors, signedIn, onSignIn, reminderPlayers, playerId, outfit, onOutfit }) {
+export default function Progress({ player, rounds, days, colors, signedIn, onSignIn, reminderPlayers }) {
   if (!signedIn) {
     return (
       <div className="prog">
@@ -164,34 +162,6 @@ export default function Progress({ player, rounds, days, colors, signedIn, onSig
           )}
         </div>
         <p className="muted-text prog-note">A new sticker for every day of practice.</p>
-      </div>
-
-      <div className="prog-card">
-        <h3 className="prog-title">Popo's outfits</h3>
-        <div className="prog-popo">
-          <Popo size={92} outfit={outfit} dance key={outfit || 'none'} />
-        </div>
-        <div className="prog-outfits">
-          {OUTFITS.map((o) => {
-            const open = collected >= o.stickers;
-            const on = outfit === o.id;
-            return (
-              <button
-                key={o.id}
-                className={`prog-outfit${on ? ' prog-outfit-on' : ''}`}
-                disabled={!open}
-                onClick={() => {
-                  setPopoOutfit(playerId, on ? null : o.id);
-                  onOutfit();
-                }}
-              >
-                <span className="prog-outfit-emoji">{o.emoji}</span>
-                <b>{o.name}</b>
-                <span className="muted-text">{on ? 'Wearing' : open ? 'Tap to wear' : `${o.stickers} ⭐`}</span>
-              </button>
-            );
-          })}
-        </div>
       </div>
 
       <div className="prog-card prog-row">
