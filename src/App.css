@@ -4498,3 +4498,101 @@ body {
 .page-home .home-fit .home-grid {
   flex: 1 0 auto;
 }
+
+/* ---------- A player's settings card, in sections ---------- */
+.ps-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #e6e9f2;
+}
+.ps-section-title {
+  margin: 0;
+  font: 700 17px 'Fredoka', ui-rounded, system-ui, sans-serif;
+  color: var(--ink);
+}
+.ps-row {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+.ps-row-top {
+  align-items: start;
+}
+.ps-row-top .ps-label {
+  padding-top: 10px;
+}
+.ps-label {
+  color: var(--ink-dim);
+  font: 700 13px 'IBM Plex Sans', sans-serif;
+}
+.ps-row .color-settings-grid {
+  margin: 0;
+}
+.ps-row .ns-segment {
+  font-size: 13px;
+  white-space: nowrap;
+  padding: 8px 4px;
+}
+.ps-hint {
+  margin: 6px 0 0;
+  color: var(--ink-dim);
+  font-size: 12.5px;
+}
+.ps-hint-indent {
+  margin: -4px 0 0 60px;
+}
+.ps-switch-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: #f3f5fb;
+  cursor: pointer;
+}
+.ps-switch-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  font-size: 12.5px;
+  color: var(--ink-dim);
+}
+.ps-switch-text b {
+  font: 600 15px 'Fredoka', ui-rounded, system-ui, sans-serif;
+  color: var(--ink);
+}
+.ps-switch {
+  appearance: none;
+  flex: none;
+  position: relative;
+  width: 48px;
+  height: 28px;
+  margin: 0;
+  border-radius: 999px;
+  background: #d3d8e6;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.ps-switch::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  transition: transform 0.15s;
+}
+.ps-switch:checked {
+  background: #34c759;
+}
+.ps-switch:checked::after {
+  transform: translateX(20px);
+}
