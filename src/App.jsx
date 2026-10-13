@@ -11,6 +11,10 @@ import MainMenu from './MainMenu.jsx';
 import { PlayerSettingsCard, AddPlayerForm, AccountButton, AccountScreen, SyncStatus } from './Settings.jsx';
 import NoteSpeller from './NoteSpeller.jsx';
 import TinyTots from './TinyTots.jsx';
+import Progress from './Progress.jsx';
+import { stickerFor, BOOK_SIZE } from './stickers.js';
+import { weekProgress } from './progress.js';
+import { scheduleReminders } from './reminders.js';
 import { inTinyTots } from './tinyTots.js';
 import TypeNotes from './TypeNotes.jsx';
 import { typesNotes } from './typeNotes.js';
@@ -37,7 +41,7 @@ import { useScreenHistory } from './screenHistory.js';
 import { colorToWorkOn, loadRoundHistory, recordRound, summarizeRound } from './roundHistory.js';
 import ScoreCelebration, { scoreTier, TIER_TEXT } from './ScoreCelebration.jsx';
 import { PlayTriangleIcon, SpeakerIcon, CheckIcon, XIcon, TokenIcon } from './icons.jsx';
-import { loadStreakDays, recordStreakDay, streakFor } from './streak.js';
+import { dayKey, loadStreakDays, recordStreakDay, streakFor } from './streak.js';
 import { setKeepRecords } from './records.js';
 import { startHistorySync } from './historySync.js';
 import { loadPracticeLog, practiceStats } from './practiceLog.js';
@@ -381,7 +385,7 @@ function FocusTag({ focus }) {
   );
 }
 
-function RoundSummary({ playerName, correct, wrong, streak, summary, history, focus }) {
+function RoundSummary({ playerName, correct, wrong, streak, summary, history, focus, sticker, signedIn }) {
   const tier = scoreTier(correct, summary.total);
   const text = TIER_TEXT[tier];
   const workOn = colorToWorkOn(summary);
@@ -404,6 +408,26 @@ function RoundSummary({ playerName, correct, wrong, streak, summary, history, fo
           {correct === summary.total ? 'Every chord right!' : text.sub}
         </p>
       </div>
+      {sticker?.earned ? (
+        <div className="sticker-won">
+          <span className="sticker-won-emoji" aria-hidden="true">
+            {sticker.emoji}
+          </span>
+          <span>
+            <span className="workon-title">You earned a sticker: {sticker.name}!</span>
+            <br />
+            <span className="workon-text">
+              {((sticker.number - 1) % BOOK_SIZE) + 1} of {BOOK_SIZE} in the sticker book
+            </span>
+          </span>
+        </div>
+      ) : sticker ? (
+        <p className="sticker-today">
+          Today's sticker: {sticker.emoji} {sticker.name}. Come back tomorrow for the next one!
+        </p>
+      ) : !signedIn ? (
+        <p className="sticker-today">Sign in to collect a sticker for every day of practice ⭐</p>
+      ) : null}
       <div className="stat-tiles stat-tiles-compact">
         <div className="stat-tile">
           <div className="stat-number">{correct}</div>
@@ -549,8 +573,32 @@ export default function App() {
   const [lastActiveProfile, setLastActiveProfile] = useState(initialSession.lastActiveProfile || profiles[0].id);
   const [progress, setProgress] = useState(loadProgress);
   const [streakDays, setStreakDays] = useState(loadStreakDays);
+  // The sticker shown on the "All done!" screen (see stickers.js).
+  const [roundSticker, setRoundSticker] = useState(null);
 
   const currentProfile = profiles.find((p) => p.id === profile) || profiles[0];
+  // What the daily reminder and the Sunday summary say (reminders.js).
+  function reminderPlayers() {
+    if (!cloudUser) return [];
+    const history = loadRoundHistory();
+    return profiles.map((p) => {
+      const days = streakDays[p.id] || [];
+      const week = weekProgress(history[p.id] || [], days, p.colors);
+      return {
+        name: p.name,
+        streak: week.streak,
+        practicedToday: days.includes(dayKey()),
+        week: { rounds: week.roundsThisWeek, pctRight: week.pctRight },
+      };
+    });
+  }
+  const reminderPlayersRef = useRef(reminderPlayers);
+  reminderPlayersRef.current = reminderPlayers;
+  // Kept current: on opening, when players change and after each round.
+  useEffect(() => {
+    scheduleReminders(reminderPlayersRef.current());
+  }, [cloudUser, profiles, streakDays]);
+
   // Tiny Tots shows the player's colors, in the order they learned them.
   const totsColors = (currentProfile.colors || []).map((n) => COLORS.find((c) => c.name === n)).filter(Boolean);
   const lastProfile = profiles.find((p) => p.id === lastActiveProfile) || profiles[0];
@@ -989,6 +1037,11 @@ export default function App() {
   function nextChord() {
     newSound();
     if (roundIndex + 1 >= SESSION_ROUNDS) {
+      // The day's first finished round earns the next sticker.
+      const before = streakDays[profile] || [];
+      setRoundSticker(
+        !cloudUser ? null : before.includes(dayKey()) ? { earned: false, ...stickerFor(before.length - 1) } : { earned: true, number: before.length + 1, ...stickerFor(before.length) },
+      );
       setStreakDays(recordStreakDay(streakDays, profile));
       recordRound(profile, summarizeRound(sessionQueue, roundOutcomes, roundMixups));
       setView('play-complete');
@@ -1038,7 +1091,7 @@ export default function App() {
   // Piano, Practice Mode and Music Theory are side trips like Explore:
   // closing one goes back to wherever the player was (a quiz in progress
   // included) instead of restarting the color game.
-  const TOOL_VIEWS = ['piano', 'practice', 'theory', 'method', 'scales', 'hanon', 'tinytots'];
+  const TOOL_VIEWS = ['piano', 'practice', 'theory', 'method', 'scales', 'hanon', 'tinytots', 'progress'];
 
   // The header's practice pill, on every screen: back to the timer (in
   // Practice Mode itself, to its Timer tab).
@@ -1327,7 +1380,7 @@ export default function App() {
     return <Piano engine={engineRef.current} onClose={closeTool} />;
   }
 
-  if (view === 'practice' || view === 'theory' || view === 'method' || view === 'scales' || view === 'hanon' || view === 'tinytots') {
+  if (view === 'practice' || view === 'theory' || view === 'method' || view === 'scales' || view === 'hanon' || view === 'tinytots' || view === 'progress') {
     // Practice Mode fits on one screen (its tools are tabs); the Music
     // Theory glossary and the method explanation are reading pages and
     // scroll.
@@ -1360,6 +1413,16 @@ export default function App() {
             <Hanon engine={engineRef.current} />
           ) : view === 'method' ? (
             <MethodInfo colors={COLORS} />
+          ) : view === 'progress' ? (
+            <Progress
+              player={currentProfile}
+              rounds={loadRoundHistory()[profile] || []}
+              days={streakDays[profile] || []}
+              colors={COLORS}
+              signedIn={!!cloudUser}
+              onSignIn={openAccount}
+              reminderPlayers={reminderPlayers}
+            />
           ) : view === 'tinytots' ? (
             <TinyTots colors={totsColors} engine={engineRef.current} />
           ) : (
@@ -1544,9 +1607,9 @@ export default function App() {
               )}
               <div className="home-stats">
                 {cloudUser ? (
-                  <span className="home-stat">
-                    🔥 {streak.current ? `${streak.current} ${streak.current === 1 ? 'day' : 'days'} in a row` : 'Start a streak'}
-                  </span>
+                  <button className="home-stat home-stat-link" onClick={() => openTool('progress')}>
+                    🔥 {streak.current ? `${streak.current} ${streak.current === 1 ? 'day' : 'days'} in a row` : 'Start a streak'} ›
+                  </button>
                 ) : (
                   <button className="home-stat home-stat-signin" onClick={openAccount}>
                     🔥 Sign in to keep streaks
@@ -1867,10 +1930,12 @@ export default function App() {
               summary={summarizeRound(sessionQueue, roundOutcomes, roundMixups)}
               history={loadRoundHistory()[profile] || []}
               focus={roundFocus}
+              sticker={roundSticker}
+              signedIn={!!cloudUser}
             />
             <div className="feedback-actions">
-              <button className="pill-btn-secondary" onClick={goHome}>
-                Home
+              <button className="pill-btn-secondary" onClick={() => openTool('progress')}>
+                📈 Progress
               </button>
               <button className="pill-btn-primary" onClick={startPlay}>
                 Play again →
