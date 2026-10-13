@@ -123,100 +123,135 @@ export function PlayerSettingsCard({ profile, colors, onUpdate, onRemove, canRem
         </button>
       </div>
       <PlayerHistory days={playDays} />
-      <p className="settings-help">
-        Color {profile.colors.length}: {profile.colors.join(' / ')}
-      </p>
-      <label className="type-notes-setting">
-        <input
-          type="checkbox"
-          checked={totsOn}
-          onChange={(e) => {
-            setTotsOn(e.target.checked);
-            setTinyTots(profile.id, e.target.checked);
-          }}
-        />
-        <span>
-          <b>🧸 Tiny Tots</b>
-          <span>Pitch Practice becomes big colors to tap: each one plays its chord and says its name. No right or wrong.</span>
-        </span>
-      </label>
-      <label className="type-notes-setting">
-        <input type="checkbox" checked={notesOn} onChange={(e) => toggleNotes(e.target.checked)} />
-        <span>
-          <b>🎹 Type the notes</b>
-          <span>After the color, type the chord's letters (red: C, E, G)</span>
-        </span>
-      </label>
-      <label className="type-notes-setting">
-        <input type="checkbox" checked={smartOn} onChange={(e) => toggleSmart(e.target.checked)} />
-        <span>
-          <b>🎯 Smart practice</b>
-          <span>More of the colors missed in the last 3 rounds, mix-ups side by side, and a missed chord comes back</span>
-        </span>
-      </label>
-      <div className="type-notes-setting reading-notes-setting">
-        <span>
-          <b>🎼 NoteSpeller</b>
-        </span>
-        <div className="ns-segmented" role="radiogroup" aria-label="Clef">
-          {CLEF_MODES.map((m) => (
-            <button
-              key={m.id}
-              role="radio"
-              aria-checked={readClef === m.id}
-              className={`ns-segment${readClef === m.id ? ' ns-segment-active' : ''}`}
-              onClick={() => {
-                setReadClef(m.id);
-                setReadingClef(profile.id, m.id);
-              }}
-            >
-              {m.label}
-            </button>
-          ))}
+
+      {/* Pitch Practice: which colors, and how the player plays them. */}
+      <div className="ps-section">
+        <h4 className="ps-section-title">🌈 Pitch Practice</h4>
+        <div className="ps-row ps-row-top">
+          <span className="ps-label">Colors</span>
+          <div>
+            <div className="color-settings-grid">
+              {colors.map((color) => (
+                <button
+                  key={color.name}
+                  className={`color-setting${profile.colors.includes(color.name) ? ' color-setting-active' : ''}`}
+                  style={{ background: color.hex, color: color.text }}
+                  onClick={() => toggleColor(color.name)}
+                  aria-pressed={profile.colors.includes(color.name)}
+                >
+                  {color.name}
+                </button>
+              ))}
+            </div>
+            <p className="ps-hint">
+              Learning order: {profile.colors.map((c) => c[0].toUpperCase() + c.slice(1)).join(', ')}
+            </p>
+          </div>
         </div>
-        <div className="ns-segmented" role="radiogroup" aria-label="Which part of the staff">
-          {LEVELS.map((l) => (
-            <button
-              key={l.id}
-              role="radio"
-              aria-checked={readLevel === l.id}
-              className={`ns-segment${readLevel === l.id ? ' ns-segment-active' : ''}`}
-              onClick={() => {
-                setReadLevel(l.id);
-                setReadingLevel(profile.id, l.id);
-              }}
-            >
-              {l.label}
-            </button>
-          ))}
+        <div className="ps-row">
+          <span className="ps-label">Plays</span>
+          <div className="ns-segmented" role="radiogroup" aria-label="How Pitch Practice plays">
+            {[
+              [false, '🌈 Color game'],
+              [true, '🧸 Tiny Tots'],
+            ].map(([tots, label]) => (
+              <button
+                key={label}
+                role="radio"
+                aria-checked={totsOn === tots}
+                className={`ns-segment${totsOn === tots ? ' ns-segment-active' : ''}`}
+                onClick={() => {
+                  setTotsOn(tots);
+                  setTinyTots(profile.id, tots);
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
-        <span>{LEVELS.find((l) => l.id === readLevel).hint}</span>
-        <span>{readLetters.length === LETTERS.length ? 'All notes. Tap to leave some out' : `Only ${readLetters.join(', ')}`}</span>
-        <div className="ns-letter-picks" role="group" aria-label="NoteSpeller notes">
-          {LETTERS.map((l) => (
-            <button
-              key={l}
-              aria-pressed={readLetters.includes(l)}
-              className={`ns-letter-pick${readLetters.includes(l) ? ' ns-letter-pick-on' : ''}`}
-              onClick={() => toggleReadLetter(l)}
-            >
-              {l}
-            </button>
-          ))}
-        </div>
+        {totsOn ? (
+          <p className="ps-hint ps-hint-indent">Big colors to tap: each plays its chord and says its name. No right or wrong.</p>
+        ) : (
+          <>
+            <label className="ps-switch-row">
+              <span className="ps-switch-text">
+                <b>🎹 Type the notes</b>
+                <span>After the color, play its letters (red: C, E, G)</span>
+              </span>
+              <input type="checkbox" className="ps-switch" checked={notesOn} onChange={(e) => toggleNotes(e.target.checked)} />
+            </label>
+            <label className="ps-switch-row">
+              <span className="ps-switch-text">
+                <b>🎯 Smart practice</b>
+                <span>More of the colors missed lately</span>
+              </span>
+              <input type="checkbox" className="ps-switch" checked={smartOn} onChange={(e) => toggleSmart(e.target.checked)} />
+            </label>
+          </>
+        )}
       </div>
-      <div className="color-settings-grid">
-        {colors.map((color) => (
-          <button
-            key={color.name}
-            className={`color-setting${profile.colors.includes(color.name) ? ' color-setting-active' : ''}`}
-            style={{ background: color.hex, color: color.text }}
-            onClick={() => toggleColor(color.name)}
-            aria-pressed={profile.colors.includes(color.name)}
-          >
-            {color.name}
-          </button>
-        ))}
+
+      {/* NoteSpeller: what this player reads. */}
+      <div className="ps-section">
+        <h4 className="ps-section-title">🎼 NoteSpeller</h4>
+        <div className="ps-row">
+          <span className="ps-label">Clef</span>
+          <div className="ns-segmented" role="radiogroup" aria-label="Clef">
+            {CLEF_MODES.map((m) => (
+              <button
+                key={m.id}
+                role="radio"
+                aria-checked={readClef === m.id}
+                className={`ns-segment${readClef === m.id ? ' ns-segment-active' : ''}`}
+                onClick={() => {
+                  setReadClef(m.id);
+                  setReadingClef(profile.id, m.id);
+                }}
+              >
+                {m.label.replace(' clef', '')}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="ps-row">
+          <span className="ps-label">Staff</span>
+          <div className="ns-segmented" role="radiogroup" aria-label="Which part of the staff">
+            {LEVELS.map((l) => (
+              <button
+                key={l.id}
+                role="radio"
+                aria-checked={readLevel === l.id}
+                className={`ns-segment${readLevel === l.id ? ' ns-segment-active' : ''}`}
+                onClick={() => {
+                  setReadLevel(l.id);
+                  setReadingLevel(profile.id, l.id);
+                }}
+              >
+                {l.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <p className="ps-hint ps-hint-indent">{LEVELS.find((l) => l.id === readLevel).hint}</p>
+        <div className="ps-row">
+          <span className="ps-label">Notes</span>
+          <div className="ns-letter-picks" role="group" aria-label="NoteSpeller notes">
+            {LETTERS.map((l) => (
+              <button
+                key={l}
+                aria-pressed={readLetters.includes(l)}
+                className={`ns-letter-pick${readLetters.includes(l) ? ' ns-letter-pick-on' : ''}`}
+                onClick={() => toggleReadLetter(l)}
+              >
+                {l}
+              </button>
+            ))}
+          </div>
+        </div>
+        <p className="ps-hint ps-hint-indent">
+          {readLetters.length === LETTERS.length ? 'All notes. Tap a letter to leave it out.' : `Only ${readLetters.join(', ')}`}
+        </p>
       </div>
     </section>
   );
