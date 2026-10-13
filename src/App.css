@@ -2793,17 +2793,6 @@ body {
   overflow: hidden;
 }
 
-@container (max-height: 74px) {
-  .home-card-sub {
-    -webkit-line-clamp: 1;
-  }
-}
-
-@container (max-height: 52px) {
-  .home-card-sub {
-    display: none !important;
-  }
-}
 
 .explore-fit .rainbow-slot {
   flex: none;
@@ -5127,4 +5116,96 @@ body {
 .checks-better {
   font-weight: 700;
   color: #2a8a4a;
+}
+
+/* ---------- Home: a compact top, bigger piano tools ---------- */
+/* The greeting and the Perfect Pitch card take less room... */
+.home-fit .home-hero {
+  gap: 3px;
+  padding: 8px 14px 10px;
+}
+.home-fit .home-hero-rainbow .rainbow {
+  height: clamp(30px, 5.5vh, 54px);
+}
+.home-fit .home-hello {
+  font-size: clamp(20px, 6vw, 25px);
+}
+.home-fit .home-tagline {
+  display: none;
+}
+.home-fit .home-practice {
+  margin: 2px 0 0;
+  padding: 8px 20px;
+  font-size: 16px;
+}
+.home-fit .home-stats {
+  margin-top: 2px;
+}
+.home-fit .home-popo {
+  top: 6px;
+  right: 10px;
+}
+.home-fit .pitch-set {
+  gap: 6px;
+  padding: 8px 9px 9px;
+}
+.home-fit .home-cta {
+  padding: 8px 14px;
+  gap: 12px;
+}
+.home-fit .home-cta-icon {
+  width: 38px;
+  height: 38px;
+}
+.home-fit .home-cta-title {
+  font-size: 19px;
+}
+.home-fit .home-cta-sub {
+  font-size: 12.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.home-fit .pitch-explore {
+  padding: 5px 14px;
+}
+.home-fit .pitch-explore-icon {
+  height: 28px;
+}
+
+/* ...so the piano tools get the rest: icon on top, then the title and
+   its explanation (hidden only on a very short card). */
+.home-fit .home-card {
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 3px;
+  padding: 10px 16px;
+}
+.home-fit .home-card-icon {
+  width: 36px;
+  height: 36px;
+  font-size: 20px;
+  margin-bottom: 2px;
+}
+.home-fit .home-card-title {
+  font-size: 17px;
+}
+.home-fit .home-card-sub {
+  font-size: 12.5px;
+  -webkit-line-clamp: 2;
+}
+/* (Sizes of the card's inside, without its padding.) */
+@container (max-height: 78px) {
+  .home-card-icon {
+    display: none !important;
+  }
+  .home-card-sub {
+    -webkit-line-clamp: 1 !important;
+  }
+}
+@container (max-height: 34px) {
+  .home-card-sub {
+    display: none !important;
+  }
 }

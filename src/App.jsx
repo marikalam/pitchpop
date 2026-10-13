@@ -1750,7 +1750,7 @@ export default function App() {
                 <span className="home-cta-text">
                   <span className="home-cta-title">Pitch Practice</span>
                   <span className="home-cta-sub">
-                    {inTinyTots(profile) ? 'Tiny Tots: tap a color, hear its chord' : 'Hear a chord, pick its color'}
+                    {inTinyTots(profile) ? 'Tiny Tots: tap and listen' : 'Hear a chord, pick its color'}
                   </span>
                 </span>
                 <span className="home-cta-arrow" aria-hidden="true">
