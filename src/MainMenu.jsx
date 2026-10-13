@@ -31,7 +31,6 @@ const MENU_SECTIONS = [
   {
     id: 'learn',
     title: 'Learn',
-    signedInOnly: true,
     items: [
       { id: 'notespeller', icon: '🎼', label: 'NoteSpeller' },
       { id: 'theory', icon: '📖', label: 'Music Theory' },
@@ -39,7 +38,7 @@ const MENU_SECTIONS = [
   },
 ];
 
-export default function MainMenu({ signedIn, onOpen }) {
+export default function MainMenu({ onOpen }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
@@ -71,7 +70,7 @@ export default function MainMenu({ signedIn, onOpen }) {
       </button>
       {open && (
         <div className="profile-menu main-menu-panel">
-          {MENU_SECTIONS.filter((section) => signedIn || !section.signedInOnly).map((section, i) => (
+          {MENU_SECTIONS.map((section, i) => (
             <div key={section.id} className={i === 0 ? 'main-menu-section-first' : 'profile-menu-section'}>
               {section.title && <div className="profile-menu-heading">{section.title}</div>}
               {section.items.map((item) => (

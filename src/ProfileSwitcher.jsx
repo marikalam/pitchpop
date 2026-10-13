@@ -5,7 +5,7 @@ import Avatar from './Avatar.jsx';
 // picks which player is playing. Signed in, it also leads to the family's
 // Players & colors settings. The rest of the app lives in the ☰ menu
 // (MainMenu).
-export default function ProfileSwitcher({ profile, profiles, colors, signedIn, onChange, onOpenSettings }) {
+export default function ProfileSwitcher({ profile, profiles, colors, onChange, onOpenSettings }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
   const current = profiles.find((p) => p.id === profile) || profiles[0];
@@ -53,19 +53,17 @@ export default function ProfileSwitcher({ profile, profiles, colors, signedIn, o
               </span>
             </button>
           ))}
-          {signedIn && (
-            <div className="profile-menu-section">
-              <button
-                className="profile-settings-item"
-                onClick={() => {
-                  onOpenSettings();
-                  setOpen(false);
-                }}
-              >
-                ⚙️ <span>Players &amp; colors</span>
-              </button>
-            </div>
-          )}
+          <div className="profile-menu-section">
+            <button
+              className="profile-settings-item"
+              onClick={() => {
+                onOpenSettings();
+                setOpen(false);
+              }}
+            >
+              ⚙️ <span>Players &amp; colors</span>
+            </button>
+          </div>
         </div>
       )}
     </div>

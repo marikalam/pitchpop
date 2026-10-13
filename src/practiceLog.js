@@ -1,3 +1,4 @@
+import { keepsRecords } from './records.js';
 import { dayKey, streakFor } from './streak.js';
 
 // Saved practices, per player, on this device: [{ day, minutes, endedAt }].
@@ -26,6 +27,7 @@ export function loadPracticeLog() {
 
 // Returns the updated log.
 export function recordPractice(log, profileId, minutes, ended = new Date()) {
+  if (!keepsRecords()) return log;
   const entry = { day: dayKey(ended), minutes, endedAt: ended.toISOString() };
   const next = { ...log, [profileId]: [...(log[profileId] || []), entry] };
   try {

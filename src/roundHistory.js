@@ -1,3 +1,4 @@
+import { keepsRecords } from './records.js';
 import { dayKey } from './streak.js';
 
 // Each player's finished Pitch Practice rounds, on this device: the score
@@ -33,6 +34,7 @@ export function summarizeRound(queue, outcomes, mixups) {
 
 export function recordRound(profileId, summary, ended = new Date()) {
   const all = loadRoundHistory();
+  if (!keepsRecords()) return all[profileId] || [];
   const entry = { day: dayKey(ended), endedAt: ended.toISOString(), ...summary };
   const next = { ...all, [profileId]: [...(all[profileId] || []), entry].slice(-KEEP) };
   try {

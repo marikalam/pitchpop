@@ -59,7 +59,17 @@ function formatDay(key) {
   return new Date(y, m - 1, d).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
 }
 
-function PlayerHistory({ days }) {
+function PlayerHistory({ days, onSignIn }) {
+  if (onSignIn) {
+    return (
+      <p className="player-history">
+        <button className="link-btn" onClick={onSignIn}>
+          Sign in
+        </button>{' '}
+        to keep this player's streaks and history
+      </p>
+    );
+  }
   const since = firstDay(days);
   if (!since) return <p className="player-history">Hasn't finished a round yet</p>;
   const { current, best } = streakFor(days);
@@ -75,7 +85,7 @@ function PlayerHistory({ days }) {
   );
 }
 
-export function PlayerSettingsCard({ profile, colors, onUpdate, onRemove, canRemove, playDays }) {
+export function PlayerSettingsCard({ profile, colors, onUpdate, onRemove, canRemove, playDays, onSignIn }) {
   // The notes level is kept on this device, and changes straight away.
   const [notesOn, setNotesOn] = useState(() => typesNotes(profile.id));
   function toggleNotes(on) {
@@ -116,7 +126,7 @@ export function PlayerSettingsCard({ profile, colors, onUpdate, onRemove, canRem
           Remove
         </button>
       </div>
-      <PlayerHistory days={playDays} />
+      <PlayerHistory days={playDays} onSignIn={onSignIn} />
 
       {/* Pitch Practice: which colors, and how the player plays them. */}
       <div className="ps-section">

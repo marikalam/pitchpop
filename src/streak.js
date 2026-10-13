@@ -1,3 +1,5 @@
+import { keepsRecords } from './records.js';
+
 // Practice streaks, per player: the set of days each player finished a
 // round, stored on this device and, signed in, synced to the family
 // account (historySync.js).
@@ -28,6 +30,7 @@ export function loadStreakDays() {
 
 // Returns the updated map; a day is only recorded once.
 export function recordStreakDay(allDays, profileId, today = dayKey()) {
+  if (!keepsRecords()) return allDays;
   const days = allDays[profileId] || [];
   if (days.includes(today)) return allDays;
   const next = { ...allDays, [profileId]: [...days, today].sort() };
