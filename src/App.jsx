@@ -1227,7 +1227,7 @@ export default function App() {
 
   function addPlayer(rawName) {
     const name = rawName.trim();
-    if (!name) return;
+    if (!name || !cloudUser) return;
     const id = `${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${Date.now()}`;
     setDraftProfiles((prev) => [...prev, { id, name, colors: ['red'] }]);
   }
@@ -1403,7 +1403,18 @@ export default function App() {
               />
             ))}
           </div>
-          <AddPlayerForm onAdd={addPlayer} />
+          {/* Guests have one player; more players, and records, need an
+              account. */}
+          {cloudUser ? (
+            <AddPlayerForm onAdd={addPlayer} />
+          ) : (
+            <div className="guest-note">
+              <p>You need an account to keep more players and settings, and to record history.</p>
+              <button className="pill-btn-secondary" onClick={openAccount}>
+                Sign in or create account
+              </button>
+            </div>
+          )}
           <button className="pill-btn-primary pill-btn-full" onClick={saveSettings}>
             Save players &amp; colors
           </button>
