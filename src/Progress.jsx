@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { weekProgress } from './progress.js';
 import { BOOK_SIZE, stickerFor } from './stickers.js';
+import Sticker from './Sticker.jsx';
 import { loadReminder, remindersAvailable, setReminder } from './reminders.js';
 
 // The parent progress page: the player's last 7 days (rounds, streak,
@@ -152,7 +153,7 @@ export default function Progress({ player, rounds, days, colors, signedIn, onSig
           {Array.from({ length: BOOK_SIZE }, (_, i) =>
             i < onPage ? (
               <span key={i} className="prog-sticker" title={stickerFor(i).name}>
-                {stickerFor(i).emoji}
+                <Sticker index={i} size={52} />
               </span>
             ) : (
               <span key={i} className="prog-sticker prog-sticker-empty">

@@ -13,6 +13,7 @@ import NoteSpeller from './NoteSpeller.jsx';
 import TinyTots from './TinyTots.jsx';
 import Progress from './Progress.jsx';
 import { stickerFor, BOOK_SIZE } from './stickers.js';
+import Sticker from './Sticker.jsx';
 import { weekProgress } from './progress.js';
 import { scheduleReminders } from './reminders.js';
 import { inTinyTots } from './tinyTots.js';
@@ -441,7 +442,7 @@ function RoundSummary({ playerName, correct, wrong, streak, summary, history, fo
       {sticker?.earned ? (
         <div className="sticker-won">
           <span className="sticker-won-emoji" aria-hidden="true">
-            {sticker.emoji}
+            <Sticker index={sticker.index} size={64} />
           </span>
           <span>
             <span className="workon-title">You earned a sticker: {sticker.name}!</span>
@@ -453,7 +454,7 @@ function RoundSummary({ playerName, correct, wrong, streak, summary, history, fo
         </div>
       ) : sticker ? (
         <p className="sticker-today">
-          Today's sticker: {sticker.emoji} {sticker.name}. Come back tomorrow for the next one!
+          <Sticker index={sticker.index} size={28} /> Today's sticker: {sticker.name}. Come back tomorrow for the next one!
         </p>
       ) : !signedIn ? (
         <p className="sticker-today">Sign in to collect a sticker for every day of practice ⭐</p>
