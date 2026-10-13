@@ -5122,3 +5122,30 @@ body {
 .sticker-won-emoji {
   display: flex;
 }
+
+/* Animated stickers: each one moves its own way (stickers.js MOVES). */
+.sticker-bob { animation: stk-bob 2.4s ease-in-out infinite; }
+.sticker-pulse { animation: stk-pulse 1.6s ease-in-out infinite; }
+.sticker-twinkle { animation: stk-twinkle 2.2s ease-in-out infinite; }
+.sticker-float { animation: stk-float 3s ease-in-out infinite; }
+.sticker-wiggle { animation: stk-wiggle 2s ease-in-out infinite; }
+.sticker-hop { animation: stk-hop 1.8s ease-in-out infinite; }
+.sticker-rock { animation: stk-rock 3s ease-in-out infinite; }
+.sticker-flutter { animation: stk-flutter 0.9s ease-in-out infinite; }
+.sticker-spin { animation: stk-spin 9s linear infinite; }
+.sticker-dangle { animation: stk-dangle 2.6s ease-in-out infinite; transform-origin: 50% 0; }
+.sticker-shake { animation: stk-shake 0.5s ease-in-out infinite; }
+@keyframes stk-bob { 50% { transform: translateY(-6%); } }
+@keyframes stk-pulse { 50% { transform: scale(1.1); } }
+@keyframes stk-twinkle { 25% { transform: rotate(-10deg) scale(1.05); } 75% { transform: rotate(10deg) scale(1.05); } }
+@keyframes stk-float { 50% { transform: translateY(-10%) rotate(3deg); } }
+@keyframes stk-wiggle { 0%, 60%, 100% { transform: rotate(0); } 70% { transform: rotate(-9deg); } 80% { transform: rotate(9deg); } 90% { transform: rotate(-5deg); } }
+@keyframes stk-hop { 0%, 50%, 100% { transform: translateY(0); } 25% { transform: translateY(-14%); } }
+@keyframes stk-rock { 25% { transform: rotate(-7deg); } 75% { transform: rotate(7deg); } }
+@keyframes stk-flutter { 50% { transform: scaleX(0.8); } }
+@keyframes stk-spin { to { transform: rotate(360deg); } }
+@keyframes stk-dangle { 50% { transform: translateY(8%) rotate(4deg); } }
+@keyframes stk-shake { 25% { transform: translate(-2%, 1%); } 75% { transform: translate(2%, -1%); } }
+@media (prefers-reduced-motion: reduce) {
+  .sticker { animation: none !important; }
+}
