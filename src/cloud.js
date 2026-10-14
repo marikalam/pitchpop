@@ -347,3 +347,18 @@ export async function mergeCloudHistory(profileId, practiceLog, streakDays) {
     return null;
   }
 }
+
+// Sends a player's stickers and gets back the family account's combined
+// list (supabase/stickers_sync.sql). null when it can't (offline, or the
+// database hasn't been set up for stickers yet): they stay on this phone.
+export async function mergeCloudStickers(profileId, stickers) {
+  try {
+    const { data, error } = await supabase.rpc('merge_player_stickers', {
+      p_profile_key: profileId,
+      p_stickers: stickers,
+    });
+    return error ? null : data;
+  } catch {
+    return null;
+  }
+}

@@ -2209,46 +2209,6 @@ body {
 }
 
 /* ---------- Practice Mode ---------- */
-.token-earned {
-  align-self: center;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  border-radius: 999px;
-  background: #fff3c4;
-  color: #6b4a00;
-  font: 700 16px 'Fredoka', ui-rounded, system-ui, sans-serif;
-  animation: token-pop 0.5s ease-out;
-}
-
-.token-earned-coin {
-  font-size: 22px;
-  animation: token-spin 0.8s ease-out;
-}
-
-@keyframes token-pop {
-  0% {
-    transform: scale(0.6);
-    opacity: 0;
-  }
-  70% {
-    transform: scale(1.08);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(1);
-  }
-}
-
-@keyframes token-spin {
-  from {
-    transform: rotateY(0deg);
-  }
-  to {
-    transform: rotateY(720deg);
-  }
-}
 
 .metronome-row {
   display: flex;
@@ -2301,10 +2261,6 @@ body {
 .metronome-slider {
   width: 100%;
   accent-color: var(--accent-blue);
-}
-
-.practice-history-tokens {
-  color: #a07400;
 }
 
 .practice-card {
@@ -2641,18 +2597,6 @@ body {
 
 .practice-title {
   text-align: left;
-}
-
-.token-chip {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
-  border-radius: 999px;
-  background: linear-gradient(135deg, #fff6d6, #ffe9a8);
-  color: #6b4a00;
-  font: 700 17px 'Fredoka', ui-rounded, system-ui, sans-serif;
-  box-shadow: var(--shadow-sm);
 }
 
 .practice-tabs {
@@ -3665,13 +3609,6 @@ body {
   margin: 0;
   font-size: 12px;
   color: var(--ink-dim);
-}
-
-/* The gold token coin, sitting on the text line. */
-.token-icon {
-  display: inline-block;
-  vertical-align: -0.2em;
-  flex: none;
 }
 
 /* Two tabs (Major, Minor), each half the bar. */
@@ -5439,4 +5376,29 @@ body {
   .sbook-done {
     animation: none;
   }
+}
+
+/* Stickers waiting to be picked, on the home Sticker book button. */
+.home-stickers-badge {
+  margin-left: 2px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: #fff;
+  color: #ae3ec9;
+  font-size: 13px;
+}
+
+/* A guest's sticker: theirs to see, but no book to keep it in. */
+.sticker-guest {
+  text-align: left;
+}
+.sticker-guest-signin {
+  margin-top: 8px;
+  padding: 7px 14px;
+  border: none;
+  border-radius: 999px;
+  background: #5f3dc4;
+  color: #fff;
+  font: 600 14px 'IBM Plex Sans', sans-serif;
+  cursor: pointer;
 }

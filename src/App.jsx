@@ -14,6 +14,7 @@ import TinyTots from './TinyTots.jsx';
 import Progress from './Progress.jsx';
 import StickerPicker from './StickerPicker.jsx';
 import StickerBook from './StickerBook.jsx';
+import { earnSticker, pendingStickers } from './stickerStore.js';
 import { weekProgress } from './progress.js';
 import { scheduleReminders } from './reminders.js';
 import { inTinyTots } from './tinyTots.js';
@@ -78,8 +79,7 @@ const SESSION_ROUNDS = 20;
 // their own Perfect Pitch card above them).
 const HOME_CARDS = [
   { id: 'piano', icon: '🎹', title: 'Piano', sub: 'Play a real keyboard', from: '#9b6ef3', to: '#7a4fd6' },
-  // Tokens are for signed-in families (guestSub is shown to guests).
-  { id: 'practice', icon: '⏱️', title: 'Practice Mode', sub: 'Timer, metronome, tokens', guestSub: 'Timer, metronome, counter', from: '#f7a24f', to: '#e8792f' },
+  { id: 'practice', icon: '⏱️', title: 'Practice Mode', sub: 'Timer, metronome, counter', from: '#f7a24f', to: '#e8792f' },
   { id: 'scales', icon: '🎶', title: 'Scales', sub: 'Major & minor, with fingering', from: '#2fb3c4', to: '#1f8fa0' },
   { id: 'hanon', icon: '🏋️', title: 'Hanon', sub: 'Finger exercises 1–20', from: '#5b6ee8', to: '#3f4fc4' },
   { id: 'notespeller', icon: '🎼', title: 'NoteSpeller', sub: 'Read notes on the staff', from: '#3fbf7f', to: '#2a9d63' },
@@ -415,7 +415,7 @@ function FocusTag({ focus }) {
   );
 }
 
-function RoundSummary({ playerId, playerName, correct, wrong, streak, summary, history, focus, days, signedIn, onStick }) {
+function RoundSummary({ playerId, playerName, correct, wrong, streak, summary, history, focus, signedIn, onStick, onSignIn }) {
   const tier = scoreTier(correct, summary.total);
   const text = TIER_TEXT[tier];
   const workOn = colorToWorkOn(summary);
@@ -438,11 +438,7 @@ function RoundSummary({ playerId, playerName, correct, wrong, streak, summary, h
           {correct === summary.total ? 'Every chord right!' : text.sub}
         </p>
       </div>
-      {signedIn ? (
-        <StickerPicker playerId={playerId} days={days} onStick={onStick} />
-      ) : (
-        <p className="sticker-today">Sign in to collect a sticker for every day of practice ⭐</p>
-      )}
+      <StickerPicker playerId={playerId} signedIn={signedIn} from="pitch" onStick={onStick} onSignIn={onSignIn} />
       <div className="stat-tiles stat-tiles-compact">
         <div className="stat-tile">
           <div className="stat-number">{correct}</div>
@@ -711,6 +707,7 @@ export default function App() {
   // (smartRound.js), or null: { name, partner }.
   // A sticker just picked on the "All done!" screen, to stick in the book.
   const [placingSticker, setPlacingSticker] = useState(null);
+  const [stickerBackTo, setStickerBackTo] = useState(null);
   const [roundFocus, setRoundFocus] = useState(resumableSession.roundFocus || null);
 
   const [melodyTaps, setMelodyTaps] = useState(initialSession.melodyTaps || 0);
@@ -1112,9 +1109,10 @@ export default function App() {
   function nextChord() {
     newSound();
     if (roundIndex + 1 >= SESSION_ROUNDS) {
-      // The day's first finished round earns a sticker (picked on the
-      // "All done!" screen).
+      // Every finished round earns a sticker (picked on the "All done!"
+      // screen).
       setStreakDays(recordStreakDay(streakDays, profile));
+      earnSticker(profile);
       recordRound(profile, summarizeRound(sessionQueue, roundOutcomes, roundMixups, roundFocus));
       setView('play-complete');
       return;
@@ -1257,8 +1255,32 @@ export default function App() {
     setView(id);
   }
 
+  // A sticker just picked after an activity: open the book to stick it
+  // in, and come back to the activity after.
+  function openStickerBookWith(index) {
+    setPlacingSticker(index);
+    setStickerBackTo(view);
+    openTool('stickers');
+  }
+
+  // The sticker picker shown when an activity is finished.
+  const stickerPicker = (from) => (
+    <StickerPicker
+      playerId={profile}
+      signedIn={!!cloudUser}
+      from={from}
+      onStick={openStickerBookWith}
+      onSignIn={openAccount}
+    />
+  );
+
   function closeTool() {
     setPlacingSticker(null);
+    if (view === 'stickers' && stickerBackTo) {
+      setStickerBackTo(null);
+      setView(stickerBackTo);
+      return;
+    }
     setView(TOOL_VIEWS.includes(preToolView) ? 'play-listen' : preToolView);
   }
 
@@ -1442,7 +1464,11 @@ export default function App() {
             engine={engineRef.current}
             playerId={profile}
             onOpenSettings={openSettings}
-            onComplete={() => setStreakDays(recordStreakDay(streakDays, profile))}
+            onComplete={() => {
+              setStreakDays(recordStreakDay(streakDays, profile));
+              earnSticker(profile);
+            }}
+            stickerSlot={stickerPicker('notes')}
           />
         </div>
       </div>
@@ -1478,7 +1504,8 @@ export default function App() {
               profileId={currentProfile.id}
               profileName={currentProfile.name}
               ready={authChecked}
-              showTokens={!!cloudUser}
+              onSaved={(id) => earnSticker(id)}
+              stickerSlot={stickerPicker('practice')}
             />
           ) : view === 'scales' ? (
             <Scales engine={engineRef.current} />
@@ -1501,7 +1528,6 @@ export default function App() {
             <StickerBook
               key={profile}
               player={currentProfile}
-              days={streakDays[profile] || []}
               signedIn={!!cloudUser}
               onSignIn={openAccount}
               placing={placingSticker}
@@ -1695,6 +1721,11 @@ export default function App() {
                     📒
                   </span>
                   Sticker book
+                  {cloudUser && pendingStickers(profile) > 0 && (
+                    <span className="home-stickers-badge" aria-label={`${pendingStickers(profile)} waiting`}>
+                      🎁 {pendingStickers(profile)}
+                    </span>
+                  )}
                 </button>
               </div>
             </section>
@@ -2060,12 +2091,9 @@ export default function App() {
               history={loadRoundHistory()[profile] || []}
               focus={roundFocus}
               playerId={profile}
-              days={streakDays[profile] || []}
               signedIn={!!cloudUser}
-              onStick={(index) => {
-                setPlacingSticker(index);
-                openTool('stickers');
-              }}
+              onStick={openStickerBookWith}
+              onSignIn={openAccount}
             />
             <div className="feedback-actions">
               <button className="pill-btn-secondary" onClick={() => openTool('progress')}>
