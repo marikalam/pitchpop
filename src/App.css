@@ -5221,3 +5221,222 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .sticker { animation: none !important; }
 }
+
+/* Home: Start practice and the sticker book side by side. */
+.home-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+.home-stickers {
+  background: linear-gradient(135deg, #b197fc, #f783ac);
+  box-shadow: 0 10px 20px -12px #cc5de8;
+}
+
+/* Progress: the way into the sticker book. */
+.prog-book-link {
+  width: 100%;
+  border: none;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.prog-book-peek {
+  display: flex;
+  gap: 2px;
+  margin-top: 4px;
+}
+.prog-book-arrow {
+  flex: none !important;
+  margin-left: auto;
+  color: var(--ink-dim);
+  font-size: 20px;
+}
+
+/* ---------- The sticker book (StickerBook.jsx) ---------- */
+.sbook {
+  padding-bottom: 90px;
+}
+.sbook-cover {
+  position: relative;
+  padding: 10px 10px 12px 26px;
+  border-radius: 22px;
+  background: linear-gradient(135deg, #9775fa, #f783ac);
+  box-shadow: 0 18px 30px -18px #7048e8;
+}
+.sbook-rings {
+  position: absolute;
+  top: 26px;
+  bottom: 26px;
+  left: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.sbook-rings span {
+  width: 26px;
+  height: 10px;
+  border-radius: 6px;
+  background: linear-gradient(#f1f3f5, #adb5bd);
+  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.25);
+}
+.sbook-page {
+  padding: 14px 12px 16px;
+  border-radius: 14px;
+  background:
+    radial-gradient(circle, #e9e4f7 1.2px, transparent 1.4px) 0 0 / 16px 16px,
+    #fffdf7;
+  text-align: center;
+}
+.sbook-title {
+  margin: 0;
+  font: 700 23px 'Fredoka', ui-rounded, system-ui, sans-serif;
+  color: #5f3dc4;
+}
+.sbook-count {
+  margin: 2px 0 10px;
+  color: var(--ink-dim);
+  font-size: 14px;
+  font-weight: 600;
+}
+.sbook-hint {
+  margin: 0 0 10px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: #fff4d6;
+  font-weight: 700;
+  font-size: 14.5px;
+}
+.sbook-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px 4px;
+}
+.sbook-spot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+}
+/* A sticker not collected yet: a faded shadow in its spot. */
+.sbook-shadow {
+  display: inline-flex;
+  filter: grayscale(1);
+  opacity: 0.22;
+}
+.sbook-shadow-btn {
+  padding: 4px;
+  border: 2px dashed transparent;
+  border-radius: 16px;
+  background: none;
+  cursor: pointer;
+  opacity: 0.4;
+  transition: transform 0.15s, opacity 0.15s;
+}
+.sbook-shadow-btn.is-chosen {
+  border-color: #9775fa;
+  background: #fff;
+  filter: none;
+  opacity: 1;
+  transform: scale(1.18);
+}
+.sbook-stickbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+  background: linear-gradient(transparent, var(--bg) 35%);
+  z-index: 5;
+}
+.sbook-stickbar .pill-btn-primary:disabled {
+  opacity: 0.55;
+}
+.sbook-done {
+  margin: 12px 0 0;
+  font: 700 18px 'Fredoka', ui-rounded, system-ui, sans-serif;
+  color: #5f3dc4;
+  animation: sticker-pop 0.5s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+.sbook-signin {
+  margin-top: 14px;
+}
+
+/* Putting a sticker on: it comes in big from the middle of the screen,
+   held up off the page (big soft shadow, tilted), glides over its spot,
+   gets pressed down flat (a little squish), and settles. */
+.sbook-flying {
+  position: relative;
+  z-index: 10;
+  display: inline-flex;
+  animation: sbook-stick 1.5s cubic-bezier(0.45, 0, 0.25, 1) both;
+}
+@keyframes sbook-stick {
+  0% {
+    transform: translate(var(--dx), var(--dy)) scale(0.4) rotate(-20deg);
+    opacity: 0;
+    filter: drop-shadow(0 6px 6px rgba(29, 33, 64, 0.2));
+  }
+  14% {
+    transform: translate(var(--dx), var(--dy)) scale(2.6) rotate(-10deg);
+    opacity: 1;
+    filter: drop-shadow(0 22px 18px rgba(29, 33, 64, 0.3));
+  }
+  34% {
+    transform: translate(var(--dx), var(--dy)) scale(2.5) rotate(8deg);
+    filter: drop-shadow(0 22px 18px rgba(29, 33, 64, 0.3));
+  }
+  72% {
+    transform: translate(0, -8px) scale(1.35) rotate(-6deg);
+    filter: drop-shadow(0 16px 12px rgba(29, 33, 64, 0.28));
+  }
+  84% {
+    transform: translate(0, 0) scale(0.9, 0.84) rotate(0);
+    filter: drop-shadow(0 1px 1px rgba(29, 33, 64, 0.1));
+  }
+  92% {
+    transform: scale(1.06);
+  }
+  100% {
+    transform: none;
+    filter: none;
+  }
+}
+/* Pressed on: a sparkly ring pops out around it. */
+.sbook-landed {
+  position: relative;
+  display: inline-flex;
+}
+.sbook-landed::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border: 3px solid #ffd43b;
+  border-radius: 50%;
+  animation: sbook-ring 0.7s ease-out both;
+  pointer-events: none;
+}
+@keyframes sbook-ring {
+  from {
+    transform: scale(0.6);
+    opacity: 1;
+  }
+  to {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+.sbook-landed .sticker-play {
+  animation-delay: 0.4s !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sbook-flying,
+  .sbook-landed::after,
+  .sbook-done {
+    animation: none;
+  }
+}

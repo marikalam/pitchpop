@@ -1,36 +1,16 @@
 import { useState } from 'react';
-import { BOOK_SIZE, loadStickerPicks, saveStickerPick, stickerBook, stickerName } from './stickers.js';
+import { loadStickerPicks, saveStickerPick, stickerBook, stickerName } from './stickers.js';
 import Sticker from './Sticker.jsx';
 import { dayKey } from './streak.js';
 
-// Today's sticker: the player picks one, then sticks it in the book (only
-// then does it move). Once today's sticker is in, it just says which one.
-export default function StickerPicker({ playerId, days, onPlaced }) {
+// Today's sticker on the "All done!" screen: the player picks one, then
+// taps to stick it in - which opens the sticker book, where it goes on.
+// Once today's sticker is in, it just says which one.
+export default function StickerPicker({ playerId, days, onStick }) {
   const today = dayKey();
-  const [placed, setPlaced] = useState(null);
   const [chosen, setChosen] = useState(null);
-  const picks = loadStickerPicks()[playerId] || {};
-  const book = stickerBook(days, picks, today);
   if (!days.includes(today)) return null;
-
-  if (placed !== null) {
-    const number = book.slots.length;
-    return (
-      <div className="sticker-won">
-        <span className="sticker-won-emoji sticker-place" aria-hidden="true">
-          <Sticker index={placed} size={72} play />
-        </span>
-        <span>
-          <span className="workon-title">{stickerName(placed)} is in your sticker book!</span>
-          <br />
-          <span className="workon-text">
-            {number} of {BOOK_SIZE}
-            {number === BOOK_SIZE ? ' · the page is full! 🎉' : ''}
-          </span>
-        </span>
-      </div>
-    );
-  }
+  const book = stickerBook(days, loadStickerPicks()[playerId], today);
 
   if (!book.waiting) {
     const mine = book.slots.find((s) => s.day === today);
@@ -43,8 +23,7 @@ export default function StickerPicker({ playerId, days, onPlaced }) {
 
   function stick() {
     saveStickerPick(playerId, today, chosen);
-    setPlaced(chosen);
-    onPlaced?.(chosen);
+    onStick(chosen);
   }
 
   return (
