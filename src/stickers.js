@@ -162,7 +162,8 @@ export const STICKERS = [
 ];
 export const BOOK_SIZE = STICKERS.length;
 
-// How each sticker moves (App.css .sticker-<move>): gentle and looping.
+// How each sticker moves (App.css .sticker-<move>). Stickers sit still;
+// the move plays only when a sticker is stuck into the book.
 const MOVES = {
   Heart: 'pulse',
   Star: 'twinkle',
@@ -184,14 +185,57 @@ const MOVES = {
 };
 export const stickerMove = (index) => MOVES[STICKERS[index][0]] || 'bob';
 
-// The sticker earned on the nth practice day (1st day: index 0).
-export function stickerFor(index) {
-  const i = ((index % BOOK_SIZE) + BOOK_SIZE) % BOOK_SIZE;
-  return { index: i, name: STICKERS[i][0] };
+export const stickerName = (index) => STICKERS[index][0];
+
+// Which sticker each player chose for each practice day:
+// { [playerId]: { [dayKey]: stickerIndex } }. Days from before stickers
+// could be chosen keep the one they got then (the book's order).
+const PICKS_KEY = 'pitchpop-sticker-picks-v1';
+
+export function loadStickerPicks() {
+  try {
+    return JSON.parse(localStorage.getItem(PICKS_KEY)) || {};
+  } catch {
+    return {};
+  }
+}
+
+export function saveStickerPick(playerId, day, index) {
+  const picks = loadStickerPicks();
+  picks[playerId] = { ...picks[playerId], [day]: index };
+  try {
+    localStorage.setItem(PICKS_KEY, JSON.stringify(picks));
+  } catch {
+    // Storage full or blocked: the pick just isn't kept.
+  }
+}
+
+// The book's current page for a player: one slot per practice day (index
+// null for today while it's still waiting to be chosen), and the stickers
+// still free to choose (each sticker once per page).
+export function stickerBook(days, picks = {}, today) {
+  const sorted = [...new Set(days)].sort();
+  const page = sorted.length ? Math.floor((sorted.length - 1) / BOOK_SIZE) : 0;
+  const slots = sorted.slice(page * BOOK_SIZE).map((day, i) => ({
+    day,
+    index: picks[day] ?? (day === today ? null : i),
+  }));
+  const used = new Set(slots.map((s) => s.index));
+  return {
+    page,
+    slots,
+    waiting: slots.some((s) => s.index === null),
+    free: STICKERS.map((_, i) => i).filter((i) => !used.has(i)),
+  };
 }
 
 // A sticker's whole SVG: the drawing with a white border and a soft
 // shadow (an SVG filter; `id` keeps each copy's filter its own).
-export function stickerSvg(index, id) {
-  return `<svg viewBox="-6 -6 112 112" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs><filter id="${id}" x="-20%" y="-20%" width="140%" height="140%"><feMorphology in="SourceAlpha" operator="dilate" radius="4" result="d"/><feFlood flood-color="#fff"/><feComposite in2="d" operator="in" result="w"/><feGaussianBlur in="d" stdDeviation="2" result="b"/><feOffset in="b" dy="2.5" result="bo"/><feFlood flood-color="#1d2140" flood-opacity=".22"/><feComposite in2="bo" operator="in" result="sh"/><feMerge><feMergeNode in="sh"/><feMergeNode in="w"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><g filter="url(#${id})">${STICKERS[index][1]}</g></svg>`;
+export function stickerSvg(index, id, play = false) {
+  // The drawings' own little animations (a blink, sparkles, a flame) run
+  // twice when the sticker is played and are left out otherwise.
+  const art = play
+    ? STICKERS[index][1].replaceAll('repeatCount="indefinite"', 'repeatCount="2"')
+    : STICKERS[index][1].replace(/<animate(Transform)?\b[^>]*\/>/g, '');
+  return `<svg viewBox="-6 -6 112 112" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs><filter id="${id}" x="-20%" y="-20%" width="140%" height="140%"><feMorphology in="SourceAlpha" operator="dilate" radius="4" result="d"/><feFlood flood-color="#fff"/><feComposite in2="d" operator="in" result="w"/><feGaussianBlur in="d" stdDeviation="2" result="b"/><feOffset in="b" dy="2.5" result="bo"/><feFlood flood-color="#1d2140" flood-opacity=".22"/><feComposite in2="bo" operator="in" result="sh"/><feMerge><feMergeNode in="sh"/><feMergeNode in="w"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><g filter="url(#${id})">${art}</g></svg>`;
 }

@@ -5123,7 +5123,8 @@ body {
   display: flex;
 }
 
-/* Animated stickers: each one moves its own way (stickers.js MOVES). */
+/* Each sticker's own move (stickers.js MOVES). Stickers sit still; the
+   move plays (twice) only as a sticker is stuck into the book. */
 .sticker-bob { animation: stk-bob 2.4s ease-in-out infinite; }
 .sticker-pulse { animation: stk-pulse 1.6s ease-in-out infinite; }
 .sticker-twinkle { animation: stk-twinkle 2.2s ease-in-out infinite; }
@@ -5135,6 +5136,77 @@ body {
 .sticker-spin { animation: stk-spin 9s linear infinite; }
 .sticker-dangle { animation: stk-dangle 2.6s ease-in-out infinite; transform-origin: 50% 0; }
 .sticker-shake { animation: stk-shake 0.5s ease-in-out infinite; }
+.sticker-play {
+  animation-iteration-count: 2 !important;
+  animation-delay: 0.5s !important;
+}
+.sticker-play.sticker-spin {
+  animation-duration: 1.4s !important;
+  animation-timing-function: ease-in-out !important;
+  animation-iteration-count: 1 !important;
+}
+.sticker-play.sticker-flutter,
+.sticker-play.sticker-shake {
+  animation-iteration-count: 4 !important;
+}
+/* Being stuck in: it drops onto the page with a little squish. */
+.sticker-place {
+  display: inline-flex;
+  animation: sticker-stick 0.55s cubic-bezier(0.3, 1.5, 0.5, 1) both;
+}
+@keyframes sticker-stick {
+  0% { transform: translateY(-40%) scale(1.8) rotate(-18deg); opacity: 0; }
+  60% { transform: scale(0.9) rotate(4deg); opacity: 1; }
+  100% { transform: none; }
+}
+
+/* Picking today's sticker. */
+.sticker-pick {
+  padding: 12px 14px 14px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #fff4fb, #eef3ff);
+  box-shadow: var(--shadow-sm);
+  text-align: center;
+}
+.prog .sticker-pick {
+  margin-bottom: 12px;
+  box-shadow: none;
+}
+.sticker-pick-title {
+  margin: 0 0 8px;
+}
+.sticker-pick-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+}
+.sticker-pick-btn {
+  padding: 4px;
+  border: 2px solid transparent;
+  border-radius: 14px;
+  background: none;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+.sticker-pick-btn.is-chosen {
+  border-color: #9775fa;
+  background: #fff;
+  transform: scale(1.18);
+}
+.sticker-pick-go {
+  margin-top: 10px;
+}
+.sticker-pick-go:disabled {
+  opacity: 0.55;
+}
+.prog-sticker-waiting {
+  background: #fff4d6;
+  font-size: 26px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sticker-place { animation: none; }
+}
 @keyframes stk-bob { 50% { transform: translateY(-6%); } }
 @keyframes stk-pulse { 50% { transform: scale(1.1); } }
 @keyframes stk-twinkle { 25% { transform: rotate(-10deg) scale(1.05); } 75% { transform: rotate(10deg) scale(1.05); } }
