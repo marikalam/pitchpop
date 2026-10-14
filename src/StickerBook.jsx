@@ -7,7 +7,8 @@ import Sticker from './Sticker.jsx';
 // collected are there in color; the rest wait as faded shadows. A new
 // sticker is peeled up, flown over and pressed onto its spot, then does
 // its little move. (Stickers earned but not picked yet wait here: tapping
-// a shadow picks one.)
+// a shadow picks one.) Tapping a sticker in the book makes it do its move
+// again, with a squish and a burst of sparkles.
 export default function StickerBook({ player, signedIn, onSignIn, placing, onPlaced }) {
   const [stickers, setStickers] = useState(() => (signedIn ? playerStickers(player.id) : []));
   const [pending, setPending] = useState(() => (signedIn ? pendingStickers(player.id) : 0));
@@ -16,6 +17,8 @@ export default function StickerBook({ player, signedIn, onSignIn, placing, onPla
   const [stick, setStick] = useState(placing ?? null);
   const [phase, setPhase] = useState(placing != null ? 'wait' : null);
   const [from, setFrom] = useState(null);
+  // The sticker last tapped; `n` counts taps so each tap starts it over.
+  const [tapped, setTapped] = useState(null);
   const spotRefs = useRef({});
 
   // Stickers stuck in on the family's other phones, or picked elsewhere.
@@ -105,7 +108,25 @@ export default function StickerBook({ player, signedIn, onSignIn, placing, onPla
                       <Sticker index={i} size={56} play />
                     </span>
                   ) : owned ? (
-                    <Sticker index={i} size={56} />
+                    <button
+                      type="button"
+                      className="sbook-sticker-btn"
+                      onClick={() => setTapped((t) => ({ i, n: (t?.n ?? 0) + 1 }))}
+                      aria-label={name}
+                    >
+                      {tapped?.i === i ? (
+                        <span key={tapped.n} className="sbook-tapped">
+                          <Sticker index={i} size={56} play />
+                          <span className="sbook-sparkles" aria-hidden="true">
+                            {Array.from({ length: 8 }, (_, k) => (
+                              <span key={k} style={{ '--a': `${k * 45 + 20}deg` }} />
+                            ))}
+                          </span>
+                        </span>
+                      ) : (
+                        <Sticker index={i} size={56} />
+                      )}
+                    </button>
                   ) : choosing ? (
                     <button
                       type="button"

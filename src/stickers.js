@@ -163,7 +163,7 @@ export const STICKERS = [
 export const BOOK_SIZE = STICKERS.length;
 
 // How each sticker moves (App.css .sticker-<move>). Stickers sit still;
-// the move plays only when a sticker is stuck into the book.
+// the move plays when a sticker is stuck into the book, or tapped there.
 const MOVES = {
   Heart: 'pulse',
   Star: 'twinkle',

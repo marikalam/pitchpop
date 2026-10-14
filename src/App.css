@@ -5033,7 +5033,7 @@ body {
 }
 
 /* Each sticker's own move (stickers.js MOVES). Stickers sit still; the
-   move plays (twice) only as a sticker is stuck into the book. */
+   move plays (twice) as a sticker is stuck into the book, or is tapped there. */
 .sticker-bob { animation: stk-bob 2.4s ease-in-out infinite; }
 .sticker-pulse { animation: stk-pulse 1.6s ease-in-out infinite; }
 .sticker-twinkle { animation: stk-twinkle 2.2s ease-in-out infinite; }
@@ -5347,6 +5347,73 @@ body {
   .sbook-landed::after,
   .sbook-done {
     animation: none;
+  }
+}
+
+/* Tapping a sticker in the book: it gets squished like a button, pops
+   back up with a burst of sparkles, then does its own move. */
+.sbook-sticker-btn {
+  display: inline-flex;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.sbook-tapped {
+  position: relative;
+  display: inline-flex;
+  animation: sbook-boop 0.5s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+.sbook-tapped .sticker-play {
+  animation-delay: 0.3s !important;
+}
+@keyframes sbook-boop {
+  0% { transform: scale(1); }
+  25% { transform: scale(0.82, 0.74); }
+  60% { transform: scale(1.28) rotate(-6deg); }
+  100% { transform: none; }
+}
+.sbook-sparkles {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  pointer-events: none;
+}
+.sbook-sparkles span {
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  margin: -4.5px;
+  background: #ffd43b;
+  clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%);
+  animation: sbook-sparkle 0.7s ease-out 0.1s both;
+}
+.sbook-sparkles span:nth-child(even) {
+  width: 7px;
+  height: 7px;
+  margin: -3.5px;
+  background: #f783ac;
+}
+.sbook-sparkles span:nth-child(3n) {
+  background: #9775fa;
+}
+@keyframes sbook-sparkle {
+  from {
+    transform: rotate(var(--a)) translateY(-14px) scale(0.4);
+    opacity: 1;
+  }
+  to {
+    transform: rotate(var(--a)) translateY(-46px) scale(1.1) rotate(90deg);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sbook-tapped,
+  .sbook-sparkles span {
+    animation: none;
+  }
+  .sbook-sparkles {
+    display: none;
   }
 }
 
