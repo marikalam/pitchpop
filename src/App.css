@@ -5418,3 +5418,63 @@ body {
     animation: none;
   }
 }
+
+/* Tapping a sticker in the book: a happy jump, its own move, and its
+   name in a little bubble. */
+.sbook-tap {
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.sbook-tapped {
+  position: relative;
+  display: inline-flex;
+  animation: sbook-jump 0.6s cubic-bezier(0.3, 1.5, 0.5, 1);
+}
+.sbook-tapped .sticker-play {
+  animation-delay: 0.3s !important;
+}
+@keyframes sbook-jump {
+  0% { transform: scale(1); }
+  25% { transform: translateY(4px) scale(1.15, 0.85); }
+  55% { transform: translateY(-18px) scale(1.15); }
+  80% { transform: translateY(0) scale(0.95, 1.05); }
+  100% { transform: none; }
+}
+.sbook-tapped::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border: 3px solid #ffd43b;
+  border-radius: 50%;
+  animation: sbook-ring 0.6s ease-out 0.3s both;
+  pointer-events: none;
+}
+.sbook-name {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  z-index: 3;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #5f3dc4;
+  color: #fff;
+  font: 700 13px 'Fredoka', ui-rounded, system-ui, sans-serif;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: sbook-name 1.8s ease both;
+}
+@keyframes sbook-name {
+  0% { opacity: 0; transform: translate(-50%, 8px) scale(0.6); }
+  15% { opacity: 1; transform: translate(-50%, -4px) scale(1); }
+  80% { opacity: 1; transform: translate(-50%, -4px); }
+  100% { opacity: 0; transform: translate(-50%, -10px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sbook-tapped,
+  .sbook-tapped::before {
+    animation: none;
+  }
+}
