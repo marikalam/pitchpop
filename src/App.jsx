@@ -65,6 +65,8 @@ const COLORS = [
 // out, it's this device's own guest players (GUEST_PROFILES_KEY), which
 // start as one generic player with a few colors so the first color test
 // has real choices in it. A family's players never show while signed out.
+const NO_TRIES = { out: [], reveal: false };
+
 const DEFAULT_PROFILES = [{ id: 'player-1', name: 'Guest Player', colors: ['red', 'yellow', 'blue'] }];
 const GUEST_NAME = 'Guest Player';
 // Older versions shipped with these built-in players, and devices that ran
@@ -631,7 +633,10 @@ export default function App() {
   const [progress, setProgress] = useState(loadProgress);
   const [streakDays, setStreakDays] = useState(loadStreakDays);
   // The color picked in a wrong answer, for "listen to both".
-  const [wrongPick, setWrongPick] = useState(null);
+  // This chord's wrong taps: the colors ruled out (shown faded), and
+  // whether the right one is now being shown (after two misses, or one in
+  // a two-color mix-up check).
+  const [tries, setTries] = useState(NO_TRIES);
 
   const currentProfile = profiles.find((p) => p.id === profile) || profiles[0];
   // What the daily reminder and the Sunday summary say (reminders.js).
@@ -748,6 +753,7 @@ export default function App() {
       setLastActiveProfile(list[0].id);
       newRound(list[0].id, list[0].colors);
       setRoundIndex(0);
+      setTries(NO_TRIES);
       setOptions([]);
       setRoundResults({});
       setRoundOutcomes({});
@@ -971,6 +977,7 @@ export default function App() {
       // round was already in progress.
       newRound(next, colorsFor(next));
       setRoundIndex(0);
+      setTries(NO_TRIES);
       setOptions([]);
       setRoundResults({});
       setRoundOutcomes({});
@@ -1001,6 +1008,7 @@ export default function App() {
     }
     newRound(profile, profileColorNames);
     setRoundIndex(0);
+    setTries(NO_TRIES);
     setRoundResults({});
     setRoundOutcomes({});
     setRoundMixups({});
@@ -1037,9 +1045,17 @@ export default function App() {
     playChord(currentColor);
   }
 
-  function chooseAnswer(color) {
+  function chooseAnswer(color, choices) {
     const correct = color.name === currentColor.name;
-    setAnswerCorrect(correct);
+    // Tapping the color being shown: nothing new to count.
+    if (correct && tries.reveal) {
+      setAnswerCorrect(true);
+      const soundId = newSound();
+      playCorrectChime();
+      later(() => announceColor(currentColor, soundId), 350);
+      setView('play-feedback');
+      return;
+    }
 
     // Always track in roundResults (every attempt, including retries)
     setRoundResults((prev) => {
@@ -1083,17 +1099,24 @@ export default function App() {
     });
 
     const soundId = newSound();
-    setWrongPick(correct ? null : color);
     if (correct) {
+      setAnswerCorrect(true);
       playCorrectChime();
       later(() => announceColor(currentColor, soundId), 350);
-    } else {
-      // Hear both: the color picked, then the right one (with its name).
-      playWrongBuzz();
-      later(() => engineRef.current.playChord(color.notes), 450);
-      later(() => announceColor(currentColor, soundId), 2100);
+      setView('play-feedback');
+      return;
     }
-    setView('play-feedback');
+    // Wrong: stay on the question. That color fades out and the chord
+    // plays again, so they listen and try another. The second miss (or
+    // the first, when only one other color is left) shows the right
+    // color glowing, plays it with its name, and they tap it.
+    playWrongBuzz();
+    const out = [...tries.out, color.name];
+    const left = choices.filter((c) => !out.includes(c.name)).length;
+    const reveal = out.length >= 2 || left <= 1;
+    setTries({ out, reveal });
+    if (reveal) later(() => announceColor(currentColor, soundId), 600);
+    else later(() => isCurrent(soundId) && engineRef.current.playChord(currentColor.notes), 700);
   }
 
   function hearAgainFromFeedback() {
@@ -1122,6 +1145,7 @@ export default function App() {
     // first chord waits for a tap on the rainbow.
     const nextColor = COLORS.find((c) => c.name === sessionQueue[roundIndex + 1]);
     setRoundIndex((r) => r + 1);
+    setTries(NO_TRIES);
     if (!nextColor) {
       setView('play-listen');
       return;
@@ -1312,6 +1336,7 @@ export default function App() {
     setProfile(player.id);
     newRound(player.id, player.colors);
     setRoundIndex(0);
+    setTries(NO_TRIES);
     setOptions([]);
     setRoundResults({});
     setRoundOutcomes({});
@@ -1347,6 +1372,7 @@ export default function App() {
     setProfile(player.id);
     newRound(player.id, player.colors);
     setRoundIndex(0);
+    setTries(NO_TRIES);
     setOptions([]);
     setRoundResults({});
     setRoundOutcomes({});
@@ -1913,10 +1939,14 @@ export default function App() {
             />
             <ProgressDots current={roundIndex + 1} total={SESSION_ROUNDS} kinds={roundFocus?.kinds} />
             <KindChip focus={roundFocus} index={roundIndex} name={currentColor.name} />
-            <h2 className="screen-title">
-              {options.length === 2 && roundFocus?.kinds?.[roundIndex] === 'check'
-                ? `${capName(options[0].name)} or ${capName(options[1].name)}?`
-                : 'What chord did you hear?'}
+            <h2 className={`screen-title${tries.out.length ? ' question-retry' : ''}`} key={`${tries.out.length}${tries.reveal}`}>
+              {tries.reveal
+                ? `It's ${capName(currentColor.name)}! Tap ${capName(currentColor.name)}`
+                : tries.out.length
+                  ? 'Not that one. Listen again! 👂'
+                  : options.length === 2 && roundFocus?.kinds?.[roundIndex] === 'check'
+                    ? `${capName(options[0].name)} or ${capName(options[1].name)}?`
+                    : 'What chord did you hear?'}
             </h2>
             <button className="rainbow-play-wrap rainbow-play-wrap-compact" onClick={relistenTap} aria-label="Play chord again">
               <Rainbow colors={COLORS} activeName={null} visible pretty />
@@ -1930,16 +1960,22 @@ export default function App() {
               // tall each, so a few colors don't turn into huge slabs.
               style={{ maxHeight: Math.ceil(options.length / (options.length > 4 ? 3 : 2)) * 144 }}
             >
-              {options.map((color) => (
-                <button
-                  key={color.name}
-                  className="option-btn"
-                  style={{ background: color.hex, color: color.text }}
-                  onClick={() => chooseAnswer(color)}
-                >
-                  {color.name}
-                </button>
-              ))}
+              {options.map((color) => {
+                const out = tries.out.includes(color.name) || (tries.reveal && color.name !== currentColor.name);
+                const glow = tries.reveal && color.name === currentColor.name;
+                return (
+                  <button
+                    key={color.name}
+                    className={`option-btn${out ? ' option-out' : ''}${glow ? ' option-glow' : ''}`}
+                    style={{ background: color.hex, color: color.text }}
+                    onClick={() => chooseAnswer(color, options)}
+                    disabled={out}
+                    aria-label={out ? `${color.name} (not this one)` : color.name}
+                  >
+                    {color.name}
+                  </button>
+                );
+              })}
             </div>
           </>
         )}
@@ -1976,9 +2012,12 @@ export default function App() {
               )}
               <span className="feedback-icon">{answerCorrect ? <CheckIcon /> : <XIcon />}</span>
             </div>
-            <h2 className="screen-title">{answerCorrect ? 'Great job!' : wrongPick ? 'Almost! Listen to both:' : 'Almost!'}</h2>
-            {answerCorrect && !typesNotes(profile) && <p className="screen-sub">That's right!</p>}
-            {!answerCorrect && !wrongPick && <p className="screen-sub">The correct answer is:</p>}
+            <h2 className="screen-title">
+              {!answerCorrect ? 'Almost!' : tries.out.length ? `That's ${capName(currentColor.name)}!` : 'Great job!'}
+            </h2>
+            {answerCorrect && !typesNotes(profile) && (
+              <p className="screen-sub">{tries.out.length ? 'Listen to it once more.' : "That's right!"}</p>
+            )}
             {/* Players on the notes level type the notes, so the card
                 doesn't give them away. */}
             {answerCorrect && typesNotes(profile) ? (
@@ -1993,39 +2032,6 @@ export default function App() {
                   onNext={nextChord}
                   nextLabel={roundIndex + 1 >= SESSION_ROUNDS ? 'Finish' : 'Next chord'}
                 />
-              </>
-            ) : !answerCorrect && wrongPick ? (
-              // A wrong answer: the color picked and the right one, played
-              // one after the other (chooseAnswer).
-              <>
-                <div className="both-card">
-                  <div className="both-row both-row-picked">
-                    <span className="both-swatch" style={{ background: wrongPick.hex, color: wrongPick.text }}>
-                      {capName(wrongPick.name)}
-                    </span>
-                    <span>
-                      <b>You picked {capName(wrongPick.name)}</b>
-                      <span className="both-notes">{wrongPick.notes.join(' · ')} · 🔊 1st</span>
-                    </span>
-                  </div>
-                  <div className="both-row both-row-right">
-                    <span className="both-swatch" style={{ background: currentColor.hex, color: currentColor.text }}>
-                      {capName(currentColor.name)}
-                    </span>
-                    <span>
-                      <b>It was {capName(currentColor.name)}</b>
-                      <span className="both-notes">{currentColor.notes.join(' · ')} · 🔊 2nd</span>
-                    </span>
-                  </div>
-                </div>
-                {(() => {
-                  const back = sessionQueue.indexOf(currentColor.name, roundIndex + 1) - roundIndex;
-                  return back > 0 && back <= 5 ? (
-                    <p className="both-comeback">
-                      🔁 {capName(currentColor.name)} comes back in {back} {back === 1 ? 'chord' : 'chords'}
-                    </p>
-                  ) : null;
-                })()}
               </>
             ) : (
               <div className="answer-card" style={{ background: currentColor.hex, color: currentColor.text }}>
@@ -2046,19 +2052,7 @@ export default function App() {
                 </>
               ) : (
                 <>
-                  {wrongPick && (
-                    <button
-                      className="pill-btn-secondary"
-                      onClick={() => {
-                        const id = newSound();
-                        engineRef.current.playChord(wrongPick.notes);
-                        later(() => isCurrent(id) && engineRef.current.playChord(currentColor.notes), 1600);
-                      }}
-                    >
-                      🔁 Both again
-                    </button>
-                  )}
-                  <button className={`pill-btn-primary${wrongPick ? '' : ' pill-btn-full'}`} onClick={chooseDifferentAnswer}>
+                  <button className="pill-btn-primary pill-btn-full" onClick={chooseDifferentAnswer}>
                     Try again →
                   </button>
                 </>

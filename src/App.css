@@ -4842,54 +4842,6 @@ body {
 .legend-check {
   background: #8b5cf6;
 }
-.both-card {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 12px;
-  border-radius: 20px;
-  background: var(--card-bg);
-  box-shadow: var(--shadow-sm);
-}
-.both-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.both-row > span:last-child {
-  display: flex;
-  flex-direction: column;
-}
-.both-swatch {
-  flex: none;
-  width: 104px;
-  height: 64px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 18px;
-  font: 700 18px 'Fredoka', ui-rounded, system-ui, sans-serif;
-}
-.both-row-picked .both-swatch {
-  opacity: 0.55;
-}
-.both-row-right .both-swatch {
-  box-shadow: 0 0 0 4px #ffd84d;
-}
-.both-notes {
-  color: var(--ink-dim);
-  font-size: 13px;
-}
-.both-comeback,
-.warmup-result {
-  margin: 0;
-  padding: 10px 14px;
-  border-radius: 16px;
-  background: #f0e8ff;
-  font-weight: 600;
-  font-size: 14px;
-  text-align: center;
-}
 .warmup-result {
   background: #fff1e0;
 }
@@ -5401,4 +5353,48 @@ body {
   color: #fff;
   font: 600 14px 'IBM Plex Sans', sans-serif;
   cursor: pointer;
+}
+
+
+/* A wrong answer stays on the question: that color shakes and fades out
+   (with a cross), and after two misses the right color glows to tap. */
+.option-btn.option-out {
+  position: relative;
+  opacity: 0.22;
+  filter: grayscale(0.6);
+  animation: option-nope 0.45s ease;
+  cursor: default;
+}
+.option-btn.option-out::after {
+  content: '✕';
+  position: absolute;
+  top: 6px;
+  right: 10px;
+  font-size: 18px;
+}
+@keyframes option-nope {
+  0% { opacity: 1; filter: none; transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-5px); opacity: 1; filter: none; }
+  100% { transform: none; }
+}
+.option-btn.option-glow {
+  position: relative;
+  z-index: 1;
+  box-shadow: 0 0 0 5px #fff, 0 0 0 9px #ffd43b, 0 0 28px 10px rgba(255, 212, 59, 0.7);
+  animation: option-glow 1.1s ease-in-out infinite;
+}
+@keyframes option-glow {
+  50% { transform: scale(1.06); }
+}
+.question-retry {
+  animation: sticker-pop 0.4s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .option-btn.option-out,
+  .option-btn.option-glow,
+  .question-retry {
+    animation: none;
+  }
 }
