@@ -13,6 +13,7 @@ import NoteSpeller from './NoteSpeller.jsx';
 import TinyTots from './TinyTots.jsx';
 import Progress from './Progress.jsx';
 import StickerPicker from './StickerPicker.jsx';
+import StickerBook from './StickerBook.jsx';
 import { weekProgress } from './progress.js';
 import { scheduleReminders } from './reminders.js';
 import { inTinyTots } from './tinyTots.js';
@@ -414,7 +415,7 @@ function FocusTag({ focus }) {
   );
 }
 
-function RoundSummary({ playerId, playerName, correct, wrong, streak, summary, history, focus, days, signedIn }) {
+function RoundSummary({ playerId, playerName, correct, wrong, streak, summary, history, focus, days, signedIn, onStick }) {
   const tier = scoreTier(correct, summary.total);
   const text = TIER_TEXT[tier];
   const workOn = colorToWorkOn(summary);
@@ -438,7 +439,7 @@ function RoundSummary({ playerId, playerName, correct, wrong, streak, summary, h
         </p>
       </div>
       {signedIn ? (
-        <StickerPicker playerId={playerId} days={days} />
+        <StickerPicker playerId={playerId} days={days} onStick={onStick} />
       ) : (
         <p className="sticker-today">Sign in to collect a sticker for every day of practice ⭐</p>
       )}
@@ -708,6 +709,8 @@ export default function App() {
   const [roundMixups, setRoundMixups] = useState(resumableSession.roundMixups || {});
   // The color this round focuses on, from the player's recent mistakes
   // (smartRound.js), or null: { name, partner }.
+  // A sticker just picked on the "All done!" screen, to stick in the book.
+  const [placingSticker, setPlacingSticker] = useState(null);
   const [roundFocus, setRoundFocus] = useState(resumableSession.roundFocus || null);
 
   const [melodyTaps, setMelodyTaps] = useState(initialSession.melodyTaps || 0);
@@ -1160,7 +1163,7 @@ export default function App() {
   // Piano, Practice Mode and Music Theory are side trips like Explore:
   // closing one goes back to wherever the player was (a quiz in progress
   // included) instead of restarting the color game.
-  const TOOL_VIEWS = ['piano', 'practice', 'theory', 'method', 'scales', 'hanon', 'tinytots', 'progress'];
+  const TOOL_VIEWS = ['piano', 'practice', 'theory', 'method', 'scales', 'hanon', 'tinytots', 'progress', 'stickers'];
 
   // The header's practice pill, on every screen: back to the timer (in
   // Practice Mode itself, to its Timer tab).
@@ -1255,6 +1258,7 @@ export default function App() {
   }
 
   function closeTool() {
+    setPlacingSticker(null);
     setView(TOOL_VIEWS.includes(preToolView) ? 'play-listen' : preToolView);
   }
 
@@ -1449,7 +1453,7 @@ export default function App() {
     return <Piano engine={engineRef.current} onClose={closeTool} />;
   }
 
-  if (view === 'practice' || view === 'theory' || view === 'method' || view === 'scales' || view === 'hanon' || view === 'tinytots' || view === 'progress') {
+  if (view === 'practice' || view === 'theory' || view === 'method' || view === 'scales' || view === 'hanon' || view === 'tinytots' || view === 'progress' || view === 'stickers') {
     // Practice Mode fits on one screen (its tools are tabs); the Music
     // Theory glossary and the method explanation are reading pages and
     // scroll.
@@ -1491,6 +1495,17 @@ export default function App() {
               signedIn={!!cloudUser}
               onSignIn={openAccount}
               reminderPlayers={reminderPlayers}
+              onOpenStickers={() => openTool('stickers')}
+            />
+          ) : view === 'stickers' ? (
+            <StickerBook
+              key={profile}
+              player={currentProfile}
+              days={streakDays[profile] || []}
+              signedIn={!!cloudUser}
+              onSignIn={openAccount}
+              placing={placingSticker}
+              onPlaced={() => setPlacingSticker(null)}
             />
           ) : view === 'tinytots' ? (
             <TinyTots colors={totsColors} engine={engineRef.current} />
@@ -1660,20 +1675,28 @@ export default function App() {
               </p>
               {/* One tap to start the practice timer. (During a practice the
                   header's timer pill takes you back to it instead.) */}
-              {!['running', 'paused'].includes(readPracticeTimer().status) && (
-                <button
-                  className="home-practice"
-                  onClick={() => {
-                    startPracticeNow(profile);
-                    openPracticeFromBadge();
-                  }}
-                >
+              <div className="home-hero-actions">
+                {!['running', 'paused'].includes(readPracticeTimer().status) && (
+                  <button
+                    className="home-practice"
+                    onClick={() => {
+                      startPracticeNow(profile);
+                      openPracticeFromBadge();
+                    }}
+                  >
+                    <span className="home-practice-icon" aria-hidden="true">
+                      {'▶\uFE0E'}
+                    </span>
+                    Start practice
+                  </button>
+                )}
+                <button className="home-practice home-stickers" onClick={() => openTool('stickers')}>
                   <span className="home-practice-icon" aria-hidden="true">
-                    {'▶\uFE0E'}
+                    📒
                   </span>
-                  Start practice
+                  Sticker book
                 </button>
-              )}
+              </div>
             </section>
 
             {/* The Eguchi perfect-pitch training together in one card: the
@@ -2039,6 +2062,10 @@ export default function App() {
               playerId={profile}
               days={streakDays[profile] || []}
               signedIn={!!cloudUser}
+              onStick={(index) => {
+                setPlacingSticker(index);
+                openTool('stickers');
+              }}
             />
             <div className="feedback-actions">
               <button className="pill-btn-secondary" onClick={() => openTool('progress')}>
