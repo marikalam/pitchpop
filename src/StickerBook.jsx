@@ -1,16 +1,16 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { BOOK_SIZE, STICKERS, loadStickerPicks, saveStickerPick, stickerBook, stickerName } from './stickers.js';
+import { BOOK_SIZE, STICKERS, stickerName } from './stickers.js';
+import { addSticker, bookPage, pendingStickers, playerStickers } from './stickerStore.js';
 import Sticker from './Sticker.jsx';
-import { dayKey } from './streak.js';
 
 // The sticker book: every sticker has its own spot on the page. The ones
 // collected are there in color; the rest wait as faded shadows. A new
 // sticker is peeled up, flown over and pressed onto its spot, then does
-// its little move. (If today's sticker hasn't been chosen yet, tapping a
-// shadow picks it.)
-export default function StickerBook({ player, days, signedIn, onSignIn, placing, onPlaced }) {
-  const today = dayKey();
-  const [picks, setPicks] = useState(() => loadStickerPicks()[player.id] || {});
+// its little move. (Stickers earned but not picked yet wait here: tapping
+// a shadow picks one.)
+export default function StickerBook({ player, signedIn, onSignIn, placing, onPlaced }) {
+  const [stickers, setStickers] = useState(() => (signedIn ? playerStickers(player.id) : []));
+  const [pending, setPending] = useState(() => (signedIn ? pendingStickers(player.id) : 0));
   const [chosen, setChosen] = useState(null);
   // The sticker being stuck on: 'wait' (the book shows, then) 'fly', then 'landed'.
   const [stick, setStick] = useState(placing ?? null);
@@ -18,9 +18,24 @@ export default function StickerBook({ player, days, signedIn, onSignIn, placing,
   const [from, setFrom] = useState(null);
   const spotRefs = useRef({});
 
-  const book = stickerBook(signedIn ? days : [], picks, today);
-  const have = new Set(book.slots.map((s) => s.index));
-  const choosing = signedIn && book.waiting && phase === null;
+  // Stickers stuck in on the family's other phones, or picked elsewhere.
+  useEffect(() => {
+    if (!signedIn) return undefined;
+    const reload = () => {
+      setStickers(playerStickers(player.id));
+      setPending(pendingStickers(player.id));
+    };
+    window.addEventListener('pitchpop-stickers-changed', reload);
+    window.addEventListener('pitchpop-history-synced', reload);
+    return () => {
+      window.removeEventListener('pitchpop-stickers-changed', reload);
+      window.removeEventListener('pitchpop-history-synced', reload);
+    };
+  }, [signedIn, player.id]);
+
+  const choosing = signedIn && pending > 0 && (phase === null || phase === 'landed');
+  const book = bookPage(stickers, choosing);
+  const have = new Set(book.onPage.map((s) => s.index));
 
   // Bring the spot into view, then measure where the sticker flies in from
   // (the middle of the screen, a little above the spot's row).
@@ -45,8 +60,7 @@ export default function StickerBook({ player, days, signedIn, onSignIn, placing,
   }, [phase, stick]);
 
   function stickChosen() {
-    saveStickerPick(player.id, today, chosen);
-    setPicks(loadStickerPicks()[player.id] || {});
+    addSticker(player.id, chosen, 'book');
     setStick(chosen);
     setChosen(null);
     setPhase('wait');
@@ -63,16 +77,15 @@ export default function StickerBook({ player, days, signedIn, onSignIn, placing,
         <div className="sbook-page">
           <h2 className="sbook-title">{signedIn ? `${player.name}'s sticker book` : 'Sticker book'}</h2>
           <p className="sbook-count">
-            {signedIn ? (
-              <>
-                {have.size - (have.has(null) ? 1 : 0)} of {BOOK_SIZE} stickers
-                {book.page ? ` · page ${book.page + 1}` : ''}
-              </>
-            ) : (
-              'Sign in to collect a sticker for every day of practice'
-            )}
+            {signedIn
+              ? `${book.page ? `Page ${book.page + 1} · ` : ''}${book.onPage.length} of ${BOOK_SIZE}${book.page ? ` · ${book.total} stickers in all` : ''}`
+              : 'Make an account to keep every sticker you earn in your own sticker book'}
           </p>
-          {choosing && <p className="sbook-hint">🎁 Today's sticker is waiting! Tap the one you want.</p>}
+          {choosing && (
+            <p className="sbook-hint">
+              🎁 {pending > 1 ? `${pending} stickers are waiting!` : 'A sticker is waiting!'} Tap the one you want.
+            </p>
+          )}
           <div className="sbook-grid">
             {STICKERS.map(([name], i) => {
               const isNew = i === stick && phase !== null;

@@ -1,8 +1,9 @@
-import { mergeCloudHistory } from './cloud.js';
+import { mergeCloudHistory, mergeCloudStickers } from './cloud.js';
+import { replaceSavedStickers, savedStickers } from './stickerStore.js';
 import { loadPracticeLog, replacePlayerPractices } from './practiceLog.js';
 import { loadStreakDays, replaceStreakDays } from './streak.js';
 
-// Keeps each player's practice history and game streak the same on every
+// Keeps each player's practice history, game streak and stickers the same on every
 // phone signed in to the family account. Each phone sends what it has and
 // gets back the combined lists (the database only ever adds, so phones
 // never overwrite each other), then saves them locally. Runs on sign-in,
@@ -17,7 +18,9 @@ async function syncPlayer(profileId) {
     loadPracticeLog()[profileId] || [],
     loadStreakDays()[profileId] || [],
   );
-  if (!merged) return false;
+  const stickers = await mergeCloudStickers(profileId, savedStickers(profileId));
+  if (Array.isArray(stickers)) replaceSavedStickers(profileId, stickers);
+  if (!merged) return Array.isArray(stickers);
   if (Array.isArray(merged.practice_log)) replacePlayerPractices(profileId, merged.practice_log);
   if (Array.isArray(merged.streak_days)) replaceStreakDays(profileId, merged.streak_days);
   return true;

@@ -187,48 +187,6 @@ export const stickerMove = (index) => MOVES[STICKERS[index][0]] || 'bob';
 
 export const stickerName = (index) => STICKERS[index][0];
 
-// Which sticker each player chose for each practice day:
-// { [playerId]: { [dayKey]: stickerIndex } }. Days from before stickers
-// could be chosen keep the one they got then (the book's order).
-const PICKS_KEY = 'pitchpop-sticker-picks-v1';
-
-export function loadStickerPicks() {
-  try {
-    return JSON.parse(localStorage.getItem(PICKS_KEY)) || {};
-  } catch {
-    return {};
-  }
-}
-
-export function saveStickerPick(playerId, day, index) {
-  const picks = loadStickerPicks();
-  picks[playerId] = { ...picks[playerId], [day]: index };
-  try {
-    localStorage.setItem(PICKS_KEY, JSON.stringify(picks));
-  } catch {
-    // Storage full or blocked: the pick just isn't kept.
-  }
-}
-
-// The book's current page for a player: one slot per practice day (index
-// null for today while it's still waiting to be chosen), and the stickers
-// still free to choose (each sticker once per page).
-export function stickerBook(days, picks = {}, today) {
-  const sorted = [...new Set(days)].sort();
-  const page = sorted.length ? Math.floor((sorted.length - 1) / BOOK_SIZE) : 0;
-  const slots = sorted.slice(page * BOOK_SIZE).map((day, i) => ({
-    day,
-    index: picks[day] ?? (day === today ? null : i),
-  }));
-  const used = new Set(slots.map((s) => s.index));
-  return {
-    page,
-    slots,
-    waiting: slots.some((s) => s.index === null),
-    free: STICKERS.map((_, i) => i).filter((i) => !used.has(i)),
-  };
-}
-
 // A sticker's whole SVG: the drawing with a white border and a soft
 // shadow (an SVG filter; `id` keeps each copy's filter its own).
 export function stickerSvg(index, id, play = false) {

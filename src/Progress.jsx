@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { weekProgress } from './progress.js';
-import { BOOK_SIZE, loadStickerPicks, stickerBook } from './stickers.js';
+import { BOOK_SIZE } from './stickers.js';
+import { bookPage, pendingStickers, playerStickers } from './stickerStore.js';
 import Sticker from './Sticker.jsx';
-import { dayKey } from './streak.js';
 import { loadReminder, remindersAvailable, setReminder } from './reminders.js';
 
 // The parent progress page: the player's last 7 days (rounds, streak,
@@ -73,7 +73,8 @@ export default function Progress({ player, rounds, days, colors, signedIn, onSig
     return new Date(y, m - 1, d).toLocaleDateString(undefined, { weekday: 'narrow' });
   };
   const hex = (name) => colors.find((c) => c.name === name)?.hex;
-  const book = stickerBook(days, loadStickerPicks()[player.id], dayKey());
+  const book = bookPage(playerStickers(player.id));
+  const waiting = pendingStickers(player.id);
   const grown = Math.min(1, player.colors.length / colors.length);
 
   return (
@@ -149,17 +150,14 @@ export default function Progress({ player, rounds, days, colors, signedIn, onSig
         <span>
           <b>Sticker book</b>
           <span className="muted-text">
-            {book.waiting
-              ? "🎁 Today's sticker is waiting to be picked!"
-              : `${book.slots.length} of ${BOOK_SIZE} stickers${book.page ? ` · page ${book.page + 1}` : ''}`}
+            {waiting
+              ? `🎁 ${waiting === 1 ? 'A sticker is' : `${waiting} stickers are`} waiting to be picked!`
+              : `${book.total} ${book.total === 1 ? 'sticker' : 'stickers'}${book.page ? ` · page ${book.page + 1}: ${book.onPage.length} of ${BOOK_SIZE}` : ''}`}
           </span>
           <span className="prog-book-peek">
-            {book.slots
-              .filter((slot) => slot.index !== null)
-              .slice(-6)
-              .map((slot) => (
-                <Sticker key={slot.day} index={slot.index} size={30} />
-              ))}
+            {book.onPage.slice(-6).map((s) => (
+              <Sticker key={s.at} index={s.index} size={30} />
+            ))}
           </span>
         </span>
         <span className="prog-book-arrow" aria-hidden="true">

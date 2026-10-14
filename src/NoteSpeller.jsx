@@ -38,7 +38,7 @@ function ProgressDots({ current, total }) {
   );
 }
 
-export default function NoteSpeller({ engine, playerId, onComplete, onOpenSettings }) {
+export default function NoteSpeller({ engine, playerId, onComplete, onOpenSettings, stickerSlot }) {
   // Clef, part of the staff and letters are set per player in Players &
   // colors.
   // The clef can be switched right here too (saved for the player).
@@ -148,6 +148,7 @@ export default function NoteSpeller({ engine, playerId, onComplete, onOpenSettin
           <p className="screen-sub">
             You got {correctCount} out of {SESSION_ROUNDS} right.
           </p>
+          {stickerSlot}
           <button className="pill-btn-primary" onClick={() => restart()}>
             Play again →
           </button>

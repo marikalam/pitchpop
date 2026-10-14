@@ -1,15 +1,12 @@
 import { useEffect, useLayoutEffect, useState } from 'react';
 import {
   MIN_PRACTICE_MINUTES,
-  TOKEN_MINUTES,
   formatMinutes,
   loadPracticeLog,
   practiceStats,
   recordPractice,
-  tokensFor,
 } from './practiceLog.js';
 import Metronome from './Metronome.jsx';
-import { TokenIcon } from './icons.jsx';
 import CoffeeBreak from './CoffeeBreak.jsx';
 import { showPracticeOnLockScreen } from './liveActivity.js';
 
@@ -135,9 +132,8 @@ function formatDay(key) {
   return new Date(y, m - 1, d).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
 }
 
-// Tokens are shown only to signed-in families (showTokens); a guest's
-// practices still count toward them once the family signs in.
-export default function PracticeMode({ profileId, profileName, ready = true, showTokens = true }) {
+// A saved practice earns a sticker (onSaved; picked with stickerSlot).
+export default function PracticeMode({ profileId, profileName, ready = true, onSaved, stickerSlot }) {
   const [practice, setPractice] = useState(loadPractice);
   const [log, setLog] = useState(loadPracticeLog);
   const [now, setNow] = useState(Date.now);
@@ -213,6 +209,7 @@ export default function PracticeMode({ profileId, profileName, ready = true, sho
     const minutes = wholeMinutes(elapsedMs(practice, t));
     if (['running', 'paused'].includes(practice.status) && minutes >= MIN_PRACTICE_MINUTES) {
       setLog((prev) => recordPractice(prev, practice.profileId, minutes, new Date(t)));
+      onSaved?.(practice.profileId);
     }
     setNow(t);
     setPractice({ ...EMPTY, profileId });
@@ -242,6 +239,7 @@ export default function PracticeMode({ profileId, profileName, ready = true, sho
       return;
     }
     setLog((prev) => recordPractice(prev, profileId, minutes, new Date(t)));
+    onSaved?.(profileId);
     update({ status: 'saved', elapsedBefore: total, startedAt: null });
   }
 
@@ -251,8 +249,6 @@ export default function PracticeMode({ profileId, profileName, ready = true, sho
 
   const minutes = wholeMinutes(elapsedMs(practice, now));
   const stats = practiceStats(log[profileId]);
-  const earning = tokensFor(minutes);
-  const tokenWord = (n) => (n === 1 ? 'token' : 'tokens');
 
   // A green dot on the Timer tab while the practice timer runs.
   const live = { timer: practice.status === 'running' };
@@ -261,11 +257,6 @@ export default function PracticeMode({ profileId, profileName, ready = true, sho
     <div className="practice-screen">
       <div className="practice-head">
         <h2 className="screen-title practice-title">Practice Mode</h2>
-        {showTokens && (
-          <div className="token-chip" aria-label={`${profileName} has ${stats.tokens} ${tokenWord(stats.tokens)}`}>
-            <TokenIcon /> {stats.tokens}
-          </div>
-        )}
       </div>
 
       <div className="practice-tabs" role="tablist" aria-label="Practice tools">
@@ -293,14 +284,7 @@ export default function PracticeMode({ profileId, profileName, ready = true, sho
           <>
             <div className="practice-time practice-time-done">{formatMinutes(minutes)}</div>
             <p className="practice-summary">Saved! Great practice, {profileName}.</p>
-            {showTokens && earning > 0 && (
-              <div className="token-earned" role="status">
-                <span className="token-earned-coin" aria-hidden="true">
-                  <TokenIcon size="1.4em" />
-                </span>
-                You earned {earning} {tokenWord(earning)}!
-              </div>
-            )}
+            {stickerSlot}
             <button className="pill-btn-primary pill-btn-full" onClick={newPractice}>
               Start a new practice
             </button>
@@ -330,23 +314,10 @@ export default function PracticeMode({ profileId, profileName, ready = true, sho
               {formatMinutes(minutes)}
             </div>
             <p className="practice-status">
-              {practice.status === 'idle' &&
-                (showTokens ? (
-                  <>
-                    Practices of {MIN_PRACTICE_MINUTES}+ minutes are saved · <TokenIcon /> 1 token per {TOKEN_MINUTES} minutes
-                  </>
-                ) : (
-                  `Practices of ${MIN_PRACTICE_MINUTES}+ minutes are saved`
-                ))}
+              {practice.status === 'idle' && `Practice ${MIN_PRACTICE_MINUTES}+ minutes to save it and earn a sticker ⭐`}
               {practice.status === 'running' && (
                 <>
                   <span className="practice-live-dot" aria-hidden="true" /> Practicing
-                  {showTokens && earning > 0 && (
-                    <>
-                      {' · '}
-                      <TokenIcon /> {earning} {tokenWord(earning)} so far
-                    </>
-                  )}
                 </>
               )}
               {practice.status === 'paused' && 'On a break · the timer is stopped'}
@@ -438,7 +409,6 @@ export default function PracticeMode({ profileId, profileName, ready = true, sho
                   <span>{formatDay(entry.day)}</span>
                   <span>
                     {formatMinutes(entry.minutes)}
-                    {showTokens && tokensFor(entry.minutes) > 0 && <span className="practice-history-tokens"> · <TokenIcon /> {tokensFor(entry.minutes)}</span>}
                   </span>
                 </li>
               ))}
