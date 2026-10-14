@@ -5221,7 +5221,7 @@ body {
 .sbook-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 6px 4px;
+  gap: 8px;
 }
 .sbook-spot {
   display: flex;
@@ -5229,27 +5229,46 @@ body {
   justify-content: center;
   aspect-ratio: 1;
 }
-/* A sticker not collected yet: a faded shadow in its spot. */
-.sbook-shadow {
-  display: inline-flex;
-  filter: grayscale(1);
-  opacity: 0.22;
-}
-.sbook-shadow-btn {
-  padding: 4px;
-  border: 2px dashed transparent;
+/* A box with no sticker yet: blank, waiting. The next one to fill glows
+   while a sticker is being picked. */
+.sbook-spot.is-blank {
+  border: 2px dashed #ddd3f5;
   border-radius: 16px;
+  background: rgba(255, 255, 255, 0.6);
+}
+.sbook-spot.is-next {
+  border-color: #9775fa;
+  background: #f3efff;
+  animation: sbook-next 1.4s ease-in-out infinite;
+}
+@keyframes sbook-next {
+  50% { transform: scale(0.92); }
+}
+/* Picking: every sticker, to choose any of them. */
+.sbook-tray {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 2px;
+  margin: 0 0 12px;
+  padding: 6px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #fff4fb, #eef3ff);
+}
+.sbook-tray-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px;
+  border: 2px solid transparent;
+  border-radius: 14px;
   background: none;
   cursor: pointer;
-  opacity: 0.4;
-  transition: transform 0.15s, opacity 0.15s;
+  transition: transform 0.15s;
 }
-.sbook-shadow-btn.is-chosen {
+.sbook-tray-btn.is-chosen {
   border-color: #9775fa;
   background: #fff;
-  filter: none;
-  opacity: 1;
-  transform: scale(1.18);
+  transform: scale(1.15);
 }
 .sbook-stickbar {
   position: fixed;
@@ -5343,6 +5362,7 @@ body {
   animation-delay: 0.4s !important;
 }
 @media (prefers-reduced-motion: reduce) {
+  .sbook-spot.is-next,
   .sbook-flying,
   .sbook-landed::after,
   .sbook-done {

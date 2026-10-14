@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { STICKERS, stickerName } from './stickers.js';
-import { addSticker, bookPage, pendingStickers, playerStickers } from './stickerStore.js';
+import { addSticker, pendingStickers, playerStickers } from './stickerStore.js';
 import Sticker from './Sticker.jsx';
 
 const ALL = STICKERS.map((_, i) => i);
@@ -51,8 +51,6 @@ export default function StickerPicker({ playerId, signedIn, from, onStick, onSig
     ) : null;
   }
 
-  const free = signedIn ? bookPage(playerStickers(playerId), true).free : ALL;
-
   function stick() {
     if (!signedIn) {
       setGuestSticker(chosen);
@@ -68,7 +66,7 @@ export default function StickerPicker({ playerId, signedIn, from, onStick, onSig
         {pending > 1 ? `You have ${pending} stickers! Pick one` : 'You earned a sticker! Pick one'}
       </p>
       <div className="sticker-pick-grid">
-        {free.map((i) => (
+        {ALL.map((i) => (
           <button
             key={i}
             type="button"

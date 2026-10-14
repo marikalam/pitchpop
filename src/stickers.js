@@ -3,7 +3,13 @@
 // account to every device). The book fills in this order, then starts a
 // new page. Each sticker is a little drawing (SVG, drawn here, not emoji)
 // on a 100x100 canvas; Sticker.jsx adds the white die-cut edge and shadow.
-const eyes = (x1, x2, y, r = 3.2) => `<circle cx="${x1}" cy="${y}" r="${r}" fill="#3a2e3f"/><circle cx="${x2}" cy="${y}" r="${r}" fill="#3a2e3f"/><circle cx="${x1 + 1}" cy="${y - 1.2}" r="1" fill="#fff"/><circle cx="${x2 + 1}" cy="${y - 1.2}" r="1" fill="#fff"/>`;
+// Bits that move only when a sticker is played (stuck in, or tapped):
+// stickerSvg leaves every <animate…/> out of a sticker sitting still.
+// `turn` swings a part about (x, y) by the given angles.
+const turn = (x, y, angles, dur = 0.6, begin = 0.3, times = 2) => `<animateTransform attributeName="transform" type="rotate" values="${angles.map((a) => `${a} ${x} ${y}`).join(';')}" dur="${dur}s" begin="${begin}s" repeatCount="${times}"/>`;
+// Eyes that blink twice when played.
+const eye = (x, y, r) => `<g transform="translate(${x} ${y})"><g><circle r="${r}" fill="#3a2e3f"/><circle cx="1" cy="-1.2" r="1" fill="#fff"/><animateTransform attributeName="transform" type="scale" values="1 1;1 .1;1 1;1 1;1 .1;1 1;1 1" keyTimes="0;.08;.16;.45;.53;.61;1" dur="1.6s" begin="0.25s" repeatCount="1"/></g></g>`;
+const eyes = (x1, x2, y, r = 3.2) => eye(x1, y, r) + eye(x2, y, r);
 const smile = (x, y, w = 5) => `<path d="M${x - w} ${y} q${w} ${w * 0.9} ${w * 2} 0" fill="none" stroke="#3a2e3f" stroke-width="2.4" stroke-linecap="round"/>`;
 const blush = (x1, x2, y) => `<ellipse cx="${x1}" cy="${y}" rx="4.5" ry="2.8" fill="#ff8fb1" opacity=".55"/><ellipse cx="${x2}" cy="${y}" rx="4.5" ry="2.8" fill="#ff8fb1" opacity=".55"/>`;
 export const STICKERS = [
@@ -26,7 +32,8 @@ export const STICKERS = [
     <path d="M28 56 L72 56 L66 86 L34 86Z" fill="#74c0fc"/>
     <g stroke="#4dabf7" stroke-width="3"><line x1="40" y1="58" x2="42" y2="84"/><line x1="50" y1="58" x2="50" y2="84"/><line x1="60" y1="58" x2="58" y2="84"/></g>
     <path d="M24 58 C18 50 26 40 34 42 C34 30 48 26 52 34 C58 26 72 32 68 42 C78 42 82 52 76 58Z" fill="#ffc9de"/>
-    <circle cx="52" cy="24" r="6" fill="#ff4d6d"/><path d="M52 18 q2 -6 7 -7" stroke="#2b8a3e" stroke-width="2" fill="none"/>
+    <g><circle cx="52" cy="24" r="6" fill="#ff4d6d"/><path d="M52 18 q2 -6 7 -7" stroke="#2b8a3e" stroke-width="2" fill="none"/>
+      <animateTransform attributeName="transform" type="translate" values="0 0;0 -10;0 0;0 -4;0 0" dur="0.7s" begin="0.3s" repeatCount="2"/></g>
     <g fill="#fff"><rect x="36" y="46" width="5" height="2" rx="1" transform="rotate(30 38 47)"/><rect x="56" y="44" width="5" height="2" rx="1" transform="rotate(-25 58 45)"/></g>
     <g fill="#ffd43b"><rect x="46" y="50" width="5" height="2" rx="1" transform="rotate(-10 48 51)"/><rect x="64" y="51" width="5" height="2" rx="1" transform="rotate(40 66 52)"/></g>`],
   ['Ice cream', `
@@ -41,26 +48,21 @@ export const STICKERS = [
     <path d="M46 68 L54 68 L50 73Z" fill="#7950f2"/>
     <ellipse cx="40" cy="28" rx="6" ry="9" transform="rotate(25 40 28)" fill="#fff" opacity=".6"/>`],
   ['Kitty', `
-    <path d="M22 40 L26 14 L44 30Z M78 40 L74 14 L56 30Z" fill="#ffa94d"/>
-    <path d="M27 34 L28 21 L37 29Z M73 34 L72 21 L63 29Z" fill="#ffc9de"/>
+    <g><path d="M22 40 L26 14 L44 30Z" fill="#ffa94d"/><path d="M27 34 L28 21 L37 29Z" fill="#ffc9de"/>${turn(32, 36, [0, -14, 6, 0], 0.55, 0.2)}</g>
+    <g><path d="M78 40 L74 14 L56 30Z" fill="#ffa94d"/><path d="M73 34 L72 21 L63 29Z" fill="#ffc9de"/>${turn(68, 36, [0, 14, -6, 0], 0.55, 0.9)}</g>
     <ellipse cx="50" cy="54" rx="32" ry="28" fill="#ffa94d"/>
     <path d="M50 27 L46 37 M50 27 L54 37" stroke="#f08c00" stroke-width="3" stroke-linecap="round"/>
     ${eyes(39, 61, 52)}${blush(31, 69, 62)}
-    <g opacity="0">
-      <rect x="33" y="47" width="12" height="10" fill="#ffa94d"/><rect x="55" y="47" width="12" height="10" fill="#ffa94d"/>
-      <path d="M35 52 q4 3 8 0 M57 52 q4 3 8 0" fill="none" stroke="#3a2e3f" stroke-width="2.2" stroke-linecap="round"/>
-      <animate attributeName="opacity" values="0;0;1;0" keyTimes="0;0.9;0.94;1" dur="3.5s" repeatCount="indefinite"/>
-    </g>
     <path d="M47 60 L53 60 L50 63Z" fill="#ff6b9a"/><path d="M44 66 q3 3 6 0 q3 3 6 0" fill="none" stroke="#3a2e3f" stroke-width="2.2" stroke-linecap="round"/>`],
   ['Bunny', `
-    <ellipse cx="38" cy="26" rx="8" ry="20" fill="#f1f3f5"/><ellipse cx="62" cy="26" rx="8" ry="20" fill="#f1f3f5"/>
-    <ellipse cx="38" cy="27" rx="4" ry="14" fill="#ffc9de"/><ellipse cx="62" cy="27" rx="4" ry="14" fill="#ffc9de"/>
+    <g><ellipse cx="38" cy="26" rx="8" ry="20" fill="#f1f3f5"/><ellipse cx="38" cy="27" rx="4" ry="14" fill="#ffc9de"/>${turn(38, 44, [0, -10, 0], 0.8, 0.3)}</g>
+    <g><ellipse cx="62" cy="26" rx="8" ry="20" fill="#f1f3f5"/><ellipse cx="62" cy="27" rx="4" ry="14" fill="#ffc9de"/>${turn(62, 44, [0, 35, 30, 0], 1.2, 0.5, 1)}</g>
     <ellipse cx="50" cy="60" rx="30" ry="26" fill="#f8f9fa"/>
     ${eyes(40, 60, 58)}${blush(32, 68, 66)}
     <ellipse cx="50" cy="65" rx="3" ry="2.2" fill="#ff6b9a"/>${smile(50, 69, 3)}`],
   ['Bear', `
-    <circle cx="26" cy="30" r="11" fill="#b07d56"/><circle cx="74" cy="30" r="11" fill="#b07d56"/>
-    <circle cx="26" cy="30" r="6" fill="#e0b48c"/><circle cx="74" cy="30" r="6" fill="#e0b48c"/>
+    <g><circle cx="26" cy="30" r="11" fill="#b07d56"/><circle cx="26" cy="30" r="6" fill="#e0b48c"/>${turn(36, 42, [0, -12, 0], 0.5)}</g>
+    <g><circle cx="74" cy="30" r="11" fill="#b07d56"/><circle cx="74" cy="30" r="6" fill="#e0b48c"/>${turn(64, 42, [0, 12, 0], 0.5)}</g>
     <circle cx="50" cy="55" r="30" fill="#b07d56"/>
     <ellipse cx="50" cy="65" rx="13" ry="10" fill="#e8c6a2"/>
     ${eyes(39, 61, 51)}<ellipse cx="50" cy="61" rx="4.5" ry="3.2" fill="#3a2e3f"/>${smile(50, 66, 3.5)}${blush(30, 70, 62)}`],
@@ -68,11 +70,12 @@ export const STICKERS = [
     <path d="M14 58 C14 38 36 32 54 36 C70 39 80 50 80 58 C88 52 92 44 94 40 C96 52 92 64 82 66 C72 80 30 82 18 72 C15 68 14 63 14 58Z" fill="#4dabf7"/>
     <path d="M18 66 C30 76 62 76 76 66 C70 74 34 80 18 66Z" fill="#a5d8ff"/>
     ${eyes(30, 30, 52)}${blush(26, 26, 60)}
-    <path d="M44 30 q-4 -10 -10 -12 M44 30 q0 -12 4 -16 M44 30 q6 -8 12 -8" stroke="#74c0fc" stroke-width="3" fill="none" stroke-linecap="round"/>`],
+    <g transform="translate(44 30)"><g><path d="M0 0 q-4 -10 -10 -12 M0 0 q0 -12 4 -16 M0 0 q6 -8 12 -8" stroke="#74c0fc" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <animateTransform attributeName="transform" type="scale" values="1;1.7;0.8;1" dur="0.8s" begin="0.3s" repeatCount="2"/>
+    </g></g>`],
   ['Butterfly', `
-    <ellipse cx="32" cy="38" rx="18" ry="16" fill="#ff8cba"/><ellipse cx="68" cy="38" rx="18" ry="16" fill="#ff8cba"/>
-    <ellipse cx="34" cy="66" rx="13" ry="12" fill="#b197fc"/><ellipse cx="66" cy="66" rx="13" ry="12" fill="#b197fc"/>
-    <circle cx="30" cy="38" r="6" fill="#fff" opacity=".7"/><circle cx="70" cy="38" r="6" fill="#fff" opacity=".7"/>
+    <g><ellipse cx="32" cy="38" rx="18" ry="16" fill="#ff8cba"/><ellipse cx="34" cy="66" rx="13" ry="12" fill="#b197fc"/><circle cx="30" cy="38" r="6" fill="#fff" opacity=".7"/>${turn(50, 52, [0, 22, 0], 0.4, 0.2, 4)}</g>
+    <g><ellipse cx="68" cy="38" rx="18" ry="16" fill="#ff8cba"/><ellipse cx="66" cy="66" rx="13" ry="12" fill="#b197fc"/><circle cx="70" cy="38" r="6" fill="#fff" opacity=".7"/>${turn(50, 52, [0, -22, 0], 0.4, 0.2, 4)}</g>
     <rect x="46" y="28" width="8" height="48" rx="4" fill="#5c4a72"/>
     <path d="M48 28 q-6 -10 -12 -10 M52 28 q6 -10 12 -10" stroke="#5c4a72" stroke-width="2.4" fill="none" stroke-linecap="round"/>`],
   ['Flower', `
@@ -114,8 +117,8 @@ export const STICKERS = [
   ['Spider', `
     <line x1="50" y1="2" x2="50" y2="30" stroke="#adb5bd" stroke-width="2"/>
     <g stroke="#7048e8" stroke-width="4" stroke-linecap="round" fill="none">
-      <path d="M32 48 q-12 -8 -18 -2"/><path d="M30 56 q-14 -2 -18 6"/><path d="M32 64 q-10 4 -12 14"/><path d="M36 70 q-4 8 -2 16"/>
-      <path d="M68 48 q12 -8 18 -2"/><path d="M70 56 q14 -2 18 6"/><path d="M68 64 q10 4 12 14"/><path d="M64 70 q4 8 2 16"/>
+      <g><path d="M32 48 q-12 -8 -18 -2"/><path d="M30 56 q-14 -2 -18 6"/><path d="M32 64 q-10 4 -12 14"/><path d="M36 70 q-4 8 -2 16"/>${turn(34, 58, [0, 10, -8, 0], 0.5, 0.3, 3)}</g>
+      <g><path d="M68 48 q12 -8 18 -2"/><path d="M70 56 q14 -2 18 6"/><path d="M68 64 q10 4 12 14"/><path d="M64 70 q4 8 2 16"/>${turn(66, 58, [0, -10, 8, 0], 0.5, 0.3, 3)}</g>
     </g>
     <circle cx="50" cy="56" r="22" fill="#9775fa"/>
     <ellipse cx="50" cy="64" rx="12" ry="9" fill="#b197fc"/>
@@ -132,6 +135,7 @@ export const STICKERS = [
     <rect x="12" y="28" width="76" height="46" rx="9" fill="#5c4a72"/>
     <rect x="17" y="40" width="66" height="29" rx="4" fill="#fff"/>
     <g stroke="#dee2e6" stroke-width="1.6">${[26.4, 35.8, 45.2, 54.6, 64, 73.4].map((x) => `<line x1="${x}" y1="40" x2="${x}" y2="69"/>`).join('')}</g>
+    <g fill="#ffd43b">${[17, 26.4, 35.8, 45.2, 54.6, 64, 73.4].map((x, i) => `<rect x="${x + 0.8}" y="40" width="7.8" height="29" opacity="0"><animate attributeName="opacity" values="0;.85;0" dur="0.35s" begin="${0.3 + i * 0.18}s" repeatCount="1"/></rect>`).join('')}</g>
     <g fill="#3a2e3f">${[23, 32.4, 51.2, 60.6, 70].map((x) => `<rect x="${x}" y="40" width="6" height="17" rx="1.5"/>`).join('')}</g>
     <circle cx="24" cy="34" r="2.2" fill="#ffd43b"/><circle cx="32" cy="34" r="2.2" fill="#ff8cba"/><circle cx="40" cy="34" r="2.2" fill="#74c0fc"/>`],
   ['Music notes', `
@@ -143,7 +147,7 @@ export const STICKERS = [
   ['Crown', `
     <path d="M16 72 L20 32 L36 50 L50 24 L64 50 L80 32 L84 72Z" fill="#ffd43b" stroke="#fab005" stroke-width="4" stroke-linejoin="round"/>
     <rect x="16" y="68" width="68" height="12" rx="4" fill="#fab005"/>
-    <circle cx="20" cy="30" r="5" fill="#ff8cba"/><circle cx="50" cy="22" r="5" fill="#74c0fc"/><circle cx="80" cy="30" r="5" fill="#69db7c"/>
+    ${[[20, 30, '#ff8cba'], [50, 22, '#74c0fc'], [80, 30, '#69db7c']].map(([x, y, c], i) => `<circle cx="${x}" cy="${y}" r="5" fill="${c}"><animate attributeName="r" values="5;7.5;5" dur="0.4s" begin="${0.3 + i * 0.2}s" repeatCount="2"/></circle>`).join('')}
     <circle cx="50" cy="58" r="5" fill="#ff6b6b"/>`],
   ['Donut', `
     <circle cx="50" cy="52" r="34" fill="#f4b46a"/>

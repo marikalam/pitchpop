@@ -1,11 +1,11 @@
-import { BOOK_SIZE, STICKERS } from './stickers.js';
+import { BOOK_SIZE } from './stickers.js';
 import { keepsRecords } from './records.js';
 import { loadStreakDays } from './streak.js';
 
 // Each player's sticker book: a sticker for every finished Pitch Practice
 // round, NoteSpeller round and saved practice, no limit. The player picks
-// which one; each sticker appears once per page of BOOK_SIZE, then a new
-// page starts. Only signed-in families keep stickers (records.js).
+// any sticker they like (the same one again too); it goes in the next box
+// of the page, and after BOOK_SIZE boxes a new page starts. Only signed-in families keep stickers (records.js).
 //
 // Saved per player: [{ index, at, from }] ('pitch' | 'notes' | 'practice';
 // `at` is when it was stuck in, and tells stickers apart when phones sync).
@@ -52,13 +52,12 @@ export function playerStickers(playerId) {
 }
 
 // The page a sticker is being added to (`adding`) or the last page with
-// stickers: the stickers on it and the ones still free to pick.
+// stickers, and the stickers on it (in the order they were stuck in).
 export function bookPage(stickers, adding = false) {
   const n = stickers.length;
   const page = adding ? Math.floor(n / BOOK_SIZE) : Math.max(0, Math.floor((n - 1) / BOOK_SIZE));
   const onPage = stickers.slice(page * BOOK_SIZE, (page + 1) * BOOK_SIZE);
-  const used = new Set(onPage.map((s) => s.index));
-  return { page, onPage, total: n, free: STICKERS.map((_, i) => i).filter((i) => !used.has(i)) };
+  return { page, onPage, total: n };
 }
 
 export function pendingStickers(playerId) {

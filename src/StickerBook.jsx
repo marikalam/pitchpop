@@ -3,12 +3,12 @@ import { BOOK_SIZE, STICKERS, stickerName } from './stickers.js';
 import { addSticker, bookPage, pendingStickers, playerStickers } from './stickerStore.js';
 import Sticker from './Sticker.jsx';
 
-// The sticker book: every sticker has its own spot on the page. The ones
-// collected are there in color; the rest wait as faded shadows. A new
-// sticker is peeled up, flown over and pressed onto its spot, then does
-// its little move. (Stickers earned but not picked yet wait here: tapping
-// a shadow picks one.) Tapping a sticker in the book makes it do its move
-// again, with a squish and a burst of sparkles.
+// The sticker book: a page of BOOK_SIZE boxes that fill up in order, one
+// sticker per box, the rest left blank. A sticker earned but not stuck in
+// yet waits here: the player picks any sticker they like from the tray,
+// and it's peeled up, flown over and pressed into the next blank box, then
+// does its little move. Tapping a sticker in the book makes it do its move
+// again (a blink, its ears twitching...), with a squish and sparkles.
 export default function StickerBook({ player, signedIn, onSignIn, placing, onPlaced }) {
   const [stickers, setStickers] = useState(() => (signedIn ? playerStickers(player.id) : []));
   const [pending, setPending] = useState(() => (signedIn ? pendingStickers(player.id) : 0));
@@ -17,7 +17,7 @@ export default function StickerBook({ player, signedIn, onSignIn, placing, onPla
   const [stick, setStick] = useState(placing ?? null);
   const [phase, setPhase] = useState(placing != null ? 'wait' : null);
   const [from, setFrom] = useState(null);
-  // The sticker last tapped; `n` counts taps so each tap starts it over.
+  // The box last tapped; `n` counts taps so each tap starts it over.
   const [tapped, setTapped] = useState(null);
   const spotRefs = useRef({});
 
@@ -38,19 +38,22 @@ export default function StickerBook({ player, signedIn, onSignIn, placing, onPla
 
   const choosing = signedIn && pending > 0 && (phase === null || phase === 'landed');
   const book = bookPage(stickers, choosing);
-  const have = new Set(book.onPage.map((s) => s.index));
+  // The box the new sticker goes in (the last filled one, as it's in the
+  // list already), or the next blank box while picking.
+  const newBox = phase !== null ? book.onPage.length - 1 : -1;
+  const nextBox = choosing ? book.onPage.length : -1;
 
   // Bring the spot into view, then measure where the sticker flies in from
   // (the middle of the screen, a little above the spot's row).
   useLayoutEffect(() => {
     if (phase !== 'wait') return;
-    const spot = spotRefs.current[stick];
+    const spot = spotRefs.current[newBox];
     spot?.scrollIntoView({ block: 'center' });
-  }, [phase, stick]);
+  }, [phase, newBox]);
   useEffect(() => {
     if (phase !== 'wait') return undefined;
     const t = setTimeout(() => {
-      const spot = spotRefs.current[stick];
+      const spot = spotRefs.current[newBox];
       const r = spot?.getBoundingClientRect();
       if (!r || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
         setPhase('landed');
@@ -60,7 +63,7 @@ export default function StickerBook({ player, signedIn, onSignIn, placing, onPla
       setPhase('fly');
     }, 450);
     return () => clearTimeout(t);
-  }, [phase, stick]);
+  }, [phase, newBox]);
 
   function stickChosen() {
     addSticker(player.id, chosen, 'book');
@@ -86,61 +89,66 @@ export default function StickerBook({ player, signedIn, onSignIn, placing, onPla
           </p>
           {choosing && (
             <p className="sbook-hint">
-              🎁 {pending > 1 ? `${pending} stickers are waiting!` : 'A sticker is waiting!'} Tap the one you want.
+              🎁 {pending > 1 ? `${pending} stickers are waiting!` : 'A sticker is waiting!'} Pick any sticker you like!
             </p>
           )}
+          {choosing && (
+            <div className="sbook-tray">
+              {STICKERS.map(([name], i) => (
+                <button
+                  key={name}
+                  type="button"
+                  className={`sbook-tray-btn${chosen === i ? ' is-chosen' : ''}`}
+                  onClick={() => setChosen(i)}
+                  aria-label={name}
+                  aria-pressed={chosen === i}
+                >
+                  <Sticker index={i} size={40} />
+                </button>
+              ))}
+            </div>
+          )}
           <div className="sbook-grid">
-            {STICKERS.map(([name], i) => {
-              const isNew = i === stick && phase !== null;
-              const owned = have.has(i) && !isNew;
+            {Array.from({ length: BOOK_SIZE }, (_, k) => {
+              const s = book.onPage[k];
               return (
-                <span key={name} className="sbook-spot" ref={(el) => (spotRefs.current[i] = el)}>
-                  {isNew && phase === 'fly' ? (
+                <span
+                  key={k}
+                  className={`sbook-spot${s ? '' : ' is-blank'}${k === nextBox ? ' is-next' : ''}`}
+                  ref={(el) => (spotRefs.current[k] = el)}
+                >
+                  {!s ? null : k === newBox && phase === 'wait' ? null : k === newBox && phase === 'fly' ? (
                     <span
                       className="sbook-flying"
                       style={{ '--dx': `${from.dx}px`, '--dy': `${from.dy}px` }}
                       onAnimationEnd={(e) => e.target === e.currentTarget && (setPhase('landed'), onPlaced?.())}
                     >
-                      <Sticker index={i} size={56} />
+                      <Sticker index={s.index} size={56} />
                     </span>
-                  ) : isNew && phase === 'landed' ? (
+                  ) : k === newBox && phase === 'landed' && tapped?.k !== k ? (
                     <span className="sbook-landed">
-                      <Sticker index={i} size={56} play />
+                      <Sticker index={s.index} size={56} play />
                     </span>
-                  ) : owned ? (
+                  ) : (
                     <button
                       type="button"
                       className="sbook-sticker-btn"
-                      onClick={() => setTapped((t) => ({ i, n: (t?.n ?? 0) + 1 }))}
-                      aria-label={name}
+                      onClick={() => setTapped((t) => ({ k, n: (t?.n ?? 0) + 1 }))}
+                      aria-label={stickerName(s.index)}
                     >
-                      {tapped?.i === i ? (
+                      {tapped?.k === k ? (
                         <span key={tapped.n} className="sbook-tapped">
-                          <Sticker index={i} size={56} play />
+                          <Sticker index={s.index} size={56} play />
                           <span className="sbook-sparkles" aria-hidden="true">
-                            {Array.from({ length: 8 }, (_, k) => (
-                              <span key={k} style={{ '--a': `${k * 45 + 20}deg` }} />
+                            {Array.from({ length: 8 }, (_, j) => (
+                              <span key={j} style={{ '--a': `${j * 45 + 20}deg` }} />
                             ))}
                           </span>
                         </span>
                       ) : (
-                        <Sticker index={i} size={56} />
+                        <Sticker index={s.index} size={56} />
                       )}
                     </button>
-                  ) : choosing ? (
-                    <button
-                      type="button"
-                      className={`sbook-shadow sbook-shadow-btn${chosen === i ? ' is-chosen' : ''}`}
-                      onClick={() => setChosen(i)}
-                      aria-label={name}
-                      aria-pressed={chosen === i}
-                    >
-                      <Sticker index={i} size={56} />
-                    </button>
-                  ) : (
-                    <span className="sbook-shadow" title={name}>
-                      <Sticker index={i} size={56} />
-                    </span>
                   )}
                 </span>
               );
