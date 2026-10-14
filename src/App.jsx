@@ -496,10 +496,27 @@ function RoundSummary({ playerId, playerName, correct, wrong, streak, summary, h
         );
       })()}
       {summary.warmup && (
-        <p className="warmup-result">
-          🔁 Missed last time: {summary.warmup.right} of {summary.warmup.total} right today
-          {summary.warmup.right === summary.warmup.total ? ' — all fixed!' : ''}
-        </p>
+        // The chords missed last round, played again at the start of this one.
+        <div className="warmup-card">
+          <b>🔁 Tricky ones from last time</b>
+          <div className="warmup-chips">
+            {summary.warmup.items.map((item, i) => {
+              const color = COLORS.find((c) => c.name === item.name);
+              return (
+                <span key={i} className="warmup-chip" style={{ background: color?.hex, color: color?.text }}>
+                  {cap(item.name)} {item.right ? '✓' : '✗'}
+                </span>
+              );
+            })}
+          </div>
+          <span className="warmup-note">
+            {summary.warmup.right === summary.warmup.total
+              ? 'All right this time! ⭐'
+              : summary.warmup.right === 0
+                ? "Still tricky. They'll come back next time to practice."
+                : `${summary.warmup.right} of ${summary.warmup.total} right this time. Getting there! 💪`}
+          </span>
+        </div>
       )}
       {focus && summary.colors[focus.name] && (() => {
         // This round's focus color, against the last round it was in.

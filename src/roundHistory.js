@@ -36,7 +36,8 @@ export function summarizeRound(queue, outcomes, mixups, focus = null) {
     return at.length ? { right: at.filter((i) => outcomes[i]).length, total: at.length } : null;
   };
   const checks = focus?.checks && tally('check') ? { pair: focus.checks, ...tally('check') } : null;
-  const warmup = tally('warmup');
+  const warmupAt = queue.map((_, i) => i).filter((i) => focus?.kinds?.[i] === 'warmup');
+  const warmup = tally('warmup') && { ...tally('warmup'), items: warmupAt.map((i) => ({ name: queue[i], right: !!outcomes[i] })) };
   return { correct, total: queue.length, colors, ...(checks && { checks }), ...(warmup && { warmup }) };
 }
 
