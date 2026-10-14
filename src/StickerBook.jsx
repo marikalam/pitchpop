@@ -16,6 +16,8 @@ export default function StickerBook({ player, signedIn, onSignIn, placing, onPla
   const [stick, setStick] = useState(placing ?? null);
   const [phase, setPhase] = useState(placing != null ? 'wait' : null);
   const [from, setFrom] = useState(null);
+  // The sticker last tapped (`n` restarts its animation on every tap).
+  const [tapped, setTapped] = useState(null);
   const spotRefs = useRef({});
 
   // Stickers stuck in on the family's other phones, or picked elsewhere.
@@ -105,7 +107,24 @@ export default function StickerBook({ player, signedIn, onSignIn, placing, onPla
                       <Sticker index={i} size={56} play />
                     </span>
                   ) : owned ? (
-                    <Sticker index={i} size={56} />
+                    // Tap a sticker: it jumps, does its move and says its name.
+                    <button
+                      type="button"
+                      className="sbook-tap"
+                      onClick={() => setTapped((t) => ({ index: i, n: (t?.n || 0) + 1 }))}
+                      aria-label={name}
+                    >
+                      {tapped?.index === i ? (
+                        <span key={tapped.n} className="sbook-tapped">
+                          <Sticker index={i} size={56} play />
+                          <span className="sbook-name" aria-hidden="true">
+                            {name}
+                          </span>
+                        </span>
+                      ) : (
+                        <Sticker index={i} size={56} />
+                      )}
+                    </button>
                   ) : choosing ? (
                     <button
                       type="button"
