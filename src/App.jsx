@@ -12,8 +12,7 @@ import { PlayerSettingsCard, AddPlayerForm, AccountButton, AccountScreen, SyncSt
 import NoteSpeller from './NoteSpeller.jsx';
 import TinyTots from './TinyTots.jsx';
 import Progress from './Progress.jsx';
-import { stickerFor, BOOK_SIZE } from './stickers.js';
-import Sticker from './Sticker.jsx';
+import StickerPicker from './StickerPicker.jsx';
 import { weekProgress } from './progress.js';
 import { scheduleReminders } from './reminders.js';
 import { inTinyTots } from './tinyTots.js';
@@ -415,7 +414,7 @@ function FocusTag({ focus }) {
   );
 }
 
-function RoundSummary({ playerName, correct, wrong, streak, summary, history, focus, sticker, signedIn }) {
+function RoundSummary({ playerId, playerName, correct, wrong, streak, summary, history, focus, days, signedIn }) {
   const tier = scoreTier(correct, summary.total);
   const text = TIER_TEXT[tier];
   const workOn = colorToWorkOn(summary);
@@ -438,26 +437,11 @@ function RoundSummary({ playerName, correct, wrong, streak, summary, history, fo
           {correct === summary.total ? 'Every chord right!' : text.sub}
         </p>
       </div>
-      {sticker?.earned ? (
-        <div className="sticker-won">
-          <span className="sticker-won-emoji" aria-hidden="true">
-            <Sticker index={sticker.index} size={64} />
-          </span>
-          <span>
-            <span className="workon-title">You earned a sticker: {sticker.name}!</span>
-            <br />
-            <span className="workon-text">
-              {((sticker.number - 1) % BOOK_SIZE) + 1} of {BOOK_SIZE} in the sticker book
-            </span>
-          </span>
-        </div>
-      ) : sticker ? (
-        <p className="sticker-today">
-          <Sticker index={sticker.index} size={28} /> Today's sticker: {sticker.name}. Come back tomorrow for the next one!
-        </p>
-      ) : !signedIn ? (
+      {signedIn ? (
+        <StickerPicker playerId={playerId} days={days} />
+      ) : (
         <p className="sticker-today">Sign in to collect a sticker for every day of practice ⭐</p>
-      ) : null}
+      )}
       <div className="stat-tiles stat-tiles-compact">
         <div className="stat-tile">
           <div className="stat-number">{correct}</div>
@@ -649,8 +633,6 @@ export default function App() {
   const [lastActiveProfile, setLastActiveProfile] = useState(initialSession.lastActiveProfile || profiles[0].id);
   const [progress, setProgress] = useState(loadProgress);
   const [streakDays, setStreakDays] = useState(loadStreakDays);
-  // The sticker shown on the "All done!" screen (see stickers.js).
-  const [roundSticker, setRoundSticker] = useState(null);
   // The color picked in a wrong answer, for "listen to both".
   const [wrongPick, setWrongPick] = useState(null);
 
@@ -1127,11 +1109,8 @@ export default function App() {
   function nextChord() {
     newSound();
     if (roundIndex + 1 >= SESSION_ROUNDS) {
-      // The day's first finished round earns the next sticker.
-      const before = streakDays[profile] || [];
-      setRoundSticker(
-        !cloudUser ? null : before.includes(dayKey()) ? { earned: false, ...stickerFor(before.length - 1) } : { earned: true, number: before.length + 1, ...stickerFor(before.length) },
-      );
+      // The day's first finished round earns a sticker (picked on the
+      // "All done!" screen).
       setStreakDays(recordStreakDay(streakDays, profile));
       recordRound(profile, summarizeRound(sessionQueue, roundOutcomes, roundMixups, roundFocus));
       setView('play-complete');
@@ -2057,7 +2036,8 @@ export default function App() {
               summary={summarizeRound(sessionQueue, roundOutcomes, roundMixups, roundFocus)}
               history={loadRoundHistory()[profile] || []}
               focus={roundFocus}
-              sticker={roundSticker}
+              playerId={profile}
+              days={streakDays[profile] || []}
               signedIn={!!cloudUser}
             />
             <div className="feedback-actions">

@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { weekProgress } from './progress.js';
-import { BOOK_SIZE, stickerFor } from './stickers.js';
+import { BOOK_SIZE, loadStickerPicks, stickerBook, stickerName } from './stickers.js';
 import Sticker from './Sticker.jsx';
+import StickerPicker from './StickerPicker.jsx';
+import { dayKey } from './streak.js';
 import { loadReminder, remindersAvailable, setReminder } from './reminders.js';
 
 // The parent progress page: the player's last 7 days (rounds, streak,
@@ -52,6 +54,8 @@ function ReminderCard({ reminderPlayers }) {
 }
 
 export default function Progress({ player, rounds, days, colors, signedIn, onSignIn, reminderPlayers }) {
+  // The sticker just stuck in the book (it plays its move once, there).
+  const [fresh, setFresh] = useState(null);
   if (!signedIn) {
     return (
       <div className="prog">
@@ -72,9 +76,7 @@ export default function Progress({ player, rounds, days, colors, signedIn, onSig
     return new Date(y, m - 1, d).toLocaleDateString(undefined, { weekday: 'narrow' });
   };
   const hex = (name) => colors.find((c) => c.name === name)?.hex;
-  const collected = days.length;
-  const page = Math.floor(collected / BOOK_SIZE);
-  const onPage = collected - page * BOOK_SIZE;
+  const book = stickerBook(days, loadStickerPicks()[player.id], dayKey());
   const grown = Math.min(1, player.colors.length / colors.length);
 
   return (
@@ -147,20 +149,32 @@ export default function Progress({ player, rounds, days, colors, signedIn, onSig
 
       <div className="prog-card">
         <h3 className="prog-title">
-          Sticker book <span className="muted-text">{onPage} of {BOOK_SIZE}{page ? ` · page ${page + 1}` : ''}</span>
+          Sticker book{' '}
+          <span className="muted-text">
+            {book.slots.length} of {BOOK_SIZE}
+            {book.page ? ` · page ${book.page + 1}` : ''}
+          </span>
         </h3>
+        {book.waiting && <StickerPicker playerId={player.id} days={days} onPlaced={setFresh} />}
         <div className="prog-stickers">
-          {Array.from({ length: BOOK_SIZE }, (_, i) =>
-            i < onPage ? (
-              <span key={i} className="prog-sticker" title={stickerFor(i).name}>
-                <Sticker index={i} size={52} />
+          {Array.from({ length: BOOK_SIZE }, (_, i) => {
+            const slot = book.slots[i];
+            return slot && slot.index !== null ? (
+              <span key={i} className="prog-sticker" title={stickerName(slot.index)}>
+                {fresh === slot.index && slot.day === dayKey() ? (
+                  <span className="sticker-place">
+                    <Sticker index={slot.index} size={52} play />
+                  </span>
+                ) : (
+                  <Sticker index={slot.index} size={52} />
+                )}
               </span>
             ) : (
-              <span key={i} className="prog-sticker prog-sticker-empty">
-                ?
+              <span key={i} className={`prog-sticker prog-sticker-empty${slot ? ' prog-sticker-waiting' : ''}`}>
+                {slot ? '🎁' : '?'}
               </span>
-            ),
-          )}
+            );
+          })}
         </div>
         <p className="muted-text prog-note">A new sticker for every day of practice.</p>
       </div>
