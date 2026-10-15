@@ -447,7 +447,7 @@ export default function PracticeMode({ profileId, profileName, ready = true, onS
                     ? 'This practice was ended on another phone'
                     : moved === 'elsewhere'
                       ? `📱 ${profileName} is already practicing on another phone`
-                      : `Practice ${MIN_PRACTICE_MINUTES} minutes to earn a sticker ⭐`)}
+                      : null)}
               {practice.status === 'running' && minutes >= MIN_PRACTICE_MINUTES && '⭐ A sticker is waiting when you end'}
               {practice.status === 'paused' && 'The timer is stopped'}
             </p>
