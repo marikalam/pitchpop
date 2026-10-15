@@ -5939,3 +5939,8 @@ body {
 .practice-card-metronome .metronome-slider {
   accent-color: #7048e8;
 }
+.pring-unit {
+  margin-left: 6px;
+  font-size: 0.45em;
+  color: var(--ink-dim);
+}

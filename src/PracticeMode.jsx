@@ -143,20 +143,18 @@ function formatDay(key) {
 
 // The timer as a ring that fills up over the first MIN_PRACTICE_MINUTES
 // (when the practice is long enough to be saved, with a sticker), then
-// turns gold. Minutes and seconds in the middle, so it's clearly moving.
+// turns gold. The minutes so far in the middle.
 function PracticeRing({ ms, status }) {
   const goal = MIN_PRACTICE_MINUTES * 60000;
   const done = ms >= goal;
   const fraction = done ? 1 : ms / goal;
   const r = 96;
   const c = 2 * Math.PI * r;
-  const total = Math.floor(ms / 1000);
-  const h = Math.floor(total / 3600);
-  const m = Math.floor((total % 3600) / 60);
-  const sec = String(total % 60).padStart(2, '0');
-  const time = h ? `${h}:${String(m).padStart(2, '0')}:${sec}` : `${m}:${sec}`;
+  // Whole minutes only: seconds ticking by are too distracting.
+  const minutes = Math.floor(ms / 60000);
+  const time = minutes >= 60 ? `${Math.floor(minutes / 60)} h ${minutes % 60}` : String(minutes);
   return (
-    <div className={`pring pring-${status}${done ? ' pring-done' : ''}`} role="timer" aria-label={`${m} minutes practiced`}>
+    <div className={`pring pring-${status}${done ? ' pring-done' : ''}`} role="timer" aria-label={`${minutes} minutes practiced`}>
       <svg viewBox="0 0 220 220" aria-hidden="true">
         <defs>
           <linearGradient id="pring-grad" x1="0" y1="0" x2="1" y2="1">
@@ -182,7 +180,10 @@ function PracticeRing({ ms, status }) {
       </svg>
       <div className="pring-middle">
         {status === 'paused' ? <CoffeeBreak /> : <span className="pring-top">{done ? '⭐' : '🎹'}</span>}
-        <span className="pring-time">{time}</span>
+        <span className="pring-time">
+          {time}
+          <span className="pring-unit">min</span>
+        </span>
         <span className="pring-label">
           {status === 'running' ? (
             <>
