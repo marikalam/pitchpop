@@ -32,3 +32,24 @@ export default function PracticeBadge({ onOpen }) {
     </button>
   );
 }
+
+// The home page's End practice button, while a practice is on: shows the
+// minutes so far; tapping it ends the practice in Practice Mode (onEnd).
+export function EndPracticeButton({ onEnd }) {
+  const [timer, setTimer] = useState(readPracticeTimer);
+
+  useEffect(() => {
+    const id = setInterval(() => setTimer(readPracticeTimer()), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  if (timer.status !== 'running' && timer.status !== 'paused') return null;
+  return (
+    <button className="home-practice home-practice-end" onClick={() => onEnd(timer.profileId)}>
+      <span className="home-practice-icon" aria-hidden="true">
+        {'■\uFE0E'}
+      </span>
+      End practice · {timer.minutes} min
+    </button>
+  );
+}

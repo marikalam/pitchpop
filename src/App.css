@@ -5478,3 +5478,9 @@ body {
     animation: none;
   }
 }
+
+/* Home: ending a practice that's on. */
+.home-practice-end {
+  background: linear-gradient(135deg, #ff8787, #e8590c);
+  box-shadow: 0 10px 20px -12px #e8590c;
+}
