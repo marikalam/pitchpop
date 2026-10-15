@@ -5944,3 +5944,199 @@ body {
   font-size: 0.45em;
   color: var(--ink-dim);
 }
+
+/* ---------- Players & colors: how to learn ---------- */
+.learn-guide {
+  flex: none;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #fff4e6, #f3f0ff);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+.learn-guide-head {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border: none;
+  background: none;
+  color: var(--ink);
+  font: 700 16px 'Fredoka', ui-rounded, system-ui, sans-serif;
+  cursor: pointer;
+}
+.learn-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0 16px 16px 36px;
+}
+.learn-steps li {
+  padding-left: 4px;
+}
+.learn-steps li::marker {
+  font: 700 15px 'Fredoka', ui-rounded, system-ui, sans-serif;
+  color: #7048e8;
+}
+.learn-steps b {
+  display: block;
+  font: 700 15px 'Fredoka', ui-rounded, system-ui, sans-serif;
+}
+.learn-steps span {
+  color: var(--ink-dim);
+  font-size: 13.5px;
+}
+.learn-status {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 4px 0 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: #f5f6fa;
+}
+.learn-status-ready {
+  background: #ebfbee;
+}
+.learn-status p {
+  margin: 0;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.learn-dots {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.learn-dot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #e6e8f0;
+  font-size: 15px;
+  filter: grayscale(1);
+  opacity: 0.55;
+}
+.learn-dot.is-done {
+  filter: none;
+  opacity: 0.8;
+  background: #d3f9d8;
+}
+.learn-dot.is-now {
+  filter: none;
+  opacity: 1;
+  background: #fff;
+  box-shadow: 0 0 0 3px #7048e8;
+}
+.learn-go {
+  align-self: flex-start;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 999px;
+  background: #2f9e44;
+  color: #fff;
+  font: 700 14px 'IBM Plex Sans', sans-serif;
+  cursor: pointer;
+}
+.color-setting-next {
+  position: relative;
+  outline: 3px dashed #7048e8;
+  outline-offset: 2px;
+}
+.color-setting-next::after {
+  content: 'Next';
+  position: absolute;
+  top: -9px;
+  right: -6px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: #7048e8;
+  color: #fff;
+  font: 700 10px 'IBM Plex Sans', sans-serif;
+}
+
+/* ---------- NoteSpeller, dressed up ---------- */
+.ns-progress-row {
+  position: relative;
+  padding-right: 58px;
+}
+.ns-stars {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #fff3bf;
+  color: #8a5a00;
+  font: 700 14px 'Fredoka', ui-rounded, system-ui, sans-serif;
+}
+.ns-staff-card {
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 12% 15%, #e6fcf5 0, transparent 35%),
+    radial-gradient(circle at 90% 90%, #e7f5ff 0, transparent 40%),
+    var(--card-bg);
+  border: 3px solid #d3f9d8;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.ns-staff-right {
+  border-color: #51cf66;
+  box-shadow: 0 0 0 4px #d3f9d8, var(--shadow);
+}
+.ns-staff-wrong {
+  border-color: #ffa8a8;
+}
+.ns-deco {
+  position: absolute;
+  color: #b2f2bb;
+  font-size: 30px;
+  pointer-events: none;
+}
+.ns-deco-1 {
+  left: 14px;
+  top: 10px;
+  transform: rotate(-12deg);
+}
+.ns-deco-2 {
+  left: 46%;
+  bottom: 8px;
+  color: #a5d8ff;
+}
+.ns-deco-3 {
+  right: 18px;
+  bottom: 14px;
+  color: #ffd8a8;
+  transform: rotate(10deg);
+}
+.ns-staff-card .staff {
+  position: relative;
+}
+.ns-play-btn {
+  background: #d3f9d8;
+  color: #2b8a3e;
+}
+/* Letter keys: each its own soft color, like little piano blocks. */
+.notespeller-key {
+  box-shadow: 0 5px 0 rgba(0, 0, 0, 0.12), var(--shadow-sm);
+  transform: translateY(0);
+}
+.notespeller-key:active {
+  transform: translateY(3px);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.12);
+}
+.ns-key-C { background: #ffe3e3; color: #c92a2a; }
+.ns-key-D { background: #ffe8cc; color: #d9480f; }
+.ns-key-E { background: #fff3bf; color: #a87b00; }
+.ns-key-F { background: #d3f9d8; color: #2b8a3e; }
+.ns-key-G { background: #d0ebff; color: #1864ab; }
+.ns-key-A { background: #e5dbff; color: #5f3dc4; }
+.ns-key-B { background: #ffdeeb; color: #c2255c; }
+.ns-answer .note-feedback-correct {
+  animation: sticker-pop 0.45s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
