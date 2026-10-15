@@ -132,9 +132,12 @@ export function showTimerTab() {
   }
 }
 
+// Made once: making a date format is slow on iPhones.
+const DAY_FORMAT = new Intl.DateTimeFormat(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+
 function formatDay(key) {
   const [y, m, d] = key.split('-').map(Number);
-  return new Date(y, m - 1, d).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+  return DAY_FORMAT.format(new Date(y, m - 1, d));
 }
 
 // A saved practice earns a sticker (onSaved; picked with stickerSlot).
@@ -292,7 +295,7 @@ export default function PracticeMode({ profileId, profileName, ready = true, onS
     if (!endOnOpen || !ready || practice.profileId !== profileId) return;
     if (['running', 'paused'].includes(practice.status)) end();
     onEndHandled?.();
-  });
+  }, [endOnOpen, ready, practice.profileId, profileId]);
 
   function newPractice() {
     update({ status: 'idle', startedAt: null, elapsedBefore: 0 });
@@ -454,43 +457,46 @@ export default function PracticeMode({ profileId, profileName, ready = true, onS
         </button>
       </section>
 
-      <section className="practice-card" aria-label={`${profileName}'s practice`} hidden={tab !== 'history'}>
-        <div className="practice-card-title">📅 {profileName}’s practice</div>
-        <div className="practice-stats">
-          <div className="practice-stat">
-            <div className="practice-stat-value">🔥 {stats.streak.current}</div>
-            <div className="practice-stat-label">{stats.streak.current === 1 ? 'day' : 'days'} in a row</div>
+      {/* Built only when open: it's the slowest part of Practice Mode. */}
+      {tab === 'history' && (
+        <section className="practice-card" aria-label={`${profileName}'s practice`}>
+          <div className="practice-card-title">📅 {profileName}’s practice</div>
+          <div className="practice-stats">
+            <div className="practice-stat">
+              <div className="practice-stat-value">🔥 {stats.streak.current}</div>
+              <div className="practice-stat-label">{stats.streak.current === 1 ? 'day' : 'days'} in a row</div>
+            </div>
+            <div className="practice-stat">
+              <div className="practice-stat-value">{formatMinutes(stats.todayMinutes)}</div>
+              <div className="practice-stat-label">today</div>
+            </div>
+            <div className="practice-stat">
+              <div className="practice-stat-value">{formatMinutes(stats.weekMinutes)}</div>
+              <div className="practice-stat-label">last 7 days</div>
+            </div>
           </div>
-          <div className="practice-stat">
-            <div className="practice-stat-value">{formatMinutes(stats.todayMinutes)}</div>
-            <div className="practice-stat-label">today</div>
-          </div>
-          <div className="practice-stat">
-            <div className="practice-stat-value">{formatMinutes(stats.weekMinutes)}</div>
-            <div className="practice-stat-label">last 7 days</div>
-          </div>
-        </div>
-        {stats.count > 0 ? (
-          <>
-            <p className="practice-total">
-              {formatMinutes(stats.totalMinutes)} in {stats.count} {stats.count === 1 ? 'practice' : 'practices'}
-              {stats.streak.best > 1 && ` · best streak ${stats.streak.best} days`}
-            </p>
-            <ul className="practice-history">
-              {stats.recent.map((entry) => (
-                <li key={entry.endedAt}>
-                  <span>{formatDay(entry.day)}</span>
-                  <span>
-                    {formatMinutes(entry.minutes)}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </>
-        ) : (
-          <p className="practice-total">No saved practices yet. Practice {MIN_PRACTICE_MINUTES} minutes or more to start a streak!</p>
-        )}
-      </section>
+          {stats.count > 0 ? (
+            <>
+              <p className="practice-total">
+                {formatMinutes(stats.totalMinutes)} in {stats.count} {stats.count === 1 ? 'practice' : 'practices'}
+                {stats.streak.best > 1 && ` · best streak ${stats.streak.best} days`}
+              </p>
+              <ul className="practice-history">
+                {stats.recent.map((entry) => (
+                  <li key={entry.endedAt}>
+                    <span>{formatDay(entry.day)}</span>
+                    <span>
+                      {formatMinutes(entry.minutes)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </>
+          ) : (
+            <p className="practice-total">No saved practices yet. Practice {MIN_PRACTICE_MINUTES} minutes or more to start a streak!</p>
+          )}
+        </section>
+      )}
     </div>
   );
 }
