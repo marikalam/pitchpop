@@ -159,9 +159,17 @@ export default function NoteSpeller({ engine, playerId, onComplete, onOpenSettin
   return (
     <div className="ns-screen">
       {clefPicker}
-      <ProgressDots current={roundIndex + 1} total={SESSION_ROUNDS} />
-      <h2 className="screen-title ns-title">What note is this?</h2>
-      <div className="staff-card ns-staff-card">
+      <div className="ns-progress-row">
+        <ProgressDots current={roundIndex + 1} total={SESSION_ROUNDS} />
+        <span className="ns-stars" aria-label={`${correctCount} right`}>
+          ⭐ {correctCount}
+        </span>
+      </div>
+      <h2 className="screen-title ns-title">What note is this? 🎵</h2>
+      <div className={`staff-card ns-staff-card${answered ? (answered.correct ? ' ns-staff-right' : ' ns-staff-wrong') : ''}`}>
+        <span className="ns-deco ns-deco-1" aria-hidden="true">♪</span>
+        <span className="ns-deco ns-deco-2" aria-hidden="true">♫</span>
+        <span className="ns-deco ns-deco-3" aria-hidden="true">♩</span>
         <Staff note={target} highlight={answered ? (answered.correct ? 'correct' : 'wrong') : null} />
         <button
           className="staff-play-btn ns-play-btn"
@@ -180,8 +188,8 @@ export default function NoteSpeller({ engine, playerId, onComplete, onOpenSettin
           <div className="note-feedback">
             <p className={`note-feedback-text${answered.correct ? ' note-feedback-correct' : ''}`}>
               {answered.correct
-                ? `Yes! That's ${target.letter}.`
-                : `You picked ${answered.picked}. That's ${target.letter}.`}
+                ? `🎉 Yes! That's ${target.letter}.`
+                : `That's ${target.letter}. You picked ${answered.picked}.`}
             </p>
             <div className="feedback-actions">
               <button className="pill-btn-secondary" onClick={() => sayAndPlay(target)}>
@@ -195,7 +203,7 @@ export default function NoteSpeller({ engine, playerId, onComplete, onOpenSettin
         ) : (
           <div className="note-answer-grid">
             {lettersFor(clefMode, level, myLetters).map((letter) => (
-              <button key={letter} className="notespeller-key" onClick={() => answer(letter)}>
+              <button key={letter} className={`notespeller-key ns-key-${letter}`} onClick={() => answer(letter)}>
                 {letter}
               </button>
             ))}

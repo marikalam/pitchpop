@@ -51,3 +51,34 @@ export function weekProgress(rounds = [], days = [], colorNames = [], today = ne
     ready,
   };
 }
+
+// The usual order to learn the colors in (the Eguchi method): red, yellow
+// and blue first, brown last.
+export const LEARNING_ORDER = ['red', 'yellow', 'blue', 'black', 'green', 'orange', 'purple', 'pink', 'brown'];
+// Ready for the next color: at least READY_PCT% right on every color,
+// READY_ROUNDS finished rounds in a row.
+export const READY_PCT = 90;
+export const READY_ROUNDS = 2;
+
+// Where a player is on the way through PitchPop (the guide in Players &
+// colors): step 1 Tiny Tots, 2 the first three colors, 3 adding colors
+// one at a time, 4 typing the notes. With whether they're ready to move
+// on, the next color to add, and the color holding them back.
+export function learningStatus({ colors, tinyTots, typingNotes, rounds = [] }) {
+  if (tinyTots) return { step: 1 };
+  const next = LEARNING_ORDER.find((name) => !colors.includes(name)) || null;
+  const recent = rounds.slice(-READY_ROUNDS);
+  // Each color's lowest score over those rounds.
+  const scores = colors.map((name) => {
+    const pcts = recent.map((r) => {
+      const c = r.colors?.[name];
+      return c && c.total ? Math.round((100 * c.right) / c.total) : null;
+    });
+    return { name, pct: pcts.includes(null) ? null : Math.min(...pcts) };
+  });
+  const enough = recent.length === READY_ROUNDS;
+  const ready = enough && scores.every((s) => s.pct !== null && s.pct >= READY_PCT);
+  const weakest = scores.filter((s) => s.pct !== null && s.pct < READY_PCT).sort((a, b) => a.pct - b.pct)[0] || null;
+  const step = typingNotes ? 4 : colors.length <= 3 ? 2 : 3;
+  return { step, next, ready, enough, weakest, allColors: !next };
+}

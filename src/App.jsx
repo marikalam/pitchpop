@@ -8,7 +8,7 @@ import Rainbow from './Rainbow.jsx';
 import LogoMark from './LogoMark.jsx';
 import ProfileSwitcher from './ProfileSwitcher.jsx';
 import MainMenu from './MainMenu.jsx';
-import { PlayerSettingsCard, AddPlayerForm, AccountButton, AccountScreen, SyncStatus } from './Settings.jsx';
+import { PlayerSettingsCard, AddPlayerForm, AccountButton, AccountScreen, SyncStatus, LearningGuide } from './Settings.jsx';
 import NoteSpeller from './NoteSpeller.jsx';
 import TinyTots from './TinyTots.jsx';
 import Progress from './Progress.jsx';
@@ -1666,8 +1666,9 @@ export default function App() {
             onBack={goHome}
           />
           <h2 className="screen-title">Players &amp; colors</h2>
-          <p className="screen-sub">Each player starts with red. Add colors in the order you want to learn them.</p>
+          <p className="screen-sub">Each player starts with Red, Yellow and Blue, then adds one color at a time.</p>
           <SyncStatus user={cloudUser} onOpenAccount={openAccount} />
+          <LearningGuide />
           <div className="settings-list">
             {draftProfiles.map((p) => (
               <PlayerSettingsCard
@@ -1681,6 +1682,7 @@ export default function App() {
                 onSignIn={cloudUser ? null : openAccount}
                 freeColors={planOK ? null : FREE_COLORS}
                 onLocked={() => openPlan('More colors come with PitchPop Family')}
+                rounds={loadRoundHistory()[p.id] || []}
               />
             ))}
           </div>
