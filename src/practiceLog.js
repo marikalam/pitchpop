@@ -62,6 +62,11 @@ export function practiceStats(entries = [], today = new Date()) {
       todayKey,
     ),
     recent: [...entries].reverse().slice(0, 5),
+    // Minutes on each of the last 7 days, oldest first.
+    week: Array.from({ length: 7 }, (_, i) => {
+      const key = dayKey(new Date(today.getFullYear(), today.getMonth(), today.getDate() - 6 + i));
+      return { key, minutes: sum(entries.filter((e) => e.day === key)) };
+    }),
   };
 }
 
