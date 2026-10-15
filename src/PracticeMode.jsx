@@ -9,6 +9,7 @@ import {
 import Metronome from './Metronome.jsx';
 import CoffeeBreak from './CoffeeBreak.jsx';
 import { showPracticeOnLockScreen } from './liveActivity.js';
+import { newPracticeId, practiceElsewhere, takePracticeHere } from './livePractice.js';
 
 // A practice companion: a timer for the whole session, a tap counter for
 // repetitions ("5 times scales, then 5 times Hanon"), and each player's
@@ -97,6 +98,7 @@ export function stopPractice() {
     /* ignore */
   }
   reflectOnLockScreen(EMPTY, t, '');
+  window.dispatchEvent(new Event('pitchpop-practice-changed'));
   // Practice Mode, if open, reloads the timer and the history.
   window.dispatchEvent(new Event('pitchpop-practice-idle'));
   window.dispatchEvent(new Event('pitchpop-history-synced'));
@@ -109,14 +111,17 @@ export function stopPractice() {
 export function startPracticeNow(profileId) {
   const p = loadPractice();
   if (p.status === 'running' || p.status === 'paused') return;
+  // Already practicing on another phone: Practice Mode shows that instead.
+  if (practiceElsewhere(profileId)) return;
   try {
     localStorage.setItem(
       PRACTICE_KEY,
-      JSON.stringify({ ...EMPTY, count: p.profileId === profileId ? p.count : 0, profileId, status: 'running', startedAt: Date.now() }),
+      JSON.stringify({ ...EMPTY, count: p.profileId === profileId ? p.count : 0, profileId, status: 'running', startedAt: Date.now(), id: newPracticeId() }),
     );
   } catch {
     /* ignore */
   }
+  window.dispatchEvent(new Event('pitchpop-practice-changed'));
 }
 
 export function showTimerTab() {
@@ -138,6 +143,41 @@ export default function PracticeMode({ profileId, profileName, ready = true, onS
   const [log, setLog] = useState(loadPracticeLog);
   const [now, setNow] = useState(Date.now);
   const [tab, setTab] = useState(loadTab);
+  // This player's practice going on another phone (livePractice.js), and
+  // why this phone's practice just stopped, if it did.
+  const [away, setAway] = useState(() => practiceElsewhere(profileId));
+  const [moved, setMoved] = useState(null);
+  const [moving, setMoving] = useState(false);
+
+  useEffect(() => {
+    setAway(practiceElsewhere(profileId));
+    const onLive = () => setAway(practiceElsewhere(profileId));
+    const onMoved = (e) => setMoved(e.detail);
+    window.addEventListener('pitchpop-live-changed', onLive);
+    window.addEventListener('pitchpop-practice-moved', onMoved);
+    return () => {
+      window.removeEventListener('pitchpop-live-changed', onLive);
+      window.removeEventListener('pitchpop-practice-moved', onMoved);
+    };
+  }, [profileId]);
+
+  // The minutes ticking on the other phone.
+  useEffect(() => {
+    if (!away || away.status !== 'running') return undefined;
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [away]);
+
+  async function moveHere() {
+    setMoving(true);
+    const ok = await takePracticeHere(profileId);
+    setMoving(false);
+    if (ok) {
+      setMoved(null);
+      setPractice(loadPractice());
+      setNow(Date.now());
+    }
+  }
 
   function chooseTab(id) {
     setTab(id);
@@ -154,6 +194,8 @@ export default function PracticeMode({ profileId, profileName, ready = true, onS
     } catch {
       /* ignore */
     }
+    // livePractice.js tells the family's other phones.
+    window.dispatchEvent(new Event('pitchpop-practice-changed'));
     // Waits for `ready`, like the player switch below, so a signed-in
     // family's name is known.
     if (ready && practice.profileId === profileId) reflectOnLockScreen(practice, Date.now(), profileName);
@@ -216,8 +258,10 @@ export default function PracticeMode({ profileId, profileName, ready = true, onS
   }, [ready, profileId, practice.profileId]);
 
   function start() {
+    if (practiceElsewhere(profileId)) return;
+    setMoved(null);
     setNow(Date.now());
-    update({ status: 'running', startedAt: Date.now(), elapsedBefore: 0 });
+    update({ status: 'running', startedAt: Date.now(), elapsedBefore: 0, id: newPracticeId() });
   }
 
   function pause() {
@@ -315,13 +359,35 @@ export default function PracticeMode({ profileId, profileName, ready = true, onS
           </>
         )}
 
-        {['idle', 'running', 'paused'].includes(practice.status) && (
+        {practice.status === 'idle' && away && (
+          <>
+            <div className={`practice-time${away.status === 'paused' ? ' practice-time-paused' : ''}`} role="timer">
+              {formatMinutes(wholeMinutes(elapsedMs(away, now)))}
+            </div>
+            <p className="practice-status practice-away">
+              📱 {profileName} is {away.status === 'paused' ? 'on a break' : 'practicing'} on another phone
+            </p>
+            <p className="practice-away-note">One practice at a time for each player. Bring it here to keep going on this phone.</p>
+            <button className="pill-btn-primary pill-btn-full" onClick={moveHere} disabled={moving}>
+              {moving ? 'Moving…' : '📲 Move practice to this phone'}
+            </button>
+          </>
+        )}
+
+        {['idle', 'running', 'paused'].includes(practice.status) && !(practice.status === 'idle' && away) && (
           <>
             <div className={`practice-time${practice.status === 'paused' ? ' practice-time-paused' : ''}`} role="timer">
               {formatMinutes(minutes)}
             </div>
             <p className="practice-status">
-              {practice.status === 'idle' && `Practice ${MIN_PRACTICE_MINUTES}+ minutes to save it and earn a sticker ⭐`}
+              {practice.status === 'idle' &&
+                (moved === 'moved'
+                  ? '📲 This practice moved to another phone'
+                  : moved === 'ended'
+                    ? 'This practice was ended on another phone'
+                    : moved === 'elsewhere'
+                      ? `📱 ${profileName} is already practicing on another phone`
+                      : `Practice ${MIN_PRACTICE_MINUTES}+ minutes to save it and earn a sticker ⭐`)}
               {practice.status === 'running' && (
                 <>
                   <span className="practice-live-dot" aria-hidden="true" /> Practicing

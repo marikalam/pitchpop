@@ -32,10 +32,13 @@ export function recordPractice(log, profileId, minutes, ended = new Date()) {
   return next;
 }
 
-// Replaces one player's saved practices (with the synced list from the
-// family account).
+// Takes in one player's saved practices from the family account (keeping
+// any saved here while the sync was on its way).
 export function replacePlayerPractices(profileId, entries) {
-  const next = { ...loadPracticeLog(), [profileId]: entries };
+  const log = loadPracticeLog();
+  const byEnd = new Map([...(log[profileId] || []), ...entries].map((e) => [e.endedAt, e]));
+  const merged = [...byEnd.values()].sort((a, b) => (a.endedAt < b.endedAt ? -1 : a.endedAt > b.endedAt ? 1 : 0));
+  const next = { ...log, [profileId]: merged };
   try {
     localStorage.setItem(LOG_KEY, JSON.stringify(next));
   } catch {

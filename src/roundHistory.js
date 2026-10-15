@@ -51,6 +51,8 @@ export function recordRound(profileId, summary, ended = new Date()) {
   } catch {
     /* ignore */
   }
+  // historySync.js sends it to the family account.
+  window.dispatchEvent(new CustomEvent('pitchpop-history-changed', { detail: profileId }));
   return next[profileId];
 }
 
@@ -64,4 +66,17 @@ export function colorToWorkOn(summary) {
   const [name, c] = missed[0];
   const mixed = Object.entries(c.mixedWith).sort((a, b) => b[1] - a[1])[0];
   return { name, right: c.right, total: c.total, mixedWith: mixed ? mixed[0] : null };
+}
+
+// Takes in one player's rounds from the family account (combined with the
+// ones here, by when they ended).
+export function mergeRoundHistory(profileId, rounds) {
+  const all = loadRoundHistory();
+  const byEnd = new Map([...(all[profileId] || []), ...rounds].filter((r) => r?.endedAt).map((r) => [r.endedAt, r]));
+  const merged = [...byEnd.values()].sort((a, b) => (a.endedAt < b.endedAt ? -1 : a.endedAt > b.endedAt ? 1 : 0)).slice(-KEEP);
+  try {
+    localStorage.setItem(KEY, JSON.stringify({ ...all, [profileId]: merged }));
+  } catch {
+    /* ignore */
+  }
 }
