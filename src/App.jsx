@@ -47,6 +47,8 @@ import { dayKey, loadStreakDays, recordStreakDay, streakFor } from './streak.js'
 import { setKeepRecords } from './records.js';
 import { startHistorySync } from './historySync.js';
 import { practiceElsewhere, startLivePractice } from './livePractice.js';
+import { FREE_COLORS, hasPlan, notePhone, plansOn, startPlans } from './plan.js';
+import Paywall from './Paywall.jsx';
 
 const COLORS = [
   { name: 'black', hex: '#232323', text: '#FFFFFF', notes: ['A', 'C', 'F'] },
@@ -80,6 +82,11 @@ const OLD_SAMPLE_PROFILE_IDS = new Set(['maddie', 'marcus', 'melody']);
 const SESSION_ROUNDS = 20;
 // The home page's piano tools (Pitch Practice and Explore sounds have
 // their own Perfect Pitch card above them).
+// What PitchPop Family adds (plan.js); everything else is free.
+const PAID_VIEWS = ['scales', 'hanon', 'progress', 'notespeller'];
+// This phone's PitchPop-before-the-plan check happens on first run.
+notePhone();
+
 const HOME_CARDS = [
   { id: 'piano', icon: '🎹', title: 'Piano', sub: 'Play a real keyboard', from: '#9b6ef3', to: '#7a4fd6' },
   { id: 'practice', icon: '⏱️', title: 'Practice Mode', sub: 'Timer, metronome, counter', from: '#f7a24f', to: '#e8792f' },
@@ -683,7 +690,9 @@ export default function App() {
   // Tiny Tots shows the player's colors, in the order they learned them.
   const totsColors = (currentProfile.colors || []).map((n) => COLORS.find((c) => c.name === n)).filter(Boolean);
   const lastProfile = profiles.find((p) => p.id === lastActiveProfile) || profiles[0];
-  const profileColorNames = currentProfile.colors;
+  // Without PitchPop Family, Pitch Practice plays the first few colors.
+  const planOK = hasPlan(cloudUser);
+  const profileColorNames = planOK ? currentProfile.colors : currentProfile.colors.slice(0, FREE_COLORS);
   const streak = streakFor(streakDays[profile]);
 
   function colorsFor(id) {
@@ -731,6 +740,7 @@ export default function App() {
   // A sticker just picked on the "All done!" screen, to stick in the book.
   const [placingSticker, setPlacingSticker] = useState(null);
   const [stickerBackTo, setStickerBackTo] = useState(null);
+  const [planReason, setPlanReason] = useState(null);
   // The home page's End practice: Practice Mode opens and ends it.
   const [endPracticeOnOpen, setEndPracticeOnOpen] = useState(false);
   const [roundFocus, setRoundFocus] = useState(resumableSession.roundFocus || null);
@@ -878,14 +888,20 @@ export default function App() {
     if (!syncedProfileIds) return undefined;
     return startLivePractice(() => [profileRef.current]);
   }, [syncedProfileIds]);
-  // Settings synced from another phone, or a practice starting or moving
-  // on one: show them.
+  // PitchPop Family: checked with the App Store for the family account.
+  useEffect(() => {
+    if (authChecked) startPlans(cloudUser);
+  }, [authChecked, cloudUser?.id]);
+  // Settings synced from another phone, a practice starting or moving on
+  // one, or the plan changing: show them.
   const [, setSyncTick] = useState(0);
   useEffect(() => {
     const bump = () => setSyncTick((t) => t + 1);
+    window.addEventListener('pitchpop-plan-changed', bump);
     window.addEventListener('pitchpop-live-changed', bump);
     window.addEventListener('pitchpop-history-synced', bump);
     return () => {
+      window.removeEventListener('pitchpop-plan-changed', bump);
       window.removeEventListener('pitchpop-live-changed', bump);
       window.removeEventListener('pitchpop-history-synced', bump);
     };
@@ -1033,7 +1049,8 @@ export default function App() {
 
   // A new round's 20 chords: a smart round (more of the colors this
   // player missed lately) unless they're switched to plain rounds.
-  function newRound(profileId, colorNames) {
+  function newRound(profileId, allColorNames) {
+    const colorNames = hasPlan(cloudUser) ? allColorNames : allColorNames.slice(0, FREE_COLORS);
     const round = buildSmartRound(profileId, colorNames, SESSION_ROUNDS, buildQueue);
     setSessionQueue(round.queue);
     setRoundFocus(round.focus);
@@ -1218,13 +1235,14 @@ export default function App() {
   }
 
   function openNoteSpeller() {
+    if (!hasPlan(cloudUser)) return openPlan('NoteSpeller is part of PitchPop Family');
     setView('notespeller');
   }
 
   // Piano, Practice Mode and Music Theory are side trips like Explore:
   // closing one goes back to wherever the player was (a quiz in progress
   // included) instead of restarting the color game.
-  const TOOL_VIEWS = ['piano', 'practice', 'theory', 'method', 'scales', 'hanon', 'tinytots', 'progress', 'stickers'];
+  const TOOL_VIEWS = ['piano', 'practice', 'theory', 'method', 'scales', 'hanon', 'tinytots', 'progress', 'stickers', 'plan'];
 
   // The header's practice pill, on every screen: back to the timer (in
   // Practice Mode itself, to its Timer tab).
@@ -1314,8 +1332,17 @@ export default function App() {
     if (id === 'color-test') return view.startsWith('play-') ? undefined : startPlay();
     if (id === 'explore') return openExplore();
     if (id === 'notespeller') return openNoteSpeller();
+    if (id === 'plan') return openPlan();
+    if (PAID_VIEWS.includes(id) && !hasPlan(cloudUser)) return openPlan();
     if (!TOOL_VIEWS.includes(view)) setPreToolView(view);
     setView(id);
+  }
+
+  // The PitchPop Family page, with what led there (a locked feature).
+  function openPlan(reason = null) {
+    setPlanReason(reason);
+    if (!TOOL_VIEWS.includes(view)) setPreToolView(view);
+    setView('plan');
   }
 
   // A sticker just picked after an activity: open the book to stick it
@@ -1442,6 +1469,10 @@ export default function App() {
   function addPlayer(rawName) {
     const name = rawName.trim();
     if (!name || !cloudUser) return;
+    if (draftProfiles.length >= 1 && !hasPlan(cloudUser)) {
+      openPlan('More players come with PitchPop Family');
+      return;
+    }
     const id = `${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${Date.now()}`;
     setDraftProfiles((prev) => [...prev, { id, name, colors: ['red'] }]);
   }
@@ -1545,7 +1576,7 @@ export default function App() {
     return <Piano engine={engineRef.current} onClose={closeTool} />;
   }
 
-  if (view === 'practice' || view === 'theory' || view === 'method' || view === 'scales' || view === 'hanon' || view === 'tinytots' || view === 'progress' || view === 'stickers') {
+  if (view === 'practice' || view === 'theory' || view === 'method' || view === 'scales' || view === 'hanon' || view === 'tinytots' || view === 'progress' || view === 'stickers' || view === 'plan') {
     // Practice Mode fits on one screen (its tools are tabs); the Music
     // Theory glossary and the method explanation are reading pages and
     // scroll.
@@ -1592,6 +1623,8 @@ export default function App() {
               reminderPlayers={reminderPlayers}
               onOpenStickers={() => openTool('stickers')}
             />
+          ) : view === 'plan' ? (
+            <Paywall user={cloudUser} reason={planReason} onSignIn={openAccount} onDone={closeTool} />
           ) : view === 'stickers' ? (
             <StickerBook
               key={profile}
@@ -1641,6 +1674,8 @@ export default function App() {
                 canRemove={draftProfiles.length > 1}
                 playDays={cloudUser ? streakDays[p.id] : null}
                 onSignIn={cloudUser ? null : openAccount}
+                freeColors={planOK ? null : FREE_COLORS}
+                onLocked={() => openPlan('More colors come with PitchPop Family')}
               />
             ))}
           </div>
@@ -1862,6 +1897,11 @@ export default function App() {
                   style={{ '--card-from': card.from, '--card-to': card.to }}
                   onClick={() => openTool(card.id)}
                 >
+                  {!planOK && PAID_VIEWS.includes(card.id) && (
+                    <span className="home-card-lock" aria-label="PitchPop Family">
+                      ⭐
+                    </span>
+                  )}
                   <span className="home-card-icon" aria-hidden="true">
                     {card.icon}
                   </span>

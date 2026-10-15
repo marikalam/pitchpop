@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { plansOn } from './plan.js';
 
 // The ☰ menu: every part of the app besides picking a player, grouped like
 // the home page - Home first (a way back from anywhere), then the Perfect
@@ -7,7 +8,7 @@ import { useEffect, useRef, useState } from 'react';
 const MENU_SECTIONS = [
   {
     id: 'home',
-    items: [{ id: 'home', icon: '🏠', label: 'Home' }],
+    items: [{ id: 'home', icon: '🏠', label: 'Home' }, ...(plansOn() ? [{ id: 'plan', icon: '⭐', label: 'PitchPop Family' }] : [])],
   },
   {
     id: 'pitch',
