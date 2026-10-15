@@ -12,6 +12,7 @@
     "deploy": "gh-pages -d dist -r https://github.com/marikalam/apps.git -b gh-pages -e pitchpop --add",
     "deploy:redirect": "gh-pages -d redirect -m \"Redirect to apps/pitchpop\"",
     "build:ios": "vite build --mode ios && node scripts/copy-ios-assets.mjs && cap sync ios",
+    "build:ios:teststore": "VITE_RC_TEST_STORE=1 vite build --mode ios && node scripts/copy-ios-assets.mjs && cap sync ios",
     "open:ios": "cap open ios"
   },
   "dependencies": {
@@ -25,6 +26,7 @@
     "@fontsource/ibm-plex-sans": "^5.3.0",
     "@mintplex-labs/piper-tts-web": "^1.0.5",
     "@revenuecat/purchases-capacitor": "^13.7.4",
+    "@revenuecat/purchases-capacitor-ui": "^13.7.4",
     "@supabase/supabase-js": "^2.117.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
