@@ -14,7 +14,9 @@ import TinyTots from './TinyTots.jsx';
 import Progress from './Progress.jsx';
 import StickerPicker from './StickerPicker.jsx';
 import StickerBook from './StickerBook.jsx';
-import { earnSticker, pendingStickers } from './stickerStore.js';
+import { earnSticker, pendingStickers, playerStickers } from './stickerStore.js';
+import Sticker from './Sticker.jsx';
+import { STICKERS } from './stickers.js';
 import { weekProgress } from './progress.js';
 import { scheduleReminders } from './reminders.js';
 import { inTinyTots } from './tinyTots.js';
@@ -1798,6 +1800,18 @@ export default function App() {
               onOpenPractice={openPracticeFromBadge}
             />
             <section className="home-hero">
+              {/* The player's newest stickers (or a few to start with)
+                  decorate the greeting. */}
+              {(() => {
+                const mine = cloudUser ? playerStickers(profile).slice(-4).map((s) => s.index) : [];
+                const pick = (name) => STICKERS.findIndex(([n]) => n === name);
+                const shown = mine.length >= 2 ? mine : [pick('Star'), pick('Music notes'), pick('Heart'), pick('Balloon')];
+                return shown.slice(0, 4).map((index, i) => (
+                  <span key={`${index}-${i}`} className={`home-hero-sticker home-hero-sticker-${i}`} aria-hidden="true">
+                    <Sticker index={index} size={44} />
+                  </span>
+                ));
+              })()}
               <div className="home-hero-rainbow">
                 <Rainbow colors={COLORS} activeName={null} visible pretty />
               </div>

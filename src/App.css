@@ -5704,3 +5704,45 @@ body {
   padding: 12px 14px;
   font-size: 18px;
 }
+
+/* Home greeting: bigger, with stickers around it. */
+.home-fit .home-hero {
+  gap: 6px;
+  padding: 14px 16px 16px;
+}
+.home-fit .home-hero-rainbow .rainbow {
+  height: clamp(44px, 8.5vh, 82px);
+}
+.home-fit .home-hello {
+  font-size: clamp(26px, 8.5vw, 34px);
+}
+.home-hero > :not(.home-hero-sticker) {
+  position: relative;
+  z-index: 1;
+}
+.home-hero-sticker {
+  position: absolute;
+  z-index: 0;
+  display: flex;
+  pointer-events: none;
+}
+.home-hero-sticker-0 {
+  top: 10px;
+  left: 14px;
+  transform: rotate(-12deg);
+}
+.home-hero-sticker-1 {
+  top: 12px;
+  right: 14px;
+  transform: rotate(10deg);
+}
+.home-hero-sticker-2 {
+  top: 58px;
+  left: 50px;
+  transform: rotate(8deg) scale(0.75);
+}
+.home-hero-sticker-3 {
+  top: 60px;
+  right: 50px;
+  transform: rotate(-8deg) scale(0.75);
+}
