@@ -12,6 +12,16 @@ const DEFAULT_BPM = 80;
 const LOOKAHEAD_S = 0.1; // schedule clicks this far ahead
 const TICK_MS = 25; // how often to check for clicks to schedule
 
+// The Italian tempo word musicians use for a speed.
+function tempoName(bpm) {
+  if (bpm <= 60) return 'Largo';
+  if (bpm <= 76) return 'Adagio';
+  if (bpm <= 108) return 'Andante';
+  if (bpm <= 120) return 'Moderato';
+  if (bpm <= 168) return 'Allegro';
+  return 'Presto';
+}
+
 const clampBpm = (n) => Math.min(MAX_BPM, Math.max(MIN_BPM, Math.round(n)));
 
 function loadBpm() {
@@ -125,22 +135,23 @@ export default function Metronome({ hidden = false }) {
   const change = (delta) => setBpm((b) => clampBpm(b + delta));
 
   return (
-    <section className="practice-card" aria-label="Metronome" hidden={hidden}>
+    <section className="practice-card practice-card-metronome" aria-label="Metronome" hidden={hidden}>
       <div className="practice-card-title">🎵 Metronome</div>
+      {/* Four beat lights, the first of each bar a little bigger. */}
+      <div className="metronome-beats" aria-hidden="true">
+        {[0, 1, 2, 3].map((i) => (
+          <span key={i} className={`metronome-beat${running && beat > 0 && (beat - 1) % 4 === i ? ' is-on' : ''}${i === 0 ? ' is-first' : ''}`} />
+        ))}
+      </div>
       <div className="metronome-row">
         <button className="practice-step" onClick={() => change(-1)} disabled={bpm <= MIN_BPM} aria-label="Slower">
           −
         </button>
         <div className="metronome-tempo">
-          <span
-            key={beat}
-            className={`metronome-dot${running && beat > 0 ? ' metronome-dot-flash' : ''}`}
-            aria-hidden="true"
-          />
           <span className="metronome-bpm" aria-live="polite">
             {bpm}
           </span>
-          <span className="metronome-unit">beats per minute</span>
+          <span className="metronome-unit">beats per minute · {tempoName(bpm)}</span>
         </div>
         <button className="practice-step" onClick={() => change(1)} disabled={bpm >= MAX_BPM} aria-label="Faster">
           +
@@ -155,7 +166,7 @@ export default function Metronome({ hidden = false }) {
         onChange={(e) => setBpm(clampBpm(Number(e.target.value)))}
         aria-label="Tempo"
       />
-      <button className={running ? 'pill-btn-secondary pill-btn-full' : 'pill-btn-primary pill-btn-full'} onClick={toggle}>
+      <button className={running ? 'pill-btn-secondary pill-btn-full' : 'pill-btn-primary pill-btn-full metronome-go'} onClick={toggle}>
         {running ? '■ Stop' : '▶\uFE0E Start metronome'}
       </button>
     </section>

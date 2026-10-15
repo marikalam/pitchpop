@@ -134,10 +134,69 @@ export function showTimerTab() {
 
 // Made once: making a date format is slow on iPhones.
 const DAY_FORMAT = new Intl.DateTimeFormat(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+const WEEKDAY_LETTER = new Intl.DateTimeFormat(undefined, { weekday: 'narrow' });
 
 function formatDay(key) {
   const [y, m, d] = key.split('-').map(Number);
   return DAY_FORMAT.format(new Date(y, m - 1, d));
+}
+
+// The timer as a ring that fills up over the first MIN_PRACTICE_MINUTES
+// (when the practice is long enough to be saved, with a sticker), then
+// turns gold. Minutes and seconds in the middle, so it's clearly moving.
+function PracticeRing({ ms, status }) {
+  const goal = MIN_PRACTICE_MINUTES * 60000;
+  const done = ms >= goal;
+  const fraction = done ? 1 : ms / goal;
+  const r = 96;
+  const c = 2 * Math.PI * r;
+  const total = Math.floor(ms / 1000);
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const sec = String(total % 60).padStart(2, '0');
+  const time = h ? `${h}:${String(m).padStart(2, '0')}:${sec}` : `${m}:${sec}`;
+  return (
+    <div className={`pring pring-${status}${done ? ' pring-done' : ''}`} role="timer" aria-label={`${m} minutes practiced`}>
+      <svg viewBox="0 0 220 220" aria-hidden="true">
+        <defs>
+          <linearGradient id="pring-grad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stopColor="#ffb347" />
+            <stop offset="1" stopColor="#ff6b9a" />
+          </linearGradient>
+          <linearGradient id="pring-gold" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stopColor="#ffe066" />
+            <stop offset="1" stopColor="#fab005" />
+          </linearGradient>
+        </defs>
+        <circle cx="110" cy="110" r={r} className="pring-track" />
+        <circle
+          cx="110"
+          cy="110"
+          r={r}
+          className="pring-fill"
+          stroke={done ? 'url(#pring-gold)' : 'url(#pring-grad)'}
+          strokeDasharray={c}
+          strokeDashoffset={c * (1 - fraction)}
+          transform="rotate(-90 110 110)"
+        />
+      </svg>
+      <div className="pring-middle">
+        {status === 'paused' ? <CoffeeBreak /> : <span className="pring-top">{done ? '⭐' : '🎹'}</span>}
+        <span className="pring-time">{time}</span>
+        <span className="pring-label">
+          {status === 'running' ? (
+            <>
+              <span className="practice-live-dot" aria-hidden="true" /> Practicing
+            </>
+          ) : status === 'paused' ? (
+            'On a break'
+          ) : (
+            'Ready?'
+          )}
+        </span>
+      </div>
+    </div>
+  );
 }
 
 // A saved practice earns a sticker (onSaved; picked with stickerSlot).
@@ -319,7 +378,7 @@ export default function PracticeMode({ profileId, profileName, ready = true, onS
             key={t.id}
             role="tab"
             aria-selected={tab === t.id}
-            className={`practice-tab${tab === t.id ? ' practice-tab-active' : ''}`}
+            className={`practice-tab practice-tab-${t.id}${tab === t.id ? ' practice-tab-active' : ''}`}
             onClick={() => chooseTab(t.id)}
           >
             <span className="practice-tab-icon" aria-hidden="true">
@@ -331,8 +390,7 @@ export default function PracticeMode({ profileId, profileName, ready = true, onS
         ))}
       </div>
 
-      <section className="practice-card" aria-label="Practice timer" hidden={tab !== 'timer'}>
-        <div className="practice-card-title">⏱️ Practice timer</div>
+      <section className="practice-card practice-card-timer" aria-label="Practice timer" hidden={tab !== 'timer'}>
 
         {practice.status === 'saved' && (
           <>
@@ -379,9 +437,7 @@ export default function PracticeMode({ profileId, profileName, ready = true, onS
 
         {['idle', 'running', 'paused'].includes(practice.status) && !(practice.status === 'idle' && away) && (
           <>
-            <div className={`practice-time${practice.status === 'paused' ? ' practice-time-paused' : ''}`} role="timer">
-              {formatMinutes(minutes)}
-            </div>
+            <PracticeRing ms={elapsedMs(practice, now)} status={practice.status} />
             <p className="practice-status">
               {practice.status === 'idle' &&
                 (moved === 'moved'
@@ -390,17 +446,15 @@ export default function PracticeMode({ profileId, profileName, ready = true, onS
                     ? 'This practice was ended on another phone'
                     : moved === 'elsewhere'
                       ? `📱 ${profileName} is already practicing on another phone`
-                      : `Practice ${MIN_PRACTICE_MINUTES}+ minutes to save it and earn a sticker ⭐`)}
-              {practice.status === 'running' && (
-                <>
-                  <span className="practice-live-dot" aria-hidden="true" /> Practicing
-                </>
-              )}
-              {practice.status === 'paused' && 'On a break · the timer is stopped'}
+                      : `Practice ${MIN_PRACTICE_MINUTES} minutes to earn a sticker ⭐`)}
+              {practice.status === 'running' &&
+                (minutes >= MIN_PRACTICE_MINUTES
+                  ? '⭐ A sticker is waiting when you end'
+                  : `${MIN_PRACTICE_MINUTES - minutes} more ${MIN_PRACTICE_MINUTES - minutes === 1 ? 'minute' : 'minutes'} for a sticker ⭐`)}
+              {practice.status === 'paused' && 'The timer is stopped'}
             </p>
-            {practice.status === 'paused' && <CoffeeBreak />}
             {practice.status === 'idle' ? (
-              <button className="pill-btn-primary pill-btn-full" onClick={start}>
+              <button className="pill-btn-primary pill-btn-full practice-go" onClick={start}>
                 {'▶\uFE0E'} Start practice
               </button>
             ) : (
@@ -414,7 +468,7 @@ export default function PracticeMode({ profileId, profileName, ready = true, onS
                     Resume
                   </button>
                 )}
-                <button className="pill-btn-primary" onClick={end}>
+                <button className="pill-btn-primary practice-go" onClick={end}>
                   End practice
                 </button>
               </div>
@@ -425,7 +479,7 @@ export default function PracticeMode({ profileId, profileName, ready = true, onS
 
       <Metronome hidden={tab !== 'metronome'} />
 
-      <section className="practice-card" aria-label="Repetition counter" hidden={tab !== 'counter'}>
+      <section className="practice-card practice-card-counter" aria-label="Repetition counter" hidden={tab !== 'counter'}>
         <div className="practice-card-title">🔁 Repetition counter</div>
         <p className="practice-counter-desc">
           Keep track of how many times you’ve played something, like 5 times through your scales. Tap the number
@@ -459,8 +513,22 @@ export default function PracticeMode({ profileId, profileName, ready = true, onS
 
       {/* Built only when open: it's the slowest part of Practice Mode. */}
       {tab === 'history' && (
-        <section className="practice-card" aria-label={`${profileName}'s practice`}>
+        <section className="practice-card practice-card-history" aria-label={`${profileName}'s practice`}>
           <div className="practice-card-title">📅 {profileName}’s practice</div>
+          <div className="practice-week" aria-label="Minutes practiced each day this week">
+            {stats.week.map((d) => {
+              const top = Math.max(15, ...stats.week.map((w) => w.minutes));
+              return (
+                <div key={d.key} className="practice-week-col">
+                  <span className="practice-week-min">{d.minutes || ''}</span>
+                  <span className="practice-week-track">
+                    <span className="practice-week-bar" style={{ height: `${d.minutes ? Math.max(8, (100 * d.minutes) / top) : 0}%` }} />
+                  </span>
+                  <span className="practice-week-day">{WEEKDAY_LETTER.format(new Date(`${d.key}T12:00:00`))}</span>
+                </div>
+              );
+            })}
+          </div>
           <div className="practice-stats">
             <div className="practice-stat">
               <div className="practice-stat-value">🔥 {stats.streak.current}</div>

@@ -5746,3 +5746,196 @@ body {
   right: 50px;
   transform: rotate(-8deg) scale(0.75);
 }
+
+/* ---------- Practice Mode, dressed up ---------- */
+.practice-tab-timer.practice-tab-active { color: #e8590c; }
+.practice-tab-metronome.practice-tab-active { color: #7048e8; }
+.practice-tab-counter.practice-tab-active { color: #0c8599; }
+.practice-tab-history.practice-tab-active { color: #3b5bdb; }
+.practice-tab-active {
+  transform: translateY(-1px);
+}
+.practice-screen .practice-card-timer {
+  background:
+    radial-gradient(circle at 85% 8%, #ffe8cc 0, transparent 38%),
+    radial-gradient(circle at 10% 95%, #ffdeeb 0, transparent 40%),
+    var(--card-bg);
+}
+.practice-screen .practice-card-metronome {
+  background:
+    radial-gradient(circle at 15% 10%, #e5dbff 0, transparent 40%),
+    radial-gradient(circle at 90% 90%, #f3d9fa 0, transparent 40%),
+    var(--card-bg);
+}
+.practice-screen .practice-card-counter {
+  background:
+    radial-gradient(circle at 85% 10%, #c5f6fa 0, transparent 40%),
+    radial-gradient(circle at 10% 90%, #d3f9d8 0, transparent 40%),
+    var(--card-bg);
+}
+.practice-screen .practice-card-history {
+  background:
+    radial-gradient(circle at 15% 8%, #dbe4ff 0, transparent 40%),
+    var(--card-bg);
+}
+
+/* The timer ring */
+.pring {
+  position: relative;
+  align-self: center;
+  width: min(250px, 66vw, 34vh);
+  aspect-ratio: 1;
+}
+.pring svg {
+  width: 100%;
+  height: 100%;
+}
+.pring-track {
+  fill: #fff;
+  stroke: #f1eef7;
+  stroke-width: 16;
+}
+.pring-fill {
+  fill: none;
+  stroke-width: 16;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.9s linear;
+}
+.pring-running .pring-fill {
+  filter: drop-shadow(0 4px 8px rgba(255, 107, 154, 0.35));
+}
+.pring-paused .pring-fill {
+  opacity: 0.45;
+}
+.pring-done svg {
+  animation: pring-glow 2.4s ease-in-out infinite;
+}
+@keyframes pring-glow {
+  50% { filter: drop-shadow(0 0 12px rgba(250, 176, 5, 0.55)); }
+}
+.pring-middle {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+.pring-top {
+  font-size: clamp(22px, 6vw, 30px);
+  line-height: 1;
+}
+.pring-middle .coffee-break {
+  width: 52px;
+  height: 52px;
+  margin: 0;
+}
+.pring-time {
+  font: 700 clamp(40px, 13vw, 54px) 'Fredoka', ui-rounded, system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  color: var(--ink);
+}
+.pring-paused .pring-time {
+  color: var(--ink-dim);
+}
+.pring-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink-dim);
+  font: 700 14px 'IBM Plex Sans', sans-serif;
+}
+.practice-card-timer .practice-status {
+  margin: 4px 0 0;
+  font-size: 14.5px;
+  font-weight: 600;
+}
+.practice-go {
+  background: linear-gradient(120deg, #ff922b, #f06595);
+  box-shadow: 0 12px 22px -12px #f06595;
+}
+.metronome-go {
+  background: linear-gradient(120deg, #845ef7, #cc5de8);
+  box-shadow: 0 12px 22px -12px #845ef7;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pring-done svg { animation: none; }
+  .pring-fill { transition: none; }
+}
+
+/* Metronome beat lights */
+.metronome-beats {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+}
+.metronome-beat {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #e5dbff;
+  transition: transform 0.08s, background 0.08s;
+}
+.metronome-beat.is-first {
+  width: 24px;
+  height: 24px;
+}
+.metronome-beat.is-on {
+  background: #7048e8;
+  transform: scale(1.35);
+  box-shadow: 0 0 14px rgba(112, 72, 232, 0.6);
+}
+.metronome-beat.is-first.is-on {
+  background: #f06595;
+  box-shadow: 0 0 14px rgba(240, 101, 149, 0.6);
+}
+
+/* History: the week */
+.practice-week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  height: 120px;
+}
+.practice-week-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-height: 0;
+}
+.practice-week-min {
+  height: 14px;
+  color: #3b5bdb;
+  font: 700 11px 'Fredoka', ui-rounded, system-ui, sans-serif;
+}
+.practice-week-track {
+  position: relative;
+  flex: 1;
+  width: 100%;
+  max-width: 30px;
+  border-radius: 10px;
+  background: #edf2ff;
+  overflow: hidden;
+}
+.practice-week-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 10px;
+  background: linear-gradient(#748ffc, #4c6ef5);
+}
+.practice-week-day {
+  color: var(--ink-dim);
+  font: 700 12px 'IBM Plex Sans', sans-serif;
+}
+.practice-screen .practice-card-history {
+  justify-content: flex-start;
+}
+.practice-card-metronome .metronome-slider {
+  accent-color: #7048e8;
+}
