@@ -1,3 +1,8 @@
+import { touchSettings } from './settingsClock.js';
+
+// Marked after the change is saved (so a sync sends the new value).
+const touchSettingsLater = (id) => setTimeout(() => touchSettings(id), 0);
+
 // Note-reading model for NoteSpeller: which notes each clef quizzes and
 // where each one sits on the staff.
 export const LETTERS = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
@@ -53,6 +58,7 @@ function loadMap(key) {
 }
 
 function saveToMap(key, id, value) {
+  touchSettingsLater(id);
   try {
     localStorage.setItem(key, JSON.stringify({ ...loadMap(key), [id]: value }));
   } catch {

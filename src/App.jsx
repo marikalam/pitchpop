@@ -46,6 +46,7 @@ import { PlayTriangleIcon, SpeakerIcon, CheckIcon, XIcon } from './icons.jsx';
 import { dayKey, loadStreakDays, recordStreakDay, streakFor } from './streak.js';
 import { setKeepRecords } from './records.js';
 import { startHistorySync } from './historySync.js';
+import { practiceElsewhere, startLivePractice } from './livePractice.js';
 
 const COLORS = [
   { name: 'black', hex: '#232323', text: '#FFFFFF', notes: ['A', 'C', 'F'] },
@@ -869,6 +870,25 @@ export default function App() {
     const reload = () => setStreakDays(loadStreakDays());
     window.addEventListener('pitchpop-history-synced', reload);
     return () => window.removeEventListener('pitchpop-history-synced', reload);
+  }, []);
+  // One practice per player across the family's phones (livePractice.js).
+  const profileRef = useRef(profile);
+  profileRef.current = profile;
+  useEffect(() => {
+    if (!syncedProfileIds) return undefined;
+    return startLivePractice(() => [profileRef.current]);
+  }, [syncedProfileIds]);
+  // Settings synced from another phone, or a practice starting or moving
+  // on one: show them.
+  const [, setSyncTick] = useState(0);
+  useEffect(() => {
+    const bump = () => setSyncTick((t) => t + 1);
+    window.addEventListener('pitchpop-live-changed', bump);
+    window.addEventListener('pitchpop-history-synced', bump);
+    return () => {
+      window.removeEventListener('pitchpop-live-changed', bump);
+      window.removeEventListener('pitchpop-history-synced', bump);
+    };
   }, []);
 
   // Guests see everything, but only signed-in families keep records
@@ -1750,7 +1770,14 @@ export default function App() {
               {/* One tap to start the practice timer. (During a practice the
                   header's timer pill takes you back to it instead.) */}
               <div className="home-hero-actions">
-                {!['running', 'paused'].includes(readPracticeTimer().status) && (
+                {!['running', 'paused'].includes(readPracticeTimer().status) && practiceElsewhere(profile) ? (
+                  <button className="home-practice home-practice-away" onClick={openPracticeFromBadge}>
+                    <span className="home-practice-icon" aria-hidden="true">
+                      📱
+                    </span>
+                    Practicing on another phone
+                  </button>
+                ) : !['running', 'paused'].includes(readPracticeTimer().status) && (
                   <button
                     className="home-practice"
                     onClick={() => {

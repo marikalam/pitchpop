@@ -1,3 +1,8 @@
+import { touchSettings } from './settingsClock.js';
+
+// Marked after the change is saved (so a sync sends the new value).
+const touchSettingsLater = (id) => setTimeout(() => touchSettings(id), 0);
+
 // Which players are in Tiny Tots (a setting per player, kept on this
 // device): their Pitch Practice is big colors to tap instead of the game
 // (TinyTots.jsx).
@@ -16,6 +21,7 @@ export function inTinyTots(profileId) {
 }
 
 export function setTinyTots(profileId, on) {
+  touchSettingsLater(profileId);
   const next = { ...load() };
   if (on) next[profileId] = true;
   else delete next[profileId];

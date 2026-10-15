@@ -348,17 +348,49 @@ export async function mergeCloudHistory(profileId, practiceLog, streakDays) {
   }
 }
 
-// Sends a player's stickers and gets back the family account's combined
-// list (supabase/stickers_sync.sql). null when it can't (offline, or the
-// database hasn't been set up for stickers yet): they stay on this phone.
-export async function mergeCloudStickers(profileId, stickers) {
+// Sends a player's stickers, finished rounds and settings, and gets back
+// the family account's combined data (supabase/sync_all.sql). null when
+// it can't (offline, or before that SQL has been run): they stay on this
+// phone until it can.
+export async function mergeCloudExtras(profileId, stickers, rounds, settings) {
   try {
-    const { data, error } = await supabase.rpc('merge_player_stickers', {
+    const { data, error } = await supabase.rpc('merge_player_extras', {
       p_profile_key: profileId,
       p_stickers: stickers,
+      p_round_history: rounds,
+      p_settings: settings,
     });
     return error ? null : data;
   } catch {
     return null;
+  }
+}
+
+// The practice going on for a player, and which phone it's on (null when
+// none; undefined when the account can't be reached). See livePractice.js.
+export async function getLivePractice(profileId) {
+  try {
+    const { data, error } = await supabase
+      .from('pitchpop_profiles')
+      .select('live_practice')
+      .eq('profile_key', profileId)
+      .maybeSingle();
+    return error ? undefined : (data?.live_practice ?? null);
+  } catch {
+    return undefined;
+  }
+}
+
+export async function claimLivePractice(profileId, device, state, takeOver) {
+  try {
+    const { data, error } = await supabase.rpc('claim_live_practice', {
+      p_profile_key: profileId,
+      p_device: device,
+      p_state: state,
+      p_take_over: takeOver,
+    });
+    return error ? undefined : (data ?? null);
+  } catch {
+    return undefined;
   }
 }

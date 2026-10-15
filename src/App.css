@@ -5484,3 +5484,19 @@ body {
   background: linear-gradient(135deg, #ff8787, #e8590c);
   box-shadow: 0 10px 20px -12px #e8590c;
 }
+
+/* A practice going on another phone (livePractice.js). */
+.home-practice-away {
+  background: linear-gradient(135deg, #63e6be, #20c997);
+  box-shadow: 0 10px 20px -12px #12b886;
+}
+.practice-away {
+  font-weight: 700;
+  color: var(--ink);
+}
+.practice-away-note {
+  margin: -4px 0 12px;
+  text-align: center;
+  color: var(--ink-dim);
+  font-size: 13.5px;
+}

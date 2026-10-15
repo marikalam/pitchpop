@@ -47,7 +47,9 @@ export function recordStreakDay(allDays, profileId, today = dayKey()) {
 // Replaces one player's streak days (with the synced list from the family
 // account).
 export function replaceStreakDays(profileId, days) {
-  const next = { ...loadStreakDays(), [profileId]: days };
+  // Keeps any day recorded here while the sync was on its way.
+  const all = loadStreakDays();
+  const next = { ...all, [profileId]: [...new Set([...(all[profileId] || []), ...days])].sort() };
   try {
     localStorage.setItem(STREAK_KEY, JSON.stringify(next));
   } catch {

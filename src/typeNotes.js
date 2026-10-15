@@ -1,3 +1,8 @@
+import { touchSettings } from './settingsClock.js';
+
+// Marked after the change is saved (so a sync sends the new value).
+const touchSettingsLater = (id) => setTimeout(() => touchSettings(id), 0);
+
 // Which players type the notes of each chord after naming its color (the
 // next level after colors, like Maddie's: "Red — C, E, G!"). A setting
 // per player, kept on this device.
@@ -16,6 +21,7 @@ export function typesNotes(profileId) {
 }
 
 export function setTypesNotes(profileId, on) {
+  touchSettingsLater(profileId);
   const next = { ...load() };
   if (on) next[profileId] = true;
   else delete next[profileId];
