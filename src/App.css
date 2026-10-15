@@ -5688,3 +5688,19 @@ body {
   justify-content: space-between;
   padding: 16px 18px;
 }
+
+/* NoteSpeller: Treble / Bass as big buttons. */
+.ns-summary .ns-clef-switch {
+  flex: 1;
+  padding: 4px;
+  border-radius: 16px;
+}
+.ns-summary .ns-clef-switch .ns-segment {
+  padding: 12px 10px;
+  border-radius: 12px;
+  font: 700 20px 'Fredoka', ui-rounded, system-ui, sans-serif;
+}
+.ns-summary .ns-summary-change {
+  padding: 12px 14px;
+  font-size: 18px;
+}

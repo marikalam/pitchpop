@@ -4,8 +4,6 @@ import { speakNoteName, speakResults } from './speech.js';
 import { isCurrent, later, newSound } from './soundBus.js';
 import {
   CLEF_MODES,
-  LETTERS,
-  LEVELS,
   buildNoteQueue,
   lettersFor,
   readingClef,
@@ -111,7 +109,8 @@ export default function NoteSpeller({ engine, playerId, onComplete, onOpenSettin
     setAnswered(null);
   }
 
-  // What this player reads, and where to change it.
+  // Treble or bass, big enough for small fingers, and where to change
+  // the rest of this player's NoteSpeller settings.
   const clefPicker = (
     <div className="ns-settings ns-summary">
       <div className="ns-segmented ns-clef-switch" role="radiogroup" aria-label="Clef">
@@ -127,9 +126,6 @@ export default function NoteSpeller({ engine, playerId, onComplete, onOpenSettin
           </button>
         ))}
       </div>
-      <span className="ns-summary-text">
-        {LEVELS.find((l) => l.id === level).label} · {myLetters.length === LETTERS.length ? 'All notes' : myLetters.join(' ')}
-      </span>
       {onOpenSettings && (
         <button className="ns-summary-change" onClick={onOpenSettings} aria-label="NoteSpeller settings">
           ⚙️
