@@ -85,7 +85,7 @@ function PlayerHistory({ days, onSignIn }) {
   );
 }
 
-export function PlayerSettingsCard({ profile, colors, onUpdate, onRemove, canRemove, playDays, onSignIn }) {
+export function PlayerSettingsCard({ profile, colors, onUpdate, onRemove, canRemove, playDays, onSignIn, freeColors, onLocked }) {
   // The notes level is kept on this device, and changes straight away.
   const [notesOn, setNotesOn] = useState(() => typesNotes(profile.id));
   function toggleNotes(on) {
@@ -107,6 +107,11 @@ export function PlayerSettingsCard({ profile, colors, onUpdate, onRemove, canRem
   }
 
   function toggleColor(name) {
+    // More than the free colors needs PitchPop Family (plan.js).
+    if (freeColors && !profile.colors.includes(name) && profile.colors.length >= freeColors) {
+      onLocked?.();
+      return;
+    }
     const next = profile.colors.includes(name)
       ? profile.colors.filter((c) => c !== name)
       : [...profile.colors, name];

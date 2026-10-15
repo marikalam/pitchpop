@@ -34,7 +34,7 @@ const OFFLINE_MESSAGE = 'You’re offline. Connect to the internet and try again
 
 function rememberUser(user) {
   try {
-    localStorage.setItem(ACCOUNT_KEY, JSON.stringify({ id: user.id, email: user.email }));
+    localStorage.setItem(ACCOUNT_KEY, JSON.stringify({ id: user.id, email: user.email, created_at: user.created_at }));
   } catch {
     /* ignore */
   }
