@@ -17,7 +17,7 @@ import Staff from './Staff.jsx';
 // names it, and the app says the name and plays that exact pitch - so
 // every answer, right or wrong, links the written note to its name and
 // its sound.
-const SESSION_ROUNDS = 10;
+const SESSION_ROUNDS = 20;
 function ProgressDots({ current, total }) {
   const items = [];
   for (let i = 1; i <= total; i++) {

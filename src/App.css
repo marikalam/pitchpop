@@ -5166,6 +5166,11 @@ body {
 
 /* ---------- The sticker book (StickerBook.jsx) ---------- */
 .sbook {
+  --sbook-top: 150px;
+  --sbook-bottom: 16px;
+}
+.sbook-choosing {
+  --sbook-bottom: 96px;
   padding-bottom: 90px;
 }
 .sbook-cover {
@@ -6165,4 +6170,21 @@ body {
     padding-left: 8px;
     padding-right: 8px;
   }
+}
+
+/* The sticker book always fills the page, whether or not there's a
+   sticker waiting or one just stuck in. */
+.sbook-cover {
+  display: flex;
+  min-height: calc(100vh - var(--sbook-top) - var(--sbook-bottom));
+  min-height: calc(100dvh - var(--sbook-top) - var(--sbook-bottom) - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+}
+.sbook-page {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.sbook-grid {
+  flex: 1;
+  align-content: space-evenly;
 }
