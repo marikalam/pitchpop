@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { playCorrectChime, playWrongBuzz } from './piano.js';
 import { speakNoteName, speakResults } from './speech.js';
 import { isCurrent, later, newSound } from './soundBus.js';
@@ -12,6 +12,7 @@ import {
   setReadingClef,
 } from './noteReading.js';
 import Staff from './Staff.jsx';
+import { recordNoteRound } from './todayPlan.js';
 
 // Note reading: a note is drawn on a treble or bass staff, the player
 // names it, and the app says the name and plays that exact pitch - so
@@ -50,6 +51,8 @@ export default function NoteSpeller({ engine, playerId, onComplete, onOpenSettin
   const [answered, setAnswered] = useState(null);
   const [correctCount, setCorrectCount] = useState(0);
   const [done, setDone] = useState(false);
+  // Letters missed this round, for tomorrow's "Today's practice".
+  const misses = useRef({});
 
   const target = queue[roundIndex];
 
@@ -65,6 +68,7 @@ export default function NoteSpeller({ engine, playerId, onComplete, onOpenSettin
     setAnswered(null);
     setCorrectCount(0);
     setDone(false);
+    misses.current = {};
   }
 
   function chooseClef(clef) {
@@ -93,6 +97,7 @@ export default function NoteSpeller({ engine, playerId, onComplete, onOpenSettin
       setCorrectCount((c) => c + 1);
     } else {
       playWrongBuzz();
+      misses.current[target.letter] = (misses.current[target.letter] || 0) + 1;
     }
     later(() => sayAndPlay(target, soundId), 350);
   }
@@ -102,6 +107,7 @@ export default function NoteSpeller({ engine, playerId, onComplete, onOpenSettin
     if (roundIndex + 1 >= SESSION_ROUNDS) {
       setDone(true);
       speakResults(correctCount, SESSION_ROUNDS);
+      recordNoteRound(playerId, misses.current);
       onComplete?.();
       return;
     }
