@@ -40,7 +40,7 @@ import {
   rememberedAccount,
 } from './cloud.js';
 import { listenForAppLinks, listenForWidgetLinks } from './appLink.js';
-import SoundButton, { SoundNotice } from './SoundButton.jsx';
+import { SoundNotice } from './SoundButton.jsx';
 import { useScreenHistory } from './screenHistory.js';
 import { colorToWorkOn, loadRoundHistory, recordRound, summarizeRound } from './roundHistory.js';
 import ScoreCelebration, { scoreTier, TIER_TEXT } from './ScoreCelebration.jsx';
@@ -324,7 +324,6 @@ function AppHeader({
               onOpenSettings={onOpenSettings}
             />
           )}
-          <SoundButton />
           <AccountButton user={user} onClick={onOpenAccount} />
         </div>
       </div>

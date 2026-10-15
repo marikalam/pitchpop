@@ -11,8 +11,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // PitchPop is an ear-training app, so its chords and voice should play
         // even with the ringer switch on silent, and mix with whatever else is
         // playing (e.g. Spotify over CarPlay) instead of stopping it.
-        try? AVAudioSession.sharedInstance().setCategory(.playback, options: [.mixWithOthers])
+        AppDelegate.keepAudible()
         return true
+    }
+
+    // Puts the audio session back the way PitchPop needs it: playing even on
+    // silent, mixed with other apps' audio. Also run each time PitchPop comes
+    // back to the screen (SceneDelegate), since a phone call, Siri or another
+    // app can change it while PitchPop is away.
+    static func keepAudible() {
+        let session = AVAudioSession.sharedInstance()
+        try? session.setCategory(.playback, options: [.mixWithOthers])
+        try? session.setActive(true)
     }
 
     func applicationWillResignActive(_ application: UIApplication) {
