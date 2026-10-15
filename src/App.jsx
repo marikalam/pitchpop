@@ -1109,7 +1109,7 @@ export default function App() {
     playChord(currentColor);
   }
 
-  function chooseAnswer(color, choices) {
+  function chooseAnswer(color) {
     const correct = color.name === currentColor.name;
     // Tapping the color being shown: nothing new to count.
     if (correct && tries.reveal) {
@@ -1170,17 +1170,13 @@ export default function App() {
       setView('play-feedback');
       return;
     }
-    // Wrong: stay on the question. That color fades out and the chord
-    // plays again, so they listen and try another. The second miss (or
-    // the first, when only one other color is left) shows the right
-    // color glowing, plays it with its name, and they tap it.
+    // Wrong: no guessing again. The other colors fade, the right one
+    // glows while its chord plays with its name, and they tap it to
+    // remember it. (It then comes back later in the round to drill it;
+    // see comebackQueue.)
     playWrongBuzz();
-    const out = [...tries.out, color.name];
-    const left = choices.filter((c) => !out.includes(c.name)).length;
-    const reveal = out.length >= 2 || left <= 1;
-    setTries({ out, reveal });
-    if (reveal) later(() => announceColor(currentColor, soundId), 600);
-    else later(() => isCurrent(soundId) && engineRef.current.playChord(currentColor.notes), 700);
+    setTries({ out: [color.name], reveal: true });
+    later(() => announceColor(currentColor, soundId), 600);
   }
 
   function hearAgainFromFeedback() {
@@ -2060,10 +2056,8 @@ export default function App() {
             <KindChip focus={roundFocus} index={roundIndex} name={currentColor.name} />
             <h2 className={`screen-title${tries.out.length ? ' question-retry' : ''}`} key={`${tries.out.length}${tries.reveal}`}>
               {tries.reveal
-                ? `It's ${capName(currentColor.name)}! Tap ${capName(currentColor.name)}`
-                : tries.out.length
-                  ? 'Not that one. Listen again! 👂'
-                  : options.length === 2 && roundFocus?.kinds?.[roundIndex] === 'check'
+                ? `This is ${capName(currentColor.name)}! Remember it 👂`
+                : options.length === 2 && roundFocus?.kinds?.[roundIndex] === 'check'
                     ? `${capName(options[0].name)} or ${capName(options[1].name)}?`
                     : 'What chord did you hear?'}
             </h2>
@@ -2087,7 +2081,7 @@ export default function App() {
                     key={color.name}
                     className={`option-btn${out ? ' option-out' : ''}${glow ? ' option-glow' : ''}`}
                     style={{ background: color.hex, color: color.text }}
-                    onClick={() => chooseAnswer(color, options)}
+                    onClick={() => chooseAnswer(color)}
                     disabled={out}
                     aria-label={out ? `${color.name} (not this one)` : color.name}
                   >
