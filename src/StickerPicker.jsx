@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { STICKERS, stickerName } from './stickers.js';
 import { addSticker, bookPage, pendingStickers, playerStickers } from './stickerStore.js';
 import Sticker from './Sticker.jsx';
+import { playStickerPick, playStickerStick } from './piano.js';
 
 const ALL = STICKERS.map((_, i) => i);
 
@@ -28,7 +29,7 @@ export default function StickerPicker({ playerId, signedIn, from, onStick, onSig
           <Sticker index={guestSticker} size={72} play />
         </span>
         <span>
-          <span className="workon-title">{stickerName(guestSticker)}! ⭐</span>
+          <span className="workon-title">Your sticker! ⭐</span>
           <br />
           <span className="workon-text">
             Stickers can't be kept in a sticker book without an account. Make one to save every sticker!
@@ -46,7 +47,7 @@ export default function StickerPicker({ playerId, signedIn, from, onStick, onSig
     const last = playerStickers(playerId).at(-1);
     return last ? (
       <p className="sticker-today">
-        <Sticker index={last.index} size={28} /> {stickerName(last.index)} is in your sticker book!
+        <Sticker index={last.index} size={28} /> It's in your sticker book!
       </p>
     ) : null;
   }
@@ -55,6 +56,7 @@ export default function StickerPicker({ playerId, signedIn, from, onStick, onSig
 
   function stick() {
     if (!signedIn) {
+      playStickerStick();
       setGuestSticker(chosen);
       return;
     }
@@ -73,7 +75,10 @@ export default function StickerPicker({ playerId, signedIn, from, onStick, onSig
             key={i}
             type="button"
             className={`sticker-pick-btn${chosen === i ? ' is-chosen' : ''}`}
-            onClick={() => setChosen(i)}
+            onClick={() => {
+              playStickerPick();
+              setChosen(i);
+            }}
             aria-label={stickerName(i)}
             aria-pressed={chosen === i}
           >
@@ -85,8 +90,8 @@ export default function StickerPicker({ playerId, signedIn, from, onStick, onSig
         {chosen === null
           ? 'Tap a sticker'
           : signedIn
-            ? `Stick ${stickerName(chosen)} in my book ⭐`
-            : `Pick ${stickerName(chosen)} ⭐`}
+            ? 'Stick it in my book ⭐'
+            : 'Pick this one ⭐'}
       </button>
     </div>
   );

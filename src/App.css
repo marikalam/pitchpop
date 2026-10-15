@@ -5220,7 +5220,7 @@ body {
 }
 .sbook-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 6px 4px;
 }
 .sbook-spot {
@@ -5419,8 +5419,7 @@ body {
   }
 }
 
-/* Tapping a sticker in the book: a happy jump, its own move, and its
-   name in a little bubble. */
+/* Tapping a sticker in the book: a happy jump and its own move. */
 .sbook-tap {
   padding: 0;
   border: none;
@@ -5451,26 +5450,6 @@ body {
   border-radius: 50%;
   animation: sbook-ring 0.6s ease-out 0.3s both;
   pointer-events: none;
-}
-.sbook-name {
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  z-index: 3;
-  padding: 3px 10px;
-  border-radius: 999px;
-  background: #5f3dc4;
-  color: #fff;
-  font: 700 13px 'Fredoka', ui-rounded, system-ui, sans-serif;
-  white-space: nowrap;
-  pointer-events: none;
-  animation: sbook-name 1.8s ease both;
-}
-@keyframes sbook-name {
-  0% { opacity: 0; transform: translate(-50%, 8px) scale(0.6); }
-  15% { opacity: 1; transform: translate(-50%, -4px) scale(1); }
-  80% { opacity: 1; transform: translate(-50%, -4px); }
-  100% { opacity: 0; transform: translate(-50%, -10px); }
 }
 @media (prefers-reduced-motion: reduce) {
   .sbook-tapped,

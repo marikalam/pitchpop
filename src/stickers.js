@@ -159,6 +159,30 @@ export const STICKERS = [
       <path d="M-8 0 Q0 26 8 0Z" fill="#ffa94d"/><path d="M-4 0 Q0 16 4 0Z" fill="#ffd43b"/>
       <animateTransform attributeName="transform" type="scale" values="1 1;1.1 1.35;1 1" dur="0.45s" repeatCount="indefinite"/>
     </g></g>`],
+  ['Web hero', `
+    <path d="M66 -4 L80 26" stroke="#ced4da" stroke-width="2.4"/>
+    <path d="M30 58 L20 92 L80 92 L70 58Z" fill="#7048e8"/>
+    <path d="M36 62 L64 62 L68 92 L32 92Z" fill="#9775fa"/>
+    <g stroke="#fff" stroke-width="1.6" fill="none" opacity=".9">
+      <circle cx="50" cy="76" r="4"/><circle cx="50" cy="76" r="8"/>
+      <path d="M50 66 L50 86 M40 76 L60 76 M43 69 L57 83 M57 69 L43 83"/>
+    </g>
+    <circle cx="50" cy="38" r="22" fill="#f5d0a9"/>
+    <path d="M28 34 C28 14 74 14 72 34 C66 24 58 22 50 24 C42 22 34 26 28 34Z" fill="#3b2a20"/>
+    <path d="M27 36 Q38 32 50 37 Q62 32 73 36 L72 46 Q62 42 50 46 Q38 42 28 46Z" fill="#e64980"/>
+    <ellipse cx="40" cy="40.5" rx="5" ry="4" fill="#fff"/><ellipse cx="60" cy="40.5" rx="5" ry="4" fill="#fff"/>
+    <circle cx="40.5" cy="41" r="2.3" fill="#3a2e3f"/><circle cx="60.5" cy="41" r="2.3" fill="#3a2e3f"/>
+    ${smile(50, 51, 4)}${blush(33, 67, 51)}
+    <path d="M66 62 L79 32" stroke="#7048e8" stroke-width="9" stroke-linecap="round"/>
+    <circle cx="80" cy="28" r="5.5" fill="#f5d0a9"/>
+    <g transform="translate(26 60)">
+      <g stroke="#3a2e3f" stroke-width="1.8" stroke-linecap="round" fill="none">
+        <path d="M-5 -2 l-5 -3 M-5 1 l-6 0 M-4 4 l-5 4 M5 -2 l5 -3 M5 1 l6 0 M4 4 l5 4"/>
+      </g>
+      <circle r="6.5" fill="#495057"/>
+      <circle cx="-2.4" cy="-1" r="1.8" fill="#fff"/><circle cx="2.4" cy="-1" r="1.8" fill="#fff"/>
+      <circle cx="-2.2" cy="-0.8" r="0.9" fill="#212529"/><circle cx="2.6" cy="-0.8" r="0.9" fill="#212529"/>
+    </g>`],
 ];
 export const BOOK_SIZE = STICKERS.length;
 
@@ -182,6 +206,7 @@ const MOVES = {
   'Music notes': 'wiggle',
   Rocket: 'shake',
   Donut: 'spin',
+  'Web hero': 'dangle',
 };
 export const stickerMove = (index) => MOVES[STICKERS[index][0]] || 'bob';
 
