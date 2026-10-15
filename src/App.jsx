@@ -23,7 +23,7 @@ import { typesNotes } from './typeNotes.js';
 import { buildSmartRound, checkPairFor, comebackQueue } from './smartRound.js';
 import Piano from './Piano.jsx';
 import PracticeMode, { readPracticeTimer, showTimerTab, startPracticeNow, stopPractice } from './PracticeMode.jsx';
-import PracticeBadge from './PracticeBadge.jsx';
+import PracticeBadge, { EndPracticeButton } from './PracticeBadge.jsx';
 import MusicTheory from './MusicTheory.jsx';
 import MethodInfo from './MethodInfo.jsx';
 import Scales from './Scales.jsx';
@@ -730,6 +730,8 @@ export default function App() {
   // A sticker just picked on the "All done!" screen, to stick in the book.
   const [placingSticker, setPlacingSticker] = useState(null);
   const [stickerBackTo, setStickerBackTo] = useState(null);
+  // The home page's End practice: Practice Mode opens and ends it.
+  const [endPracticeOnOpen, setEndPracticeOnOpen] = useState(false);
   const [roundFocus, setRoundFocus] = useState(resumableSession.roundFocus || null);
 
   const [melodyTaps, setMelodyTaps] = useState(initialSession.melodyTaps || 0);
@@ -1317,6 +1319,7 @@ export default function App() {
 
   function closeTool() {
     setPlacingSticker(null);
+    setEndPracticeOnOpen(false);
     if (view === 'stickers' && stickerBackTo) {
       setStickerBackTo(null);
       setView(stickerBackTo);
@@ -1548,6 +1551,8 @@ export default function App() {
               profileName={currentProfile.name}
               ready={authChecked}
               onSaved={(id) => earnSticker(id)}
+              endOnOpen={endPracticeOnOpen}
+              onEndHandled={() => setEndPracticeOnOpen(false)}
               stickerSlot={stickerPicker('practice')}
             />
           ) : view === 'scales' ? (
@@ -1759,6 +1764,15 @@ export default function App() {
                     Start practice
                   </button>
                 )}
+                <EndPracticeButton
+                  onEnd={(playerId) => {
+                    if (playerId && playerId !== profile && profiles.some((p) => p.id === playerId)) {
+                      changeProfile(playerId, true);
+                    }
+                    setEndPracticeOnOpen(true);
+                    openPracticeFromBadge();
+                  }}
+                />
                 <button className="home-practice home-stickers" onClick={() => openTool('stickers')}>
                   <span className="home-practice-icon" aria-hidden="true">
                     📒

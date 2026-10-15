@@ -133,7 +133,7 @@ function formatDay(key) {
 }
 
 // A saved practice earns a sticker (onSaved; picked with stickerSlot).
-export default function PracticeMode({ profileId, profileName, ready = true, onSaved, stickerSlot }) {
+export default function PracticeMode({ profileId, profileName, ready = true, onSaved, stickerSlot, endOnOpen, onEndHandled }) {
   const [practice, setPractice] = useState(loadPractice);
   const [log, setLog] = useState(loadPracticeLog);
   const [now, setNow] = useState(Date.now);
@@ -242,6 +242,13 @@ export default function PracticeMode({ profileId, profileName, ready = true, onS
     onSaved?.(profileId);
     update({ status: 'saved', elapsedBefore: total, startedAt: null });
   }
+
+  // Opened by the home page's End practice: end it right away.
+  useEffect(() => {
+    if (!endOnOpen || !ready || practice.profileId !== profileId) return;
+    if (['running', 'paused'].includes(practice.status)) end();
+    onEndHandled?.();
+  });
 
   function newPractice() {
     update({ status: 'idle', startedAt: null, elapsedBefore: 0 });
