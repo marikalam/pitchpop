@@ -6188,3 +6188,202 @@ body {
   flex: 1;
   align-content: space-evenly;
 }
+
+/* ---------- Today's practice (TodayPlan.jsx) ---------- */
+.today {
+  flex: none;
+  padding: 10px 14px 12px;
+  border-radius: 22px;
+  background: #fff;
+  border: 3px solid #ffe066;
+  box-shadow: var(--shadow);
+}
+.today-all-done {
+  border-color: #8ce99a;
+}
+.today-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.today-title {
+  margin: 0;
+  font: 700 18px 'Fredoka', ui-rounded, system-ui, sans-serif;
+  color: #17192b;
+}
+.today-count {
+  font: 700 14px 'Fredoka', ui-rounded, system-ui, sans-serif;
+  color: #e8792f;
+}
+.today-list {
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.today-item {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 8px 0;
+  border: none;
+  border-top: 1px solid #f1f2f6;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.today-list li:first-child .today-item {
+  border-top: none;
+}
+.today-item:active {
+  transform: scale(0.98);
+}
+.today-item-icon {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: #fff4e6;
+  font-size: 19px;
+}
+.today-item-color-test .today-item-icon,
+.today-item-tots .today-item-icon {
+  background: #e7f5ff;
+}
+.today-item-notespeller .today-item-icon {
+  background: #ebfbee;
+}
+.today-item-text {
+  flex: 1;
+  min-width: 0;
+}
+.today-item-title {
+  display: block;
+  font: 700 15.5px 'Fredoka', ui-rounded, system-ui, sans-serif;
+  color: #17192b;
+  line-height: 1.2;
+}
+.today-item-sub {
+  display: block;
+  font: 600 12.5px 'IBM Plex Sans', sans-serif;
+  color: #7a8099;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.today-item-done .today-item-title {
+  color: #9aa0b5;
+  text-decoration: line-through;
+}
+.today-check {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #40c057;
+  color: #fff;
+  font: 700 16px system-ui, sans-serif;
+}
+.today-arrow {
+  flex: none;
+  color: #7048e8;
+  font: 700 22px 'Fredoka', ui-rounded, system-ui, sans-serif;
+}
+.today-lock {
+  flex: none;
+  font-size: 16px;
+}
+.today-bar {
+  height: 8px;
+  margin-top: 6px;
+  border-radius: 4px;
+  background: #f1f3f5;
+  overflow: hidden;
+}
+.today-bar span {
+  display: block;
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #ffd43b, #ff922b);
+  transition: width 0.4s ease;
+}
+.today-all-done .today-bar span {
+  background: linear-gradient(90deg, #8ce99a, #40c057);
+}
+.today-note {
+  margin: 5px 0 0;
+  font: 600 12.5px 'IBM Plex Sans', sans-serif;
+  color: #7a8099;
+}
+.today-signin {
+  appearance: none;
+  padding: 0;
+  border: none;
+  background: none;
+  color: #7048e8;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* The tools under it, small. */
+.home-tiles {
+  flex: none;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+.home-tile {
+  position: relative;
+  appearance: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 10px 2px 8px;
+  border: none;
+  border-radius: 16px;
+  background: linear-gradient(145deg, var(--card-from), var(--card-to));
+  color: #fff;
+  box-shadow: 0 10px 18px -14px var(--card-to);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.home-tile:active {
+  transform: scale(0.96);
+}
+.home-tile-icon {
+  font-size: 22px;
+  line-height: 1;
+}
+.home-tile-title {
+  font: 700 12.5px 'Fredoka', ui-rounded, system-ui, sans-serif;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+.home-tile .home-card-lock {
+  top: 3px;
+  right: 4px;
+  font-size: 11px;
+}
+.home-fit .home-tiles {
+  flex: 1 1 auto;
+  min-height: 0;
+  grid-template-rows: repeat(2, minmax(0, 92px));
+  align-content: start;
+}
+.home-fit .home-tile {
+  justify-content: center;
+}
+.home-fit .home-tile-icon {
+  font-size: clamp(20px, 3.2vh, 28px);
+}

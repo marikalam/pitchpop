@@ -51,6 +51,8 @@ import { startHistorySync } from './historySync.js';
 import { practiceElsewhere, startLivePractice } from './livePractice.js';
 import { FREE_COLORS, hasPlan, notePhone, plansOn, startPlans } from './plan.js';
 import Paywall from './Paywall.jsx';
+import TodayPlan from './TodayPlan.jsx';
+import { markDoneToday } from './todayPlan.js';
 
 const COLORS = [
   { name: 'black', hex: '#232323', text: '#FFFFFF', notes: ['A', 'C', 'F'] },
@@ -84,20 +86,21 @@ const OLD_SAMPLE_PROFILE_IDS = new Set(['maddie', 'marcus', 'melody']);
 
 // Chords in a round of Pitch Practice (about one Eguchi session).
 const SESSION_ROUNDS = 20;
-// The home page's piano tools (Pitch Practice and Explore sounds have
-// their own Perfect Pitch card above them).
+// The home page's tiles under Today's practice.
 // What PitchPop Family adds (plan.js); everything else is free.
 const PAID_VIEWS = ['scales', 'hanon', 'progress', 'notespeller'];
 // This phone's PitchPop-before-the-plan check happens on first run.
 notePhone();
 
 const HOME_CARDS = [
-  { id: 'piano', icon: '🎹', title: 'Piano', sub: 'Play a real keyboard', from: '#9b6ef3', to: '#7a4fd6' },
-  { id: 'practice', icon: '⏱️', title: 'Practice Mode', sub: 'Timer, metronome, counter', from: '#f7a24f', to: '#e8792f' },
-  { id: 'scales', icon: '🎶', title: 'Scales', sub: 'Major & minor, with fingering', from: '#2fb3c4', to: '#1f8fa0' },
-  { id: 'hanon', icon: '🏋️', title: 'Hanon', sub: 'Finger exercises 1–20', from: '#5b6ee8', to: '#3f4fc4' },
-  { id: 'notespeller', icon: '🎼', title: 'NoteSpeller', sub: 'Read notes on the staff', from: '#3fbf7f', to: '#2a9d63' },
-  { id: 'theory', icon: '📖', title: 'Music Theory', sub: 'Picture glossary', from: '#f06f9a', to: '#d94f7e' },
+  { id: 'explore', icon: '🎵', title: 'Explore', from: '#f2a93b', to: '#e07b2a' },
+  { id: 'piano', icon: '🎹', title: 'Piano', from: '#9b6ef3', to: '#7a4fd6' },
+  { id: 'practice', icon: '⏱️', title: 'Practice', from: '#f7a24f', to: '#e8792f' },
+  { id: 'scales', icon: '🎶', title: 'Scales', from: '#2fb3c4', to: '#1f8fa0' },
+  { id: 'hanon', icon: '🏋️', title: 'Hanon', from: '#5b6ee8', to: '#3f4fc4' },
+  { id: 'notespeller', icon: '🎼', title: 'Notes', from: '#3fbf7f', to: '#2a9d63' },
+  { id: 'theory', icon: '📖', title: 'Theory', from: '#f06f9a', to: '#d94f7e' },
+  { id: 'method', icon: '🎓', title: 'How it works', from: '#8a94a8', to: '#6b7488' },
 ];
 const MELODY_SESSION_TAPS = 20;
 // The screen PitchPop was on when it last went into the background, to
@@ -1065,6 +1068,7 @@ export default function App() {
     prewarmVoices();
     // Tiny Tots players get big colors to tap instead of the game.
     if (inTinyTots(profile)) {
+      markDoneToday(profile, 'tots');
       openTool('tinytots');
       return;
     }
@@ -1867,51 +1871,23 @@ export default function App() {
               </div>
             </section>
 
-            {/* The Eguchi perfect-pitch training together in one card: the
-                game, and Explore for hearing each color's chord. */}
-            <section className="pitch-set" aria-labelledby="pitch-set-title">
-              <div className="pitch-set-head">
-                <h3 className="pitch-set-title" id="pitch-set-title">
-                  <span aria-hidden="true">🌈</span> Perfect Pitch
-                </h3>
-                <button className="pitch-set-how" onClick={() => openTool('method')}>
-                  🎓 How it works
-                </button>
-              </div>
-              <button className="home-cta" onClick={startPlay}>
-                <span className="home-cta-icon" aria-hidden="true">
-                  <PlayTriangleIcon />
-                </span>
-                <span className="home-cta-text">
-                  <span className="home-cta-title">Pitch Practice</span>
-                  <span className="home-cta-sub">
-                    {inTinyTots(profile) ? 'Tiny Tots: tap and listen' : 'Hear a chord, pick its color'}
-                  </span>
-                </span>
-                <span className="home-cta-arrow" aria-hidden="true">
-                  →
-                </span>
-              </button>
-              <button className="pitch-explore" onClick={() => openTool('explore')}>
-                <span className="pitch-explore-icon" aria-hidden="true">
-                  🎵
-                </span>
-                <span className="home-cta-text">
-                  <span className="pitch-explore-title">Explore sounds</span>
-                  <span className="pitch-explore-sub">Learn each color's chord</span>
-                </span>
-                <span className="pitch-explore-arrow" aria-hidden="true">
-                  →
-                </span>
-              </button>
-            </section>
+            {/* A short list for today, made from this player's history. */}
+            <TodayPlan
+              key={profile}
+              playerId={profile}
+              signedIn={!!cloudUser}
+              colorNames={profileColorNames}
+              tinyTots={inTinyTots(profile)}
+              lockedIds={planOK ? [] : PAID_VIEWS}
+              onOpen={(id) => (id === 'color-test' || id === 'tots' ? startPlay() : openTool(id))}
+              onSignIn={openAccount}
+            />
 
-            <h3 className="home-section-title">Piano tools</h3>
-            <div className="home-grid">
+            <div className="home-tiles">
               {HOME_CARDS.map((card) => (
                 <button
                   key={card.id}
-                  className="home-card"
+                  className="home-tile"
                   style={{ '--card-from': card.from, '--card-to': card.to }}
                   onClick={() => openTool(card.id)}
                 >
@@ -1920,13 +1896,10 @@ export default function App() {
                       ⭐
                     </span>
                   )}
-                  <span className="home-card-icon" aria-hidden="true">
+                  <span className="home-tile-icon" aria-hidden="true">
                     {card.icon}
                   </span>
-                  <span className="home-card-text">
-                    <span className="home-card-title">{card.title}</span>
-                    <span className="home-card-sub">{!cloudUser && card.guestSub ? card.guestSub : card.sub}</span>
-                  </span>
+                  <span className="home-tile-title">{card.title}</span>
                 </button>
               ))}
             </div>
