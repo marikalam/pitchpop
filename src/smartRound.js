@@ -269,18 +269,21 @@ export function checkPairFor(focus, index, name) {
   return focus?.kinds?.[index] === 'check' && pair && pair.includes(name) ? pair : null;
 }
 
-// A chord missed at `index` comes back three chords later (taking the
-// place of another color's chord there), unless it's already coming up.
-// It skips over a warm-up chord, and over a mix-up check unless it's one
-// of that check's two colors (focus: the round's plan).
+// A chord missed at `index` comes back later in the round, taking the
+// place of other colors' chords there (focus: the round's plan).
 export function comebackQueue(queue, index, name, focus = null) {
-  let at = index + 3;
+  // A missed color gets drilled: it comes back twice, about 3 and 7
+  // chords later (never in a warm-up spot, a mix-up check for another
+  // pair, or the last chord).
   const blocked = (i) =>
     focus?.kinds?.[i] === 'warmup' || (focus?.kinds?.[i] === 'check' && !focus.checks?.includes(name));
-  while (blocked(at)) at += 1;
-  if (at >= queue.length - 1) return queue;
-  if (queue.slice(index + 1, at + 2).includes(name)) return queue;
   const next = [...queue];
-  next[at] = name;
+  for (const gap of [3, 7]) {
+    let at = index + gap;
+    while (blocked(at)) at += 1;
+    if (at >= next.length - 1) break;
+    if (next.slice(at - 1, at + 2).includes(name)) continue;
+    next[at] = name;
+  }
   return next;
 }
