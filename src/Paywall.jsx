@@ -1,5 +1,17 @@
-import { useEffect, useState } from 'react';
-import { PRICES, PRIVACY_URL, TERMS_URL, buyPlan, hasPlan, manageSubscription, planOptions, restorePlan } from './plan.js';
+import { useState } from 'react';
+import {
+  PRIVACY_URL,
+  TERMS_URL,
+  buyPlan,
+  freeForever,
+  hasPlan,
+  planErrorMessage,
+  planOptions,
+  restorePlan,
+  savedPlan,
+  showCustomerCenter,
+  showPaywall,
+} from './plan.js';
 
 const PERKS = [
   ['🌈', 'Every color', 'Keep adding colors after red, yellow and blue'],
@@ -9,7 +21,9 @@ const PERKS = [
   ['👨‍👩‍👧', 'The whole family', 'Every child gets their own player'],
 ];
 
-// A grown-up check before buying (kids use this app): a sum to answer.
+const LABELS = { yearly: ['Yearly', '/year'], monthly: ['Monthly', '/month'], lifetime: ['Lifetime', ' once'] };
+
+// A grown-up check before anything to do with buying (kids use this app).
 function ParentGate({ onPass, onCancel }) {
   const [q] = useState(() => {
     const a = 3 + Math.floor(Math.random() * 6);
@@ -28,11 +42,7 @@ function ParentGate({ onPass, onCancel }) {
         </p>
         <div className="gate-choices">
           {q.choices.map((c) => (
-            <button
-              key={c}
-              className="gate-choice"
-              onClick={() => (c === q.answer ? onPass() : setWrong(true))}
-            >
+            <button key={c} className="gate-choice" onClick={() => (c === q.answer ? onPass() : setWrong(true))}>
               {c}
             </button>
           ))}
@@ -46,62 +56,76 @@ function ParentGate({ onPass, onCancel }) {
   );
 }
 
-// PitchPop Family: what it adds, the yearly and monthly choices, the free
-// week, Restore, and the links Apple asks for.
+// PitchPop Family: what it adds, then (after a grown-up check)
+// RevenueCat's paywall with Lifetime, Yearly and Monthly. If that paywall
+// can't be shown, our own buttons for the same choices. With the plan:
+// RevenueCat's Customer Center to manage it.
 export default function Paywall({ user, reason, onSignIn, onDone }) {
-  const [options, setOptions] = useState(null);
-  const [choice, setChoice] = useState('yearly');
-  const [gate, setGate] = useState(false);
+  const [gate, setGate] = useState(null); // what to do once a grown-up passes
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
+  const [options, setOptions] = useState(null); // fallback buttons
   const owned = hasPlan(user);
+  const forever = freeForever(user);
+  const plan = savedPlan();
 
-  useEffect(() => {
-    if (owned || !user) return;
-    planOptions()
-      .then(setOptions)
-      .catch(() => setOptions([]));
-  }, [owned, user]);
-
-  const priceOf = (id) => options?.find((o) => o.id === id)?.price || PRICES[id];
-
-  async function buy() {
-    setGate(false);
-    const option = options?.find((o) => o.id === choice);
-    if (!option) {
-      setMessage("The App Store can't be reached right now. Try again in a moment.");
-      return;
-    }
+  async function run(task) {
     setBusy(true);
     setMessage('');
     try {
-      if (await buyPlan(option)) onDone?.();
-    } catch {
-      setMessage('That didn’t go through. Nothing was charged; try again.');
+      await task();
+    } catch (err) {
+      const text = planErrorMessage(err);
+      if (text) setMessage(text);
     } finally {
       setBusy(false);
     }
   }
 
-  async function restore() {
-    setBusy(true);
-    setMessage('');
-    try {
+  const seePlans = () =>
+    run(async () => {
+      const result = await showPaywall();
+      if (result === 'PURCHASED' || result === 'RESTORED' || result === 'NOT_PRESENTED') onDone?.();
+      else if (result === 'ERROR') {
+        // RevenueCat's paywall isn't available (not set up yet, or offline):
+        // the same choices as plain buttons.
+        const list = await planOptions();
+        if (list.length) setOptions(list);
+        else setMessage("The plans can't be loaded right now. Check the internet and try again.");
+      }
+    });
+
+  const buy = (option) =>
+    run(async () => {
+      if (await buyPlan(option)) onDone?.();
+    });
+
+  const restore = () =>
+    run(async () => {
       if (await restorePlan()) onDone?.();
       else setMessage('No PitchPop Family plan found for this Apple ID.');
-    } catch {
-      setMessage("Couldn't reach the App Store. Try again in a moment.");
-    } finally {
-      setBusy(false);
-    }
-  }
+    });
+
+  const guarded = (task) => () => setGate(() => task);
 
   return (
     <div className="paywall">
       <div className="paywall-hero">
         <div className="paywall-badge">⭐ PitchPop Family</div>
-        <h2 className="paywall-title">{owned ? 'You have PitchPop Family!' : reason || 'Keep growing, one color at a time'}</h2>
-        {!owned && <p className="paywall-sub">Try everything free for 7 days. One plan for every child in the family.</p>}
+        <h2 className="paywall-title">
+          {forever ? 'Everything is free for your family' : owned ? 'You have PitchPop Family!' : reason || 'Keep growing, one color at a time'}
+        </h2>
+        <p className="paywall-sub">
+          {forever
+            ? 'Thank you for being here from the start. 💜'
+            : owned
+              ? plan.lifetime
+                ? 'Lifetime: yours for good.'
+                : plan.expires
+                  ? `${plan.willRenew ? 'Renews' : 'Ends'} ${new Date(plan.expires).toLocaleDateString()}.`
+                  : ''
+              : 'Try it free for 7 days. One plan for every child in the family.'}
+        </p>
       </div>
 
       <ul className="paywall-perks">
@@ -119,9 +143,9 @@ export default function Paywall({ user, reason, onSignIn, onDone }) {
         ))}
       </ul>
 
-      {owned ? (
-        <button className="pill-btn-secondary pill-btn-full" onClick={manageSubscription}>
-          Manage subscription
+      {forever ? null : owned ? (
+        <button className="pill-btn-secondary pill-btn-full" disabled={busy} onClick={guarded(() => run(showCustomerCenter))}>
+          Manage my plan
         </button>
       ) : !user ? (
         <div className="paywall-account">
@@ -130,38 +154,30 @@ export default function Paywall({ user, reason, onSignIn, onDone }) {
             Sign in or create account
           </button>
         </div>
+      ) : options ? (
+        <div className="paywall-choices">
+          {options.map((o) => (
+            <button key={o.id} className="paywall-option paywall-option-row" disabled={busy} onClick={guarded(() => buy(o))}>
+              {o.id === 'yearly' && <span className="paywall-save">Best value</span>}
+              <b>{LABELS[o.id][0]}</b>
+              <span className="paywall-price">
+                {o.price}
+                {LABELS[o.id][1]}
+              </span>
+            </button>
+          ))}
+        </div>
       ) : (
+        <button className="pill-btn-primary pill-btn-full paywall-go" disabled={busy} onClick={guarded(seePlans)}>
+          {busy ? 'One moment…' : 'See plans'}
+        </button>
+      )}
+      {!owned && user && (
         <>
-          <div className="paywall-options" role="radiogroup" aria-label="Plan">
-            <button
-              role="radio"
-              aria-checked={choice === 'yearly'}
-              className={`paywall-option${choice === 'yearly' ? ' is-on' : ''}`}
-              onClick={() => setChoice('yearly')}
-            >
-              <span className="paywall-save">Best value</span>
-              <b>Yearly</b>
-              <span className="paywall-price">{priceOf('yearly')}/year</span>
-              <span className="paywall-per">about $2.50 a month</span>
-            </button>
-            <button
-              role="radio"
-              aria-checked={choice === 'monthly'}
-              className={`paywall-option${choice === 'monthly' ? ' is-on' : ''}`}
-              onClick={() => setChoice('monthly')}
-            >
-              <b>Monthly</b>
-              <span className="paywall-price">{priceOf('monthly')}/month</span>
-              <span className="paywall-per">cancel anytime</span>
-            </button>
-          </div>
-          <button className="pill-btn-primary pill-btn-full paywall-go" disabled={busy} onClick={() => setGate(true)}>
-            {busy ? 'One moment…' : 'Start my free week'}
-          </button>
           <p className="paywall-fine">
-            Free for 7 days, then {priceOf(choice)} a {choice === 'yearly' ? 'year' : 'month'}. It renews automatically
-            unless cancelled at least 24 hours before the end of the period; manage or cancel anytime in your Apple ID
-            settings. Payment is charged to your Apple ID.
+            Monthly and yearly plans start with a free week, then renew automatically unless cancelled at least 24 hours
+            before the end of the period; manage or cancel anytime in your Apple ID settings. Lifetime is a one-time
+            purchase. Payment is charged to your Apple ID.
           </p>
           <button className="paywall-restore" disabled={busy} onClick={restore}>
             Restore purchases
@@ -178,7 +194,16 @@ export default function Paywall({ user, reason, onSignIn, onDone }) {
           Privacy Policy
         </a>
       </p>
-      {gate && <ParentGate onPass={buy} onCancel={() => setGate(false)} />}
+      {gate && (
+        <ParentGate
+          onPass={() => {
+            const task = gate;
+            setGate(null);
+            task();
+          }}
+          onCancel={() => setGate(null)}
+        />
+      )}
     </div>
   );
 }

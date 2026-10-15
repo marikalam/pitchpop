@@ -5678,3 +5678,13 @@ body {
   font: 600 14px 'IBM Plex Sans', sans-serif;
   cursor: pointer;
 }
+.paywall-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.paywall-option-row {
+  flex-direction: row;
+  justify-content: space-between;
+  padding: 16px 18px;
+}
