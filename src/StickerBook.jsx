@@ -70,7 +70,7 @@ export default function StickerBook({ player, signedIn, onSignIn, placing, onPla
   }
 
   return (
-    <div className="sbook">
+    <div className={`sbook${choosing ? ' sbook-choosing' : ''}`}>
       <div className="sbook-cover">
         <div className="sbook-rings" aria-hidden="true">
           {Array.from({ length: 7 }, (_, i) => (
