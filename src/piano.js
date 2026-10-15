@@ -448,3 +448,41 @@ export function playWrongBuzz() {
   osc.start(now);
   osc.stop(now + 0.32);
 }
+
+// Stickers: a bubbly "bloop" when one is tapped or picked...
+export function playStickerPick() {
+  const ctx = ensureChimeAudio();
+  const now = ctx.currentTime + 0.01;
+  const osc = ctx.createOscillator();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(520, now);
+  osc.frequency.exponentialRampToValueAtTime(1250, now + 0.11);
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(0.0001, now);
+  gain.gain.linearRampToValueAtTime(0.2, now + 0.015);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.16);
+  const out = soundOutput(ctx, [osc], now + 0.4);
+  osc.connect(gain).connect(out);
+  osc.start(now);
+  osc.stop(now + 0.18);
+  chimeTone(ctx, out, 1567.98, now + 0.1, 0.18, 0.07);
+}
+
+// ...and a soft "pat" and a little twinkle when it's stuck in the book.
+export function playStickerStick() {
+  const ctx = ensureChimeAudio();
+  const now = ctx.currentTime + 0.01;
+  const pat = ctx.createOscillator();
+  pat.type = 'sine';
+  pat.frequency.setValueAtTime(260, now);
+  pat.frequency.exponentialRampToValueAtTime(120, now + 0.09);
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(0.0001, now);
+  gain.gain.linearRampToValueAtTime(0.28, now + 0.008);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
+  const out = soundOutput(ctx, [pat], now + 0.8);
+  pat.connect(gain).connect(out);
+  pat.start(now);
+  pat.stop(now + 0.14);
+  [1046.5, 1318.51, 1567.98, 2093].forEach((f, i) => chimeTone(ctx, out, f, now + 0.1 + i * 0.07, 0.22, 0.08));
+}

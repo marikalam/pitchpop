@@ -1,7 +1,8 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { BOOK_SIZE, STICKERS, stickerName } from './stickers.js';
+import { BOOK_SIZE, STICKERS } from './stickers.js';
 import { addSticker, bookPage, pendingStickers, playerStickers } from './stickerStore.js';
 import Sticker from './Sticker.jsx';
+import { playStickerPick, playStickerStick } from './piano.js';
 
 // The sticker book: every sticker has its own spot on the page. The ones
 // collected are there in color; the rest wait as faded shadows. A new
@@ -98,46 +99,54 @@ export default function StickerBook({ player, signedIn, onSignIn, placing, onPla
                     <span
                       className="sbook-flying"
                       style={{ '--dx': `${from.dx}px`, '--dy': `${from.dy}px` }}
-                      onAnimationEnd={(e) => e.target === e.currentTarget && (setPhase('landed'), onPlaced?.())}
+                      onAnimationEnd={(e) => {
+                        if (e.target !== e.currentTarget) return;
+                        playStickerStick();
+                        setPhase('landed');
+                        onPlaced?.();
+                      }}
                     >
-                      <Sticker index={i} size={56} />
+                      <Sticker index={i} size={50} />
                     </span>
                   ) : isNew && phase === 'landed' ? (
                     <span className="sbook-landed">
-                      <Sticker index={i} size={56} play />
+                      <Sticker index={i} size={50} play />
                     </span>
                   ) : owned ? (
-                    // Tap a sticker: it jumps, does its move and says its name.
+                    // Tap a sticker: it jumps and does its move.
                     <button
                       type="button"
                       className="sbook-tap"
-                      onClick={() => setTapped((t) => ({ index: i, n: (t?.n || 0) + 1 }))}
+                      onClick={() => {
+                        playStickerPick();
+                        setTapped((t) => ({ index: i, n: (t?.n || 0) + 1 }));
+                      }}
                       aria-label={name}
                     >
                       {tapped?.index === i ? (
                         <span key={tapped.n} className="sbook-tapped">
-                          <Sticker index={i} size={56} play />
-                          <span className="sbook-name" aria-hidden="true">
-                            {name}
-                          </span>
+                          <Sticker index={i} size={50} play />
                         </span>
                       ) : (
-                        <Sticker index={i} size={56} />
+                        <Sticker index={i} size={50} />
                       )}
                     </button>
                   ) : choosing ? (
                     <button
                       type="button"
                       className={`sbook-shadow sbook-shadow-btn${chosen === i ? ' is-chosen' : ''}`}
-                      onClick={() => setChosen(i)}
+                      onClick={() => {
+                        playStickerPick();
+                        setChosen(i);
+                      }}
                       aria-label={name}
                       aria-pressed={chosen === i}
                     >
-                      <Sticker index={i} size={56} />
+                      <Sticker index={i} size={50} />
                     </button>
                   ) : (
                     <span className="sbook-shadow" title={name}>
-                      <Sticker index={i} size={56} />
+                      <Sticker index={i} size={50} />
                     </span>
                   )}
                 </span>
@@ -146,7 +155,7 @@ export default function StickerBook({ player, signedIn, onSignIn, placing, onPla
           </div>
           {phase === 'landed' && (
             <p className="sbook-done">
-              ⭐ {stickerName(stick)} is in your sticker book! ⭐
+              ⭐ In your sticker book! ⭐
             </p>
           )}
           {!signedIn && (
@@ -159,7 +168,7 @@ export default function StickerBook({ player, signedIn, onSignIn, placing, onPla
       {choosing && (
         <div className="sbook-stickbar">
           <button className="pill-btn-primary" disabled={chosen === null} onClick={stickChosen}>
-            {chosen === null ? 'Tap a sticker to pick it' : `Stick ${stickerName(chosen)} in! ⭐`}
+            {chosen === null ? 'Tap a sticker to pick it' : 'Stick it in! ⭐'}
           </button>
         </div>
       )}
