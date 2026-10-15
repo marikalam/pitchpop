@@ -69,6 +69,8 @@ const COLORS = [
 // start as one generic player with a few colors so the first color test
 // has real choices in it. A family's players never show while signed out.
 const NO_TRIES = { out: [], reveal: false };
+// Made once: making a date format is slow on iPhones.
+const SHORT_WEEKDAY = new Intl.DateTimeFormat(undefined, { weekday: 'short' });
 
 const DEFAULT_PROFILES = [{ id: 'player-1', name: 'Guest Player', colors: ['red', 'yellow', 'blue'] }];
 const GUEST_NAME = 'Guest Player';
@@ -436,7 +438,7 @@ function RoundSummary({ playerId, playerName, correct, wrong, streak, summary, h
   const bestRound = history.find((r) => r.total && r.correct / r.total === best);
   const shortDay = (key) => {
     const [y, m, d] = key.split('-').map(Number);
-    return new Date(y, m - 1, d).toLocaleDateString(undefined, { weekday: 'short' });
+    return SHORT_WEEKDAY.format(new Date(y, m - 1, d));
   };
   return (
     <>
@@ -753,7 +755,9 @@ export default function App() {
 
   useEffect(() => {
     engineRef.current.prewarm(COLORS.map((c) => c.notes));
-    prewarmVoices();
+    // The talking voice (a large download and a lot of work for the phone)
+    // gets ready when a screen that talks opens - Pitch Practice, Explore,
+    // NoteSpeller - not at startup, where it made the first taps slow.
 
     // Mobile browsers only allow audio to start playing when it's tied to
     // a real tap. Speech is generated asynchronously, so by the time it's
@@ -1057,6 +1061,7 @@ export default function App() {
   }
 
   function startPlay() {
+    prewarmVoices();
     // Tiny Tots players get big colors to tap instead of the game.
     if (inTinyTots(profile)) {
       openTool('tinytots');
@@ -1075,6 +1080,7 @@ export default function App() {
   // including mid-quiz - closing it should return to wherever the player
   // actually was, not reset their progress.
   function openExplore() {
+    prewarmVoices();
     // Opening Explore from Explore must not make Explore its own way back.
     if (view === 'explore') return;
     setPreExploreView(view);
@@ -1235,6 +1241,7 @@ export default function App() {
   }
 
   function openNoteSpeller() {
+    prewarmVoices();
     if (!hasPlan(cloudUser)) return openPlan('NoteSpeller is part of PitchPop Family');
     setView('notespeller');
   }

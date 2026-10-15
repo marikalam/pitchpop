@@ -3,6 +3,9 @@ import { weekProgress } from './progress.js';
 import { BOOK_SIZE } from './stickers.js';
 import { bookPage, pendingStickers, playerStickers } from './stickerStore.js';
 import Sticker from './Sticker.jsx';
+
+// Made once: making a date format is slow on iPhones.
+const NARROW_WEEKDAY = new Intl.DateTimeFormat(undefined, { weekday: 'narrow' });
 import { loadReminder, remindersAvailable, setReminder } from './reminders.js';
 
 // The parent progress page: the player's last 7 days (rounds, streak,
@@ -70,7 +73,7 @@ export default function Progress({ player, rounds, days, colors, signedIn, onSig
   const max = Math.max(1, ...week.perDay.map((d) => d.rounds));
   const dayLetter = (key) => {
     const [y, m, d] = key.split('-').map(Number);
-    return new Date(y, m - 1, d).toLocaleDateString(undefined, { weekday: 'narrow' });
+    return NARROW_WEEKDAY.format(new Date(y, m - 1, d));
   };
   const hex = (name) => colors.find((c) => c.name === name)?.hex;
   const book = bookPage(playerStickers(player.id));
