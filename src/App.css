@@ -5220,7 +5220,7 @@ body {
 }
 .sbook-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 6px 4px;
 }
 .sbook-spot {
@@ -6139,4 +6139,30 @@ body {
 .ns-key-B { background: #ffdeeb; color: #c2255c; }
 .ns-answer .note-feedback-correct {
   animation: sticker-pop 0.45s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+
+/* Sticker book stickers shrink to fit narrower phones. */
+.sbook-spot {
+  min-width: 0;
+}
+.sbook-spot .sticker {
+  width: min(50px, 100%) !important;
+  height: auto !important;
+  aspect-ratio: 1;
+}
+.sbook-spot > button,
+.sbook-spot > span {
+  max-width: 100%;
+}
+.sbook-shadow-btn {
+  padding: 2px;
+}
+@media (max-width: 380px) {
+  .sbook-cover {
+    padding-left: 22px;
+  }
+  .sbook-page {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
 }
