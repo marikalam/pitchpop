@@ -30,6 +30,39 @@ export function currentSound() {
   return generation;
 }
 
+// Louder: every sound goes through one boost per audio context, with a
+// limiter after it so loud chords don't crackle.
+const BOOST = 2.2;
+const outputs = new WeakMap();
+function outputFor(ctx) {
+  let out = outputs.get(ctx);
+  if (!out) {
+    out = ctx.createGain();
+    out.gain.value = BOOST;
+    const limiter = ctx.createDynamicsCompressor();
+    limiter.threshold.value = -8;
+    limiter.knee.value = 0;
+    limiter.ratio.value = 20;
+    limiter.attack.value = 0.002;
+    limiter.release.value = 0.2;
+    out.connect(limiter).connect(ctx.destination);
+    outputs.set(ctx, out);
+  }
+  return out;
+}
+
+// Tells the iPhone this is media to hear (like a video app): it plays out
+// loud even with the ringer on silent, instead of being treated as quiet
+// background sound. (WebKit's Audio Session API; iOS 17 and later.)
+export function playOutLoud() {
+  try {
+    if (navigator.audioSession && navigator.audioSession.type !== 'playback') navigator.audioSession.type = 'playback';
+  } catch {
+    /* ignore */
+  }
+}
+playOutLoud();
+
 // Like setTimeout, but cancelled by the next newSound().
 export function later(fn, ms) {
   const id = setTimeout(() => {
@@ -56,7 +89,7 @@ export function playBuffer(ctx, buffer, volume = 1, when = 0, { rate = 1, releas
     gain.gain.setValueAtTime(volume, releaseAt);
     gain.gain.setTargetAtTime(0, releaseAt, 0.07);
   }
-  source.connect(gain).connect(ctx.destination);
+  source.connect(gain).connect(outputFor(ctx));
   const stop = track(ctx, gain, [source]);
   // Resolves when it finishes or is stopped by newSound().
   const ended = new Promise((resolve) => {
@@ -74,7 +107,7 @@ export function playBuffer(ctx, buffer, volume = 1, when = 0, { rate = 1, releas
 // to; newSound() fades it out and stops the given nodes.
 export function soundOutput(ctx, nodes, endsAt) {
   const gain = ctx.createGain();
-  if (!muted) gain.connect(ctx.destination);
+  if (!muted) gain.connect(outputFor(ctx));
   const stop = track(ctx, gain, nodes);
   setTimeout(() => playing.delete(stop), Math.max(0, (endsAt - ctx.currentTime) * 1000) + 50);
   return gain;
@@ -119,6 +152,7 @@ function announceState() {
 }
 
 export function trackContext(ctx) {
+  playOutLoud();
   contexts.add(ctx);
   ctx.addEventListener?.('statechange', announceState);
   if (muted) ctx.suspend().catch(() => {});
