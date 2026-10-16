@@ -24,7 +24,7 @@ on:
 jobs:
   submit:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
 
@@ -59,7 +59,12 @@ jobs:
           BUILD: ${{ inputs.build }}
           WHATS_NEW: ${{ inputs.whats_new }}
           RELEASE: ${{ inputs.release }}
-        run: node .github/appstore/submit.mjs
+        # The output also goes in a notice, readable from the check run.
+        run: |
+          set -o pipefail
+          node .github/appstore/submit.mjs 2>&1 | tee "$RUNNER_TEMP/out.txt" || status=$?
+          echo "::notice title=Result::$(sed ':a;N;$!ba;s/%/%25/g;s/\r/%0D/g;s/\n/%0A/g' "$RUNNER_TEMP/out.txt" | tail -c 3500)"
+          exit ${status:-0}
 
       - name: Remove the key
         if: always()
