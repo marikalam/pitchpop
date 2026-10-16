@@ -5,12 +5,12 @@
 // Env: ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_PATH (the .p8), VERSION (1.1),
 // BUILD (a build number, or empty for the newest one of that version),
 // WHATS_NEW, RELEASE (AFTER_APPROVAL or MANUAL).
-import { createPrivateKey, sign } from 'node:crypto';
-import { readFileSync } from 'node:fs';
+import { createHash, createPrivateKey, sign } from 'node:crypto';
+import { readdirSync, readFileSync } from 'node:fs';
 
 const BUNDLE_ID = 'com.marikalam.pitchpop';
 const API = 'https://api.appstoreconnect.apple.com';
-const { ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_PATH, VERSION, BUILD, WHATS_NEW, RELEASE } = process.env;
+const { ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_PATH, VERSION, BUILD, WHATS_NEW, RELEASE, SCREENSHOTS } = process.env;
 
 const b64url = (v) => Buffer.from(typeof v === 'string' ? v : JSON.stringify(v)).toString('base64url');
 
@@ -109,6 +109,55 @@ for (const loc of locs) {
     attributes: { whatsNew: WHATS_NEW },
   });
   console.log(`What's New set (${loc.attributes.locale})`);
+}
+
+// The App Store screenshots, when asked for (SCREENSHOTS=yes): the ones in
+// appstore/screenshots replace what's there, for each iPhone size.
+if (SCREENSHOTS === 'yes') {
+  const DIRS = { APP_IPHONE_67: '6.9-inch', APP_IPHONE_65: '6.5-inch' };
+  for (const loc of locs) {
+    const sets = (await api('GET', `/v1/appStoreVersionLocalizations/${loc.id}/appScreenshotSets?limit=50`)).data;
+    for (const [type, dir] of Object.entries(DIRS)) {
+      let set = sets.find((x) => x.attributes.screenshotDisplayType === type);
+      if (!set) {
+        set = (
+          await api('POST', '/v1/appScreenshotSets', {
+            type: 'appScreenshotSets',
+            attributes: { screenshotDisplayType: type },
+            relationships: { appStoreVersionLocalization: { data: { type: 'appStoreVersionLocalizations', id: loc.id } } },
+          })
+        ).data;
+      }
+      for (const old of (await api('GET', `/v1/appScreenshotSets/${set.id}/appScreenshots?limit=50`)).data) {
+        await api('DELETE', `/v1/appScreenshots/${old.id}`);
+      }
+      const folder = new URL(`../../appstore/screenshots/${dir}/`, import.meta.url);
+      const files = readdirSync(folder).filter((f) => f.endsWith('.png')).sort();
+      for (const file of files) {
+        const bytes = readFileSync(new URL(file, folder));
+        const shot = (
+          await api('POST', '/v1/appScreenshots', {
+            type: 'appScreenshots',
+            attributes: { fileName: file, fileSize: bytes.length },
+            relationships: { appScreenshotSet: { data: { type: 'appScreenshotSets', id: set.id } } },
+          })
+        ).data;
+        for (const op of shot.attributes.uploadOperations) {
+          const headers = Object.fromEntries((op.requestHeaders || []).map((h) => [h.name, h.value]));
+          const res = await fetch(op.url, { method: op.method, headers, body: bytes.subarray(op.offset, op.offset + op.length) });
+          if (!res.ok) throw new Error(`Screenshot upload ${file} -> ${res.status}`);
+        }
+        await api('PATCH', `/v1/appScreenshots/${shot.id}`, {
+          type: 'appScreenshots',
+          id: shot.id,
+          attributes: { uploaded: true, sourceFileChecksum: createHash('md5').update(bytes).digest('hex') },
+        });
+      }
+      console.log(`Screenshots (${loc.attributes.locale}, ${dir}): ${files.length} uploaded`);
+    }
+  }
+  // Apple checks each upload before the version can be submitted.
+  await new Promise((r) => setTimeout(r, 30000));
 }
 
 // Submit: reuse a submission that hasn't been sent yet, or start one.

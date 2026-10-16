@@ -20,6 +20,10 @@ on:
         description: AFTER_APPROVAL (goes out when approved) or MANUAL
         required: true
         default: AFTER_APPROVAL
+      screenshots:
+        description: yes = replace the App Store screenshots with appstore/screenshots
+        required: false
+        default: 'no'
 
 jobs:
   submit:
@@ -59,6 +63,7 @@ jobs:
           BUILD: ${{ inputs.build }}
           WHATS_NEW: ${{ inputs.whats_new }}
           RELEASE: ${{ inputs.release }}
+          SCREENSHOTS: ${{ inputs.screenshots }}
         # The output also goes in a notice, readable from the check run.
         run: |
           set -o pipefail
