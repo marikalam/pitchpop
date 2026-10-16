@@ -194,12 +194,6 @@ function saveProfiles(profiles, owner) {
   }
 }
 
-// `list` followed by any guest players it doesn't already have.
-function withGuests(list, guests) {
-  const ids = new Set(list.map((p) => p.id));
-  return [...list, ...guests.filter((p) => !ids.has(p.id))];
-}
-
 function loadProgress() {
   try {
     return JSON.parse(localStorage.getItem(PROGRESS_KEY)) || {};
@@ -1426,16 +1420,22 @@ export default function App() {
       // Signing out ends any practice that's on (saved if long enough).
       stopPractice();
       setCloudConnected(false);
+      // The account's players leave this phone with it.
+      try {
+        localStorage.removeItem(PROFILES_KEY);
+      } catch {
+        /* ignore */
+      }
       showProfiles(loadGuestProfiles(), 'guest');
       return;
     }
     const cloudProfiles = await loadCloudProfiles();
     if (!cloudProfiles) return;
-    // A brand-new family account starts from the players made on this
-    // device: any kept for the family from before sign-in was required,
-    // plus the guest player, renamed "Player 1" for the family to rename.
-    const guests = profiles.map((p) => (p.name === GUEST_NAME ? { ...p, name: 'Player 1' } : p));
-    const next = cloudProfiles.length ? cloudProfiles : withGuests(loadPreAccountProfiles() || [], guests);
+    // A brand-new family account starts with just the guest player,
+    // renamed "Player 1" for the family to rename - never players another
+    // account left on this phone.
+    const guests = loadGuestProfiles().map((p) => ({ ...p, name: 'Player 1' }));
+    const next = cloudProfiles.length ? cloudProfiles : guests;
     showProfiles(next, 'account');
     setCloudConnected(true);
     if (!cloudProfiles.length) next.forEach(saveCloudProfile);
