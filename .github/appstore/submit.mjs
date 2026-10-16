@@ -68,7 +68,30 @@ if (!version) {
   ).data;
   console.log(`Made App Store version ${VERSION}`);
 } else {
-  console.log(`App Store version ${VERSION} is ${version.attributes.appStoreState}`);
+  const state = version.attributes.appStoreState;
+  console.log(`App Store version ${VERSION} is ${state}`);
+  if (['PENDING_DEVELOPER_RELEASE', 'PENDING_APPLE_RELEASE', 'PROCESSING_FOR_APP_STORE', 'READY_FOR_SALE'].includes(state)) {
+    throw new Error(`Version ${VERSION} is already approved (${state}): make a new version for this build`);
+  }
+  // Already waiting for (or in) review with an older build: take it back
+  // out of review so the newer build can go in instead.
+  if (['WAITING_FOR_REVIEW', 'IN_REVIEW'].includes(state)) {
+    const waiting = (await api('GET', `/v1/reviewSubmissions?filter[app]=${app.id}&filter[platform]=IOS&limit=20`)).data.filter(
+      (sub) => ['WAITING_FOR_REVIEW', 'IN_REVIEW', 'UNRESOLVED_ISSUES'].includes(sub.attributes.state),
+    );
+    for (const sub of waiting) {
+      await api('PATCH', `/v1/reviewSubmissions/${sub.id}`, { type: 'reviewSubmissions', id: sub.id, attributes: { canceled: true } });
+      console.log(`Took the waiting submission out of review`);
+    }
+    for (let i = 0; i < 40; i++) {
+      await new Promise((r) => setTimeout(r, 15000));
+      const now = (await api('GET', `/v1/appStoreVersions/${version.id}`)).data.attributes.appStoreState;
+      if (!['WAITING_FOR_REVIEW', 'IN_REVIEW'].includes(now)) {
+        console.log(`Version ${VERSION} is now ${now}`);
+        break;
+      }
+    }
+  }
   await api('PATCH', `/v1/appStoreVersions/${version.id}`, {
     type: 'appStoreVersions',
     id: version.id,
