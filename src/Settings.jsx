@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { deleteAccount, requestPasswordReset, signIn, signOut, signUp, updatePassword } from './cloud.js';
 import { firstDay, streakFor } from './streak.js';
-import { LEARNING_ORDER, READY_PCT, READY_ROUNDS, learningStatus } from './progress.js';
+import { LEARNING_ORDER, READY_PCT, READY_ROUNDS } from './progress.js';
 import { setTypesNotes, typesNotes } from './typeNotes.js';
 import { inTinyTots, setTinyTots } from './tinyTots.js';
 import {
@@ -111,7 +111,7 @@ export function LearningGuide() {
             <b>➕ Add one color at a time</b>
             <span>
               In this order: {LEARNING_ORDER.slice(3).map(cap).join(', ')}. Add the next color only when they get{' '}
-              {READY_PCT}% or more on every color, {READY_ROUNDS} rounds in a row. Each player's card below shows when
+              {READY_PCT}% or more on every color, {READY_ROUNDS} rounds in a row. The Progress page shows when
               they're ready.
             </span>
           </li>
@@ -125,47 +125,7 @@ export function LearningGuide() {
   );
 }
 
-// Where this player is on those steps, and what's next.
-function LearnStatus({ status, signedIn, onAddColor, onTypeNotes }) {
-  const steps = ['🧸', '🌈', '➕', '🎹'];
-  let text;
-  let action = null;
-  if (status.step === 1) text = 'Tiny Tots. When they can play a short game, choose Color game below.';
-  else if (status.step === 4) text = 'Typing the notes: the last step. 🎉';
-  else if (!signedIn) text = 'Sign in to see when they’re ready for the next color.';
-  else if (status.ready && status.allColors) {
-    text = 'Every color mastered! Ready to type the notes.';
-    action = (
-      <button className="learn-go" onClick={onTypeNotes}>
-        🎹 Turn on Type the notes
-      </button>
-    );
-  } else if (status.ready) {
-    text = `Ready for the next color: ${cap(status.next)} ✓`;
-    action = (
-      <button className="learn-go" onClick={() => onAddColor(status.next)}>
-        ➕ Add {cap(status.next)}
-      </button>
-    );
-  } else if (!status.enough) text = `Play ${READY_ROUNDS} rounds to see if they’re ready for ${status.next ? cap(status.next) : 'the next step'}.`;
-  else
-    text = `Not yet: ${status.weakest ? `${cap(status.weakest.name)} was ${status.weakest.pct}%` : 'keep playing'}. Needs ${READY_PCT}%+ on every color, ${READY_ROUNDS} rounds in a row.`;
-  return (
-    <div className={`learn-status${status.ready ? ' learn-status-ready' : ''}`}>
-      <div className="learn-dots" aria-label={`Step ${status.step} of 4`}>
-        {steps.map((icon, i) => (
-          <span key={icon} className={`learn-dot${i + 1 === status.step ? ' is-now' : i + 1 < status.step ? ' is-done' : ''}`}>
-            {icon}
-          </span>
-        ))}
-      </div>
-      <p>{text}</p>
-      {action}
-    </div>
-  );
-}
-
-export function PlayerSettingsCard({ profile, colors, onUpdate, onRemove, canRemove, playDays, onSignIn, freeColors, onLocked, rounds }) {
+export function PlayerSettingsCard({ profile, colors, onUpdate, onRemove, canRemove, playDays, onSignIn, freeColors, onLocked }) {
   // The notes level is kept on this device, and changes straight away.
   const [notesOn, setNotesOn] = useState(() => typesNotes(profile.id));
   function toggleNotes(on) {
@@ -216,12 +176,6 @@ export function PlayerSettingsCard({ profile, colors, onUpdate, onRemove, canRem
       {/* Pitch Practice: which colors, and how the player plays them. */}
       <div className="ps-section">
         <h4 className="ps-section-title">🌈 Pitch Practice</h4>
-        <LearnStatus
-          status={learningStatus({ colors: profile.colors, tinyTots: totsOn, typingNotes: notesOn, rounds })}
-          signedIn={!onSignIn}
-          onAddColor={(name) => toggleColor(name)}
-          onTypeNotes={() => toggleNotes(true)}
-        />
         <div className="ps-row ps-row-top">
           <span className="ps-label">Colors</span>
           <div>
