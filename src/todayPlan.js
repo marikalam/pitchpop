@@ -12,7 +12,6 @@ const NOTES_KEY = 'pitchpop-notespeller-log-v1';
 const DONE_KEY = 'pitchpop-today-done-v1';
 const BONUS_KEY = 'pitchpop-today-bonus-v1';
 const KEEP_NOTE_ROUNDS = 20;
-export const PIANO_GOAL_MINUTES = 15;
 
 function read(key) {
   try {
@@ -104,13 +103,14 @@ export function todayPlan({ playerId, rounds = [], practices = [], colorNames = 
   items.push({
     id: 'practice',
     icon: '⏱️',
-    title: `Piano practice · ${PIANO_GOAL_MINUTES} min`,
+    title: 'Piano practice',
     sub: todayMinutes
-      ? `${todayMinutes} of ${PIANO_GOAL_MINUTES} min today`
+      ? `${todayMinutes} min today`
       : yesterday
         ? `Yesterday was ${yesterday} min`
         : 'Start the timer, then play',
-    done: todayMinutes >= PIANO_GOAL_MINUTES,
+    // Any saved practice today (practiceLog.js keeps those of 5+ minutes).
+    done: todayMinutes > 0,
   });
 
   return items;
