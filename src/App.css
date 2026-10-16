@@ -6322,14 +6322,14 @@ body {
 .home-fit .home-tiles {
   flex: 1 1 auto;
   min-height: 0;
-  grid-template-rows: repeat(2, minmax(0, 92px));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
   align-content: start;
 }
 .home-fit .home-tile {
   justify-content: center;
 }
 .home-fit .home-tile-icon {
-  font-size: clamp(20px, 3.2vh, 28px);
+  font-size: clamp(20px, 4.4vh, 40px);
 }
 
 /* Tiny Tots: how many of the round's taps are done. */
@@ -6355,4 +6355,7 @@ body {
   height: 100%;
   font: 700 14px 'Fredoka', ui-rounded, system-ui, sans-serif;
   color: #5c3d00;
+}
+.home-fit .home-tile-title {
+  font-size: clamp(12.5px, 1.9vh, 16px);
 }
