@@ -1685,7 +1685,6 @@ export default function App() {
                 onSignIn={cloudUser ? null : openAccount}
                 freeColors={planOK ? null : FREE_COLORS}
                 onLocked={() => openPlan('More colors come with PitchPop Family')}
-                rounds={loadRoundHistory()[p.id] || []}
               />
             ))}
           </div>
