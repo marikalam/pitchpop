@@ -26,7 +26,7 @@ import { Capacitor } from '@capacitor/core';
 //    used by a build made with VITE_RC_TEST_STORE=1 and run from Xcode in
 //    Debug. That build also skips the "already had PitchPop" rule, so the
 //    paywall shows.
-export const REVENUECAT_IOS_KEY = '';
+export const REVENUECAT_IOS_KEY = 'appl_KHWfQWLfxPNyoCQgFffKQrZXCZK';
 export const REVENUECAT_TEST_KEY = 'test_pULWpDLJNNYYTQuLJYChWdXNWnt';
 export const PAID_SINCE = null; // 'YYYY-MM-DD'
 export const FIRST_PAID_BUILD = null; // e.g. 110
