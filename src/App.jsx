@@ -1062,7 +1062,6 @@ export default function App() {
     prewarmVoices();
     // Tiny Tots players get big colors to tap instead of the game.
     if (inTinyTots(profile)) {
-      markDoneToday(profile, 'tots');
       openTool('tinytots');
       return;
     }
@@ -1643,7 +1642,17 @@ export default function App() {
               onPlaced={() => setPlacingSticker(null)}
             />
           ) : view === 'tinytots' ? (
-            <TinyTots colors={totsColors} engine={engineRef.current} />
+            <TinyTots
+              key={profile}
+              colors={totsColors}
+              engine={engineRef.current}
+              onComplete={() => {
+                setStreakDays(recordStreakDay(streakDays, profile));
+                earnSticker(profile);
+                markDoneToday(profile, 'tots');
+              }}
+              stickerSlot={stickerPicker('tots')}
+            />
           ) : (
             <MusicTheory />
           )}
