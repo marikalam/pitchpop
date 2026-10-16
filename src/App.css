@@ -6359,3 +6359,12 @@ body {
 .home-fit .home-tile-title {
   font-size: clamp(12.5px, 1.9vh, 16px);
 }
+/* A long name ("How it works") wraps onto two lines instead of spilling out. */
+.home-tile-title {
+  max-width: 100%;
+  padding: 0 4px;
+  box-sizing: border-box;
+  white-space: normal;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
