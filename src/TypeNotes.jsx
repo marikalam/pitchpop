@@ -68,6 +68,14 @@ export default function TypeNotes({ color, engine, onNext, nextLabel }) {
     setResult(null);
   }
 
+  // After a wrong try the chord's own keys light up (numbered in order)
+  // and keys she tapped that aren't in it turn pink.
+  const state = (note) => {
+    const order = typed.indexOf(note);
+    const litAt = result === 'wrong' ? color.notes.indexOf(note) : order;
+    return { litAt, lit: litAt >= 0, wrongKey: result === 'wrong' && order >= 0 && !color.notes.includes(note) };
+  };
+
   return (
     <div className="type-notes">
       <p className="type-notes-title">
@@ -94,17 +102,8 @@ export default function TypeNotes({ color, engine, onNext, nextLabel }) {
         })}
       </div>
       <div className={`tn-piano${result ? ' tn-piano-done' : ''}`}>
-        {keys.map(({ letter, octave }, k) => {
-          // After a wrong try the chord's own keys light up (numbered in
-          // order) and keys she tapped that aren't in it turn pink.
-          const state = (note) => {
-            const order = typed.indexOf(note);
-            const litAt = result === 'wrong' ? color.notes.indexOf(note) : order;
-            return { litAt, lit: litAt >= 0, wrongKey: result === 'wrong' && order >= 0 && !color.notes.includes(note) };
-          };
+        {keys.map(({ letter, octave }) => {
           const { litAt, lit, wrongKey } = state(letter);
-          const sharp = `${letter}#`;
-          const black = BLACK_AFTER.includes(letter) && k < keys.length - 1 ? state(sharp) : null;
           return (
             <button
               key={letter}
@@ -116,20 +115,25 @@ export default function TypeNotes({ color, engine, onNext, nextLabel }) {
             >
               {lit && <span className="tn-key-num">{litAt + 1}</span>}
               <span className="tn-key-letter">{letter}</span>
-              {black && (
-                <span
-                  className={`tn-black${black.lit ? ' tn-key-lit' : ''}${black.wrongKey ? ' tn-key-wrong' : ''}`}
-                  style={black.lit ? { background: color.hex, color: color.text } : undefined}
-                  role="button"
-                  aria-label={noteLabel(sharp)}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    tap(sharp, octave);
-                  }}
-                >
-                  {black.lit && <span className="tn-key-num">{black.litAt + 1}</span>}
-                </span>
-              )}
+            </button>
+          );
+        })}
+        {/* The black keys sit on top, between their white keys, as keys of
+            their own (light green's C♯). */}
+        {keys.map(({ letter, octave }, k) => {
+          if (!BLACK_AFTER.includes(letter) || k === keys.length - 1) return null;
+          const sharp = `${letter}#`;
+          const { litAt, lit, wrongKey } = state(sharp);
+          return (
+            <button
+              key={sharp}
+              className={`tn-black${lit ? ' tn-key-lit' : ''}${wrongKey ? ' tn-key-wrong' : ''}`}
+              style={{ '--k': k + 1, ...(lit ? { background: color.hex, color: color.text } : {}) }}
+              onClick={() => tap(sharp, octave)}
+              disabled={!!result}
+              aria-label={noteLabel(sharp)}
+            >
+              {lit && <span className="tn-key-num">{litAt + 1}</span>}
             </button>
           );
         })}
