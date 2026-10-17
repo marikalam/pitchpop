@@ -12,6 +12,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // even with the ringer switch on silent, and mix with whatever else is
         // playing (e.g. Spotify over CarPlay) instead of stopping it.
         AppDelegate.keepAudible()
+        // A call, Siri or an alarm takes the sound away; take it back when
+        // they're done (and if iOS restarts its sound system).
+        let center = NotificationCenter.default
+        center.addObserver(forName: AVAudioSession.interruptionNotification, object: nil, queue: .main) { note in
+            let raw = note.userInfo?[AVAudioSessionInterruptionTypeKey] as? UInt
+            if raw == AVAudioSession.InterruptionType.ended.rawValue { AppDelegate.keepAudible() }
+        }
+        center.addObserver(forName: AVAudioSession.mediaServicesWereResetNotification, object: nil, queue: .main) { _ in
+            AppDelegate.keepAudible()
+        }
         return true
     }
 
