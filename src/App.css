@@ -4324,16 +4324,30 @@ body {
 }
 /* A black key, between this white key and the next. Taps pass through it. */
 .tn-black {
+  /* Centered on the line between white key --k and the one before it
+     (the piano's 6px padding and 3px gaps). */
+  --white: calc((100% - 12px - 18px) / 7);
+  appearance: none;
+  border: none;
   position: absolute;
-  top: 0;
-  right: -12px;
-  z-index: 1;
-  width: 22px;
-  height: 52%;
-  border-radius: 0 0 5px 5px;
+  top: 6px;
+  left: calc(6px + var(--k) * (var(--white) + 3px) - 1.5px - 15px);
+  z-index: 2;
+  width: 30px;
+  height: 56%;
+  padding: 0;
+  border-radius: 0 0 6px 6px;
   background: #1d2140;
+  box-shadow: 0 0 0 2px #1d2140;
   cursor: pointer;
+  touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
+}
+.tn-black:active:not(:disabled) {
+  background: #3a4070;
+}
+.tn-black:disabled {
+  cursor: default;
 }
 .tn-tools {
   display: flex;
