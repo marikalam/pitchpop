@@ -6384,3 +6384,32 @@ body {
   height: 17px;
   font-size: 11px;
 }
+/* End practice and the sticker book stay side by side. */
+.home-fit .home-hero-actions {
+  flex-wrap: nowrap;
+}
+.home-fit .home-hero-actions .home-practice {
+  flex: 0 1 auto;
+  min-width: 0;
+  padding-left: 14px;
+  padding-right: 14px;
+  white-space: nowrap;
+}
+/* The tiles' icon and name size to the tile, so a short tile (a small
+   phone, or during a practice) never spills. */
+.home-fit .home-tile {
+  container-type: size;
+  min-height: 52px;
+  overflow: hidden;
+}
+.home-fit .home-tile-icon {
+  font-size: clamp(16px, 36cqh, 40px);
+}
+.home-fit .home-tile-title {
+  font-size: clamp(11px, 16cqh, 16px);
+}
+@container (max-height: 70px) {
+  .home-fit .home-tile {
+    flex-direction: row;
+  }
+}
