@@ -337,9 +337,10 @@ function AppHeader({
           </div>
         </div>
       ) : (
+        // On the home page a running practice shows as the End practice
+        // button in the greeting instead (with its minutes).
         <div className="nav-row nav-row-home">
           <SoundNotice />
-          {onOpenPractice && <PracticeBadge onOpen={onOpenPractice} />}
         </div>
       )}
     </>
@@ -1871,7 +1872,8 @@ export default function App() {
                   <span className="home-practice-icon" aria-hidden="true">
                     📒
                   </span>
-                  Sticker book
+                  {/* Shorter during a practice, to fit beside End practice. */}
+                  {['running', 'paused'].includes(readPracticeTimer().status) ? 'Stickers' : 'Sticker book'}
                   {cloudUser && pendingStickers(profile) > 0 && (
                     <span className="home-stickers-badge" aria-label={`${pendingStickers(profile)} waiting`}>
                       🎁 {pendingStickers(profile)}
