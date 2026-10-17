@@ -108,12 +108,9 @@ export default function StickerBook({ player, signedIn, onSignIn, placing, onPla
                     >
                       <Sticker index={i} size={50} />
                     </span>
-                  ) : isNew && phase === 'landed' ? (
-                    <span className="sbook-landed">
-                      <Sticker index={i} size={50} play />
-                    </span>
-                  ) : owned ? (
-                    // Tap a sticker: it jumps and does its move.
+                  ) : owned || (isNew && phase === 'landed') ? (
+                    // Tap a sticker (the one just stuck in too): it jumps
+                    // and does its move.
                     <button
                       type="button"
                       className="sbook-tap"
@@ -125,6 +122,10 @@ export default function StickerBook({ player, signedIn, onSignIn, placing, onPla
                     >
                       {tapped?.index === i ? (
                         <span key={tapped.n} className="sbook-tapped">
+                          <Sticker index={i} size={50} play />
+                        </span>
+                      ) : isNew ? (
+                        <span className="sbook-landed">
                           <Sticker index={i} size={50} play />
                         </span>
                       ) : (
