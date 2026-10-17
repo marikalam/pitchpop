@@ -4332,7 +4332,8 @@ body {
   height: 52%;
   border-radius: 0 0 5px 5px;
   background: #1d2140;
-  pointer-events: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 .tn-tools {
   display: flex;
@@ -6367,4 +6368,19 @@ body {
   white-space: normal;
   text-align: center;
   overflow-wrap: anywhere;
+}
+
+/* A black key that's part of the chord (light green's C♯), lit up. */
+.tn-black.tn-key-lit {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 4px;
+  box-shadow: 0 0 0 2px #1d2140;
+}
+.tn-black .tn-key-num {
+  position: static;
+  width: 17px;
+  height: 17px;
+  font-size: 11px;
 }

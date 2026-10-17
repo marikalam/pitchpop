@@ -11,6 +11,11 @@ function freq(note, octave) {
   return 440 * Math.pow(2, semitone / 12);
 }
 
+// A note's name for the screen: C# shows as C♯.
+export function noteLabel(note) {
+  return note.replace('#', '♯');
+}
+
 export function bassOctave(note) {
   return note === 'A' || note === 'B' ? 3 : 4;
 }
