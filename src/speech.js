@@ -1,11 +1,9 @@
-import { currentSound, isCurrent, isMuted, playBuffer, trackContext, wakeContext } from './soundBus.js';
+import { currentSound, isCurrent, isMuted, freshContext, playBuffer, wakeContext } from './soundBus.js';
 
 let audioCtx = null;
 
 function ensureAudio() {
-  if (!audioCtx) {
-    audioCtx = trackContext(new (window.AudioContext || window.webkitAudioContext)());
-  }
+  audioCtx = freshContext(audioCtx, () => new (window.AudioContext || window.webkitAudioContext)());
   wakeContext(audioCtx);
   return audioCtx;
 }

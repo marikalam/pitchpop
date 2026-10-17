@@ -151,9 +151,41 @@ function announceState() {
   window.dispatchEvent(new Event('pitchpop-sound-state'));
 }
 
+// iPhones (older iOS especially) can leave an audio context silent after
+// a call, Siri, the phone locking or a trip to another app - stuck, or
+// even saying it's running while nothing comes out - and then the volume
+// buttons don't reach PitchPop either. So after any of those, the next
+// sound makes a new context instead (the sounds themselves are kept).
+let staleSince = 0;
+const born = new WeakMap();
+// Contexts that didn't wake up when asked.
+const stuck = new WeakSet();
+function goneStale() {
+  staleSince = Date.now();
+}
+
+// The context to play on: `ctx` while it's healthy, else a new one from
+// `make` (the old one is closed).
+export function freshContext(ctx, make) {
+  const fine =
+    ctx && ctx.state !== 'closed' && ctx.state !== 'interrupted' && !stuck.has(ctx) && born.get(ctx) > staleSince;
+  if (fine) return ctx;
+  if (ctx) {
+    contexts.delete(ctx);
+    if (ctx.state !== 'closed') ctx.close().catch(() => {});
+  }
+  const next = trackContext(make());
+  // A new context made in the same millisecond still counts as after it.
+  born.set(next, Math.max(Date.now(), staleSince + 1));
+  return next;
+}
+
 export function trackContext(ctx) {
   playOutLoud();
   contexts.add(ctx);
+  ctx.addEventListener?.('statechange', () => {
+    if (ctx.state === 'interrupted') goneStale();
+  });
   ctx.addEventListener?.('statechange', announceState);
   if (muted) ctx.suspend().catch(() => {});
   announceState();
@@ -164,7 +196,10 @@ export function trackContext(ctx) {
 // as an iPhone mid-interruption may not answer.
 export function wakeContext(ctx) {
   if (muted || !ctx || ctx.state === 'running' || ctx.state === 'closed') return Promise.resolve();
-  return Promise.race([ctx.resume().catch(() => {}), new Promise((resolve) => setTimeout(resolve, 400))]);
+  return Promise.race([ctx.resume().catch(() => {}), new Promise((resolve) => setTimeout(resolve, 400))]).then(() => {
+    // Still not playing: its next sound gets a new context.
+    if (ctx.state !== 'running' && !muted) stuck.add(ctx);
+  });
 }
 
 export function wakeAudio() {
@@ -197,6 +232,8 @@ export function soundState() {
 if (typeof document !== 'undefined') {
   document.addEventListener('pointerdown', wakeAudio, true);
   document.addEventListener('visibilitychange', () => {
+    // Back from the lock screen or another app: start sound afresh.
+    if (document.hidden) goneStale();
     if (!document.hidden) wakeAudio();
   });
 }
