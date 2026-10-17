@@ -53,8 +53,9 @@ export function weekProgress(rounds = [], days = [], colorNames = [], today = ne
 }
 
 // The usual order to learn the colors in (the Eguchi method): red, yellow
-// and blue first, brown last.
-export const LEARNING_ORDER = ['red', 'yellow', 'blue', 'black', 'green', 'orange', 'purple', 'pink', 'brown'];
+// and blue first, then the rest of the white-key chords, then light
+// green (A, C♯, E), the first with a black key.
+export const LEARNING_ORDER = ['red', 'yellow', 'blue', 'black', 'green', 'orange', 'purple', 'pink', 'brown', 'light green'];
 // Ready for the next color: at least READY_PCT% right on every color,
 // READY_ROUNDS finished rounds in a row.
 export const READY_PCT = 90;

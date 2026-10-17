@@ -1,7 +1,7 @@
 import { Capacitor } from '@capacitor/core';
 import { App as CapacitorApp } from '@capacitor/app';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { PianoEngine, playCorrectChime, playWrongBuzz } from './piano.js';
+import { PianoEngine, noteLabel, playCorrectChime, playWrongBuzz } from './piano.js';
 import { speakColorName, speakResults, prewarmVoices, unlockAudio } from './speech.js';
 import { isCurrent, later, newSound } from './soundBus.js';
 import Rainbow from './Rainbow.jsx';
@@ -64,6 +64,8 @@ const COLORS = [
   { name: 'purple', hex: '#7C4A9E', text: '#FFFFFF', notes: ['F', 'A', 'C'] },
   { name: 'pink', hex: '#D8688C', text: '#2B0714', notes: ['G', 'B', 'D'] },
   { name: 'brown', hex: '#7A5238', text: '#FFFFFF', notes: ['G', 'C', 'E'] },
+  // The first chord with a black key (A major).
+  { name: 'light green', hex: '#9CCC65', text: '#1E3510', notes: ['A', 'C#', 'E'] },
 ];
 
 // Players come from one of two lists. Signed in, it's the family account's
@@ -149,7 +151,7 @@ function buildQueue(names, total) {
 }
 
 // The order colors are usually learned in (red first).
-const LEARNING_ORDER = ['red', 'yellow', 'blue', 'black', 'green', 'orange', 'purple', 'pink', 'brown'];
+const LEARNING_ORDER = ['red', 'yellow', 'blue', 'black', 'green', 'orange', 'purple', 'pink', 'brown', 'light green'];
 
 // Every color the player is learning is an answer, like a full set of
 // flags, always in learning order, so each color stays in the same spot
@@ -1945,7 +1947,7 @@ export default function App() {
                   onClick={() => exploreTap(color)}
                 >
                   <div className="pad-name">{color.name}</div>
-                  <div className="pad-notes">{color.notes.join(' ')}</div>
+                  <div className="pad-notes">{color.notes.map(noteLabel).join(' ')}</div>
                 </button>
               ))}
             </div>
@@ -2131,7 +2133,7 @@ export default function App() {
             ) : (
               <div className="answer-card" style={{ background: currentColor.hex, color: currentColor.text }}>
                 <div className="answer-name">{currentColor.name}</div>
-                <div className="answer-notes">{currentColor.notes.join(' · ')}</div>
+                <div className="answer-notes">{currentColor.notes.map(noteLabel).join(' · ')}</div>
               </div>
             )}
             {!(answerCorrect && typesNotes(profile)) && (

@@ -1,3 +1,4 @@
+import { noteLabel } from './piano.js';
 // "About the Eguchi method": where PitchPop's colors come from, how the
 // traditional method works, and how to practise with the app.
 
@@ -44,7 +45,7 @@ export default function MethodInfo({ colors }) {
                   return (
                     <span key={name} className="method-chip" style={{ background: c.hex, color: c.text }}>
                       <span className="method-chip-name">{name}</span>
-                      <span className="method-chip-notes">{c.notes.join(' ')}</span>
+                      <span className="method-chip-notes">{c.notes.map(noteLabel).join(' ')}</span>
                     </span>
                   );
                 })}
@@ -54,7 +55,8 @@ export default function MethodInfo({ colors }) {
         </div>
         <p className="method-note">
           Once a child knows all nine reliably, the traditional method goes on to chords with black keys, and then to
-          hearing the separate notes inside a chord.
+          hearing the separate notes inside a chord. PitchPop's first black-key color is <strong>light green</strong>:
+          A, C♯, E.
         </p>
       </section>
 

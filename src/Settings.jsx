@@ -117,7 +117,7 @@ export function LearningGuide() {
           </li>
           <li>
             <b>🎹 Type the notes</b>
-            <span>Once Brown, the last color, is mastered, turn on Type the notes: after the color, they play its letters.</span>
+            <span>Once every color is mastered, turn on Type the notes: after the color, they play its letters.</span>
           </li>
         </ol>
       )}

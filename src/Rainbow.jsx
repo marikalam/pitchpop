@@ -1,4 +1,4 @@
-const SPECTRUM_ORDER = ['red', 'orange', 'yellow', 'green', 'blue', 'purple', 'pink', 'brown', 'black'];
+const SPECTRUM_ORDER = ['red', 'orange', 'yellow', 'light green', 'green', 'blue', 'purple', 'pink', 'brown', 'black'];
 
 const REAL_RAINBOW = ['#E5473C', '#EF8B3D', '#F0C93D', '#4FAE5C', '#3B7FD9', '#5B4FCF', '#9A4FCF'];
 
