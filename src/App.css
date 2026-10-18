@@ -6427,3 +6427,11 @@ body {
     flex-direction: row;
   }
 }
+
+/* iPad (index.html scales the page up) and other wide screens: a wider
+   column. */
+@media (min-width: 600px) {
+  .app {
+    max-width: 560px;
+  }
+}
