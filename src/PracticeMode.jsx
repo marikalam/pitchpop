@@ -155,39 +155,26 @@ function formatDay(key) {
   return DAY_FORMAT.format(new Date(y, m - 1, d));
 }
 
-// The counter as a rainbow abacus (like the wooden toy): four arches with
-// five beads each, waiting on the left. Every tap slides the next bead up
-// and over its arch to the right. Past 20 it starts over from the left,
-// with the round shown.
-const ARCHES = [
-  { r: 148, bead: '#7f9bd6', wire: '#a9bde6' },
-  { r: 118, bead: '#7fd1c3', wire: '#a8e2d8' },
-  { r: 88, bead: '#ec9a92', wire: '#f2bdb7' },
-  { r: 58, bead: '#f2cf4f', wire: '#f6df8e' },
-];
-const AB = { cx: 170, top: 162, floor: 250, bead: 9.5 };
-const stackY = (i) => AB.floor - AB.bead - i * (AB.bead * 2 - 1);
-
-// Where a bead is, `t` (0..1) of the way from the top of the left stack
-// (height yFrom) up, over the arch and down to its spot on the right (yTo).
-function beadAt(r, yFrom, yTo, t) {
-  const up = yFrom - AB.top;
-  const over = Math.PI * r;
-  const down = yTo - AB.top;
-  let d = t * (up + over + down);
-  if (d <= up) return [AB.cx - r, yFrom - d];
-  d -= up;
-  if (d <= over) {
-    const angle = Math.PI - d / r;
-    return [AB.cx + r * Math.cos(angle), AB.top - r * Math.sin(angle)];
-  }
-  return [AB.cx + r, AB.top + (d - over)];
-}
+// The counter as a rainbow abacus (like the wooden toy): one rainbow arch
+// with ten rainbow beads waiting on the left. Every tap slides the next
+// bead up and over the arch to the right. Past ten it starts over from the
+// left, with the round shown.
+const PER_ROUND = 10;
+const BEADS = ['#E5473C', '#EF8B3D', '#F0C93D', '#9CCC65', '#4FAE5C', '#2fb3c4', '#3B7FD9', '#5B4FCF', '#9A4FCF', '#D8688C'];
+const BANDS = ['#E5473C', '#EF8B3D', '#F0C93D', '#4FAE5C', '#3B7FD9', '#5B4FCF', '#9A4FCF'];
+// The arch is a half circle (center cx, cy); the beads rest on it, left
+// ones climbing up from the bottom left, the ones moved over from the
+// bottom right.
+const AB = { cx: 170, cy: 168, r: 132, bead: 10.5 };
+const STEP = 0.158; // radians between resting beads
+const restLeft = (p) => Math.PI - 0.1 - p * STEP;
+const restRight = (q) => 0.1 + q * STEP;
+const onArch = (angle) => [AB.cx + AB.r * Math.cos(angle), AB.cy - AB.r * Math.sin(angle)];
 
 function CounterBeads({ count }) {
-  const round = Math.floor((count - 1) / 20);
-  const inRound = count === 0 ? 0 : count - round * 20;
-  const [moving, setMoving] = useState(null); // { arch, slot, t }
+  const round = Math.floor((count - 1) / PER_ROUND);
+  const inRound = count === 0 ? 0 : count - round * PER_ROUND;
+  const [moving, setMoving] = useState(null); // { slot, t }
   const prev = useRef(count);
 
   useEffect(() => {
@@ -197,58 +184,53 @@ function CounterBeads({ count }) {
       setMoving(null);
       return undefined;
     }
-    const n = inRound - 1;
-    const arch = Math.floor(n / 5);
-    const slot = n % 5;
+    const slot = inRound - 1;
     const start = performance.now();
     let frame;
     const step = (now) => {
-      const x = Math.min(1, (now - start) / 650);
-      // Ease in and out, with a tiny bounce as it lands.
-      const t = x < 1 ? 0.5 - Math.cos(Math.PI * x) / 2 : 1;
-      setMoving(x < 1 ? { arch, slot, t } : null);
+      const x = Math.min(1, (now - start) / 700);
+      setMoving(x < 1 ? { slot, t: 0.5 - Math.cos(Math.PI * x) / 2 } : null);
       if (x < 1) frame = requestAnimationFrame(step);
     };
     frame = requestAnimationFrame(step);
     return () => cancelAnimationFrame(frame);
   }, [count]);
 
+  const { cx, cy, r } = AB;
   return (
     <div className="abacus" aria-hidden="true">
-      <svg viewBox="0 0 340 272">
-        <rect className="abacus-base" x="8" y="250" width="324" height="20" rx="6" />
-        {ARCHES.map(({ r, wire }) => (
-          <path
-            key={r}
-            d={`M ${AB.cx - r} ${AB.floor} V ${AB.top} A ${r} ${r} 0 0 1 ${AB.cx + r} ${AB.top} V ${AB.floor}`}
-            stroke={wire}
-            strokeWidth="5"
-            fill="none"
-            strokeLinecap="round"
-          />
-        ))}
-        {ARCHES.map(({ r, bead }, a) => {
-          const moved = Math.max(0, Math.min(5, inRound - a * 5));
-          return Array.from({ length: 5 }, (_, i) => {
-            // Beads 0..moved-1 have gone right (bottom up); the rest wait
-            // on the left (bottom up).
-            const isMoving = moving && moving.arch === a && moving.slot === i;
-            let x;
-            let y;
-            if (isMoving) {
-              [x, y] = beadAt(r, stackY(4 - i), stackY(i), moving.t);
-            } else if (i < moved) {
-              [x, y] = [AB.cx + r, stackY(i)];
-            } else {
-              [x, y] = [AB.cx - r, stackY(4 - i)];
-            }
-            return (
-              <g key={`${a}-${i}`}>
-                <circle cx={x} cy={y} r={AB.bead} fill={bead} />
-                <circle cx={x - 3} cy={y - 3.5} r={3} fill="#fff" opacity="0.45" />
-              </g>
-            );
-          });
+      <svg viewBox="0 0 340 200">
+        {/* The arch: rainbow stripes, outside red to inside violet; the
+            beads ride the middle. */}
+        {BANDS.map((color, k) => {
+          const rr = r + (3 - k) * 3.6;
+          return (
+            <path
+              key={color}
+              d={`M ${cx - rr} ${cy + 8} V ${cy} A ${rr} ${rr} 0 0 1 ${cx + rr} ${cy} V ${cy + 8}`}
+              stroke={color}
+              strokeWidth="3.8"
+              fill="none"
+            />
+          );
+        })}
+        <rect className="abacus-base" x="14" y={cy + 6} width="312" height="18" rx="6" />
+        {Array.from({ length: PER_ROUND }, (_, i) => {
+          // Beads 0..inRound-1 have gone right; the rest wait on the left.
+          // Bead 0 waits highest on the left, so each one that goes over
+          // never has to pass another.
+          const from = restLeft(PER_ROUND - 1 - i);
+          const to = restRight(i);
+          let angle;
+          if (moving && moving.slot === i) angle = from + (to - from) * moving.t;
+          else angle = i < inRound ? to : from;
+          const [x, y] = onArch(angle);
+          return (
+            <g key={i}>
+              <circle cx={x} cy={y} r={AB.bead} fill={BEADS[i]} stroke="#fff" strokeWidth="1.5" />
+              <circle cx={x - 3} cy={y - 3.5} r={3} fill="#fff" opacity="0.55" />
+            </g>
+          );
         })}
       </svg>
       {round > 0 && <span className="abacus-round">Round {round + 1}</span>}
