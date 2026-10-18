@@ -52,7 +52,8 @@ import { practiceElsewhere, startLivePractice } from './livePractice.js';
 import { FREE_COLORS, hasPlan, notePhone, plansOn, startPlans } from './plan.js';
 import Paywall from './Paywall.jsx';
 import TodayPlan from './TodayPlan.jsx';
-import { markDoneToday } from './todayPlan.js';
+import { markDoneToday, todayPlan } from './todayPlan.js';
+import { loadPracticeLog } from './practiceLog.js';
 
 const COLORS = [
   { name: 'black', hex: '#232323', text: '#FFFFFF', notes: ['A', 'C', 'F'] },
@@ -1375,6 +1376,31 @@ export default function App() {
   }
 
   // The sticker picker shown when an activity is finished.
+  // Today's practice item to open.
+  const openPlanItem = (id) => (id === 'color-test' || id === 'tots' ? startPlay() : openTool(id));
+
+  // After finishing something: the next thing on today's list (not `doneId`),
+  // or home when the list is all done.
+  const NEXT_LABELS = { 'color-test': 'Pitch Practice', tots: 'Tiny Tots', notespeller: 'NoteSpeller', practice: 'Piano practice' };
+  const nextUpButton = (doneId) => {
+    const next = todayPlan({
+      playerId: profile,
+      rounds: loadRoundHistory()[profile] || [],
+      practices: loadPracticeLog()[profile] || [],
+      colorNames: profileColorNames,
+      tinyTots: inTinyTots(profile),
+    }).find((item) => !item.done && item.id !== doneId);
+    return next ? (
+      <button className="pill-btn-primary pill-btn-full next-up" onClick={() => openPlanItem(next.id)}>
+        {next.icon} Next: {NEXT_LABELS[next.id] || next.title} →
+      </button>
+    ) : (
+      <button className="pill-btn-primary pill-btn-full next-up" onClick={goHome}>
+        🏠 All done today!
+      </button>
+    );
+  };
+
   // The sticker picker for a done screen; `then` (Play again...) shows
   // once the sticker is in.
   const stickerPicker = (from) => (then) => (
@@ -1636,6 +1662,7 @@ export default function App() {
               endOnOpen={endPracticeOnOpen}
               onEndHandled={() => setEndPracticeOnOpen(false)}
               stickerSlot={stickerPicker('practice')}
+              next={nextUpButton('practice')}
             />
           ) : view === 'scales' ? (
             <Scales engine={engineRef.current} />
@@ -1912,7 +1939,7 @@ export default function App() {
               colorNames={profileColorNames}
               tinyTots={inTinyTots(profile)}
               lockedIds={planOK ? [] : PAID_VIEWS}
-              onOpen={(id) => (id === 'color-test' || id === 'tots' ? startPlay() : openTool(id))}
+              onOpen={openPlanItem}
               onSignIn={openAccount}
             />
 
