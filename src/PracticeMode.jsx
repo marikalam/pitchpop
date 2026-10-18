@@ -65,10 +65,22 @@ function elapsedMs(p, now) {
 
 const wholeMinutes = (ms) => Math.floor(ms / 60000);
 
+// Practicing more than once a day adds up: the timer counts on from the
+// minutes already saved today (morning practice, then the afternoon's
+// starts where it left off).
+function earlierToday(profileId) {
+  return profileId ? practiceStats(loadPracticeLog()[profileId] || []).todayMinutes : 0;
+}
+const dayMs = (p, now) => elapsedMs(p, now) + earlierToday(p.profileId) * 60000;
+
+// Whether a practice gets saved: MIN_PRACTICE_MINUTES on its own, or any
+// whole minute added to a practice already saved today.
+const counts = (minutes, earlier) => minutes >= MIN_PRACTICE_MINUTES || (earlier > 0 && minutes >= 1);
+
 function reflectOnLockScreen(p, now, playerName) {
   showPracticeOnLockScreen({
     status: p.status,
-    elapsedMs: elapsedMs(p, now),
+    elapsedMs: p.status === 'running' || p.status === 'paused' ? dayMs(p, now) : elapsedMs(p, now),
     playerName,
   });
 }
@@ -78,7 +90,8 @@ function reflectOnLockScreen(p, now, playerName) {
 // whose it is.
 export function readPracticeTimer(now = Date.now()) {
   const p = loadPractice();
-  return { status: p.status, minutes: wholeMinutes(elapsedMs(p, now)), profileId: p.profileId };
+  const on = p.status === 'running' || p.status === 'paused';
+  return { status: p.status, minutes: wholeMinutes(on ? dayMs(p, now) : elapsedMs(p, now)), profileId: p.profileId };
 }
 
 // Stops a practice that's on, from outside Practice Mode: signing out,
@@ -90,7 +103,7 @@ export function stopPractice() {
   const t = Date.now();
   if ((p.status === 'running' || p.status === 'paused') && p.profileId) {
     const minutes = wholeMinutes(elapsedMs(p, t));
-    if (minutes >= MIN_PRACTICE_MINUTES) recordPractice(loadPracticeLog(), p.profileId, minutes, new Date(t));
+    if (counts(minutes, earlierToday(p.profileId))) recordPractice(loadPracticeLog(), p.profileId, minutes, new Date(t));
   }
   try {
     localStorage.setItem(PRACTICE_KEY, JSON.stringify(EMPTY));
@@ -312,9 +325,9 @@ export default function PracticeMode({ profileId, profileName, ready = true, onS
     }
     const t = Date.now();
     const minutes = wholeMinutes(elapsedMs(practice, t));
-    if (['running', 'paused'].includes(practice.status) && minutes >= MIN_PRACTICE_MINUTES) {
+    if (['running', 'paused'].includes(practice.status) && counts(minutes, earlierToday(practice.profileId))) {
       setLog((prev) => recordPractice(prev, practice.profileId, minutes, new Date(t)));
-      onSaved?.(practice.profileId);
+      if (minutes >= MIN_PRACTICE_MINUTES) onSaved?.(practice.profileId);
     }
     setNow(t);
     setPractice({ ...EMPTY, profileId });
@@ -341,12 +354,13 @@ export default function PracticeMode({ profileId, profileName, ready = true, onS
     const t = Date.now();
     const total = elapsedMs(practice, t);
     const minutes = wholeMinutes(total);
-    if (minutes < MIN_PRACTICE_MINUTES) {
+    if (!counts(minutes, earlierToday(profileId))) {
       update({ status: 'tooShort', elapsedBefore: total, startedAt: null });
       return;
     }
     setLog((prev) => recordPractice(prev, profileId, minutes, new Date(t)));
-    onSaved?.(profileId);
+    // A sticker for a real practice (not a minute or two added on).
+    if (minutes >= MIN_PRACTICE_MINUTES) onSaved?.(profileId);
     update({ status: 'saved', elapsedBefore: total, startedAt: null });
   }
 
@@ -363,6 +377,7 @@ export default function PracticeMode({ profileId, profileName, ready = true, onS
 
   const minutes = wholeMinutes(elapsedMs(practice, now));
   const stats = practiceStats(log[profileId]);
+  const on = ['running', 'paused'].includes(practice.status);
 
   // A green dot on the Timer tab while the practice timer runs.
   const live = { timer: practice.status === 'running' };
@@ -395,8 +410,11 @@ export default function PracticeMode({ profileId, profileName, ready = true, onS
 
         {practice.status === 'saved' && (
           <>
-            <div className="practice-time practice-time-done">{formatMinutes(minutes)}</div>
-            <p className="practice-summary">Saved! Great practice, {profileName}.</p>
+            <div className="practice-time practice-time-done">{formatMinutes(stats.todayMinutes)}</div>
+            <p className="practice-summary">
+              Saved! {stats.todayMinutes > minutes ? `${formatMinutes(stats.todayMinutes)} today in all. ` : ''}Great practice,{' '}
+              {profileName}.
+            </p>
             {/* Done practicing: on to what's next today (once the sticker
                 is in). */}
             {(stickerSlot || ((then) => then))(
@@ -413,7 +431,9 @@ export default function PracticeMode({ profileId, profileName, ready = true, onS
           <>
             <div className="practice-time practice-time-paused">{formatMinutes(minutes)}</div>
             <p className="practice-summary">
-              A practice needs at least {MIN_PRACTICE_MINUTES} minutes to be saved.
+              {stats.todayMinutes > 0
+                ? 'Practice at least 1 more minute to add it to today.'
+                : `A practice needs at least ${MIN_PRACTICE_MINUTES} minutes to be saved.`}
             </p>
             <div className="practice-actions">
               <button className="pill-btn-secondary" onClick={newPractice}>
@@ -443,7 +463,13 @@ export default function PracticeMode({ profileId, profileName, ready = true, onS
 
         {['idle', 'running', 'paused'].includes(practice.status) && !(practice.status === 'idle' && away) && (
           <>
-            <PracticeRing ms={elapsedMs(practice, now)} status={practice.status} />
+            {/* Today's total: what's saved today, plus this practice. */}
+            <PracticeRing ms={(on ? elapsedMs(practice, now) : 0) + stats.todayMinutes * 60000} status={practice.status} />
+            {stats.todayMinutes > 0 && (
+              <p className="practice-today-note">
+                {on ? `Counting on from ${formatMinutes(stats.todayMinutes)} earlier today` : `${formatMinutes(stats.todayMinutes)} so far today`}
+              </p>
+            )}
             <p className="practice-status">
               {practice.status === 'idle' &&
                 (moved === 'moved'
