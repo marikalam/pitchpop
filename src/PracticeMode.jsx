@@ -10,6 +10,7 @@ import Metronome from './Metronome.jsx';
 import CoffeeBreak from './CoffeeBreak.jsx';
 import { showPracticeOnLockScreen } from './liveActivity.js';
 import { newPracticeId, practiceElsewhere, takePracticeHere } from './livePractice.js';
+import { playStickerPick } from './piano.js';
 
 // A practice companion: a timer for the whole session, a tap counter for
 // repetitions ("5 times scales, then 5 times Hanon"), and each player's
@@ -152,6 +153,33 @@ const WEEKDAY_LETTER = new Intl.DateTimeFormat(undefined, { weekday: 'narrow' })
 function formatDay(key) {
   const [y, m, d] = key.split('-').map(Number);
   return DAY_FORMAT.format(new Date(y, m - 1, d));
+}
+
+// The counter's beads: one per repetition, in rainbow colors, grouped in
+// fives. The newest one slides in from the side.
+const BEAD_COLORS = ['#E5473C', '#EF8B3D', '#F0C93D', '#4FAE5C', '#3B7FD9', '#5B4FCF', '#D8688C'];
+const MAX_BEADS = 30;
+function CounterBeads({ count }) {
+  const shown = Math.min(count, MAX_BEADS);
+  const groups = [];
+  for (let i = 0; i < shown; i += 5) groups.push(Array.from({ length: Math.min(5, shown - i) }, (_, k) => i + k));
+  return (
+    <div className="beads" aria-hidden="true">
+      {count === 0 && <span className="beads-empty">Your beads go here 🌈</span>}
+      {groups.map((group) => (
+        <span key={group[0]} className="beads-group">
+          {group.map((i) => (
+            <span
+              key={i}
+              className={`bead${i === count - 1 ? ' bead-new' : ''}`}
+              style={{ background: BEAD_COLORS[i % BEAD_COLORS.length] }}
+            />
+          ))}
+        </span>
+      ))}
+      {count > MAX_BEADS && <span className="beads-more">+{count - MAX_BEADS}</span>}
+    </div>
+  );
 }
 
 // The timer as a ring that fills up over the first MIN_PRACTICE_MINUTES
@@ -510,34 +538,36 @@ export default function PracticeMode({ profileId, profileName, ready = true, onS
 
       <section className="practice-card practice-card-counter" aria-label="Repetition counter" hidden={tab !== 'counter'}>
         <div className="practice-card-title">🔁 Repetition counter</div>
-        <p className="practice-counter-desc">
-          Keep track of how many times you’ve played something, like 5 times through your scales. Tap the number
-          each time you finish one.
-        </p>
+        <p className="practice-counter-desc">Tap each time you finish one, like 5 times through your scales.</p>
+        {/* Every tap sends a rainbow bead sliding into the row, in fives
+            like tally marks. */}
+        <CounterBeads count={practice.count} />
         <div className="practice-counter">
           <button
             className="practice-step"
             onClick={() => update({ count: Math.max(0, practice.count - 1) })}
             disabled={practice.count === 0}
-            aria-label="Decrease count"
+            aria-label="Take one away"
           >
             −
           </button>
           <button
             className="practice-count"
-            onClick={() => update({ count: practice.count + 1 })}
+            onClick={() => {
+              playStickerPick();
+              update({ count: practice.count + 1 });
+            }}
             aria-label={`Count ${practice.count}. Tap to add one.`}
           >
-            <span aria-live="polite">{practice.count}</span>
-            <span className="practice-count-hint">tap to add 1</span>
+            <span key={practice.count} className="practice-count-num" aria-live="polite">
+              {practice.count}
+            </span>
+            <span className="practice-count-hint">tap +1</span>
           </button>
-          <button className="practice-step" onClick={() => update({ count: practice.count + 1 })} aria-label="Increase count">
-            +
+          <button className="practice-reset" onClick={() => update({ count: 0 })} disabled={practice.count === 0}>
+            ↺
           </button>
         </div>
-        <button className="practice-reset" onClick={() => update({ count: 0 })} disabled={practice.count === 0}>
-          ↺ Start over
-        </button>
       </section>
 
       {/* Built only when open: it's the slowest part of Practice Mode. */}
