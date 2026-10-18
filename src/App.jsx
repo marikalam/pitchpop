@@ -793,7 +793,7 @@ export default function App() {
       setRoundResults({});
       setRoundOutcomes({});
     setRoundMixups({});
-      setView((v) => (v.startsWith('play-') ? 'play-listen' : v));
+      setView((v) => (inPitchPractice(v) ? playViewFor(list[0].id) : v));
       return list[0].id;
     });
   }
@@ -1024,6 +1024,16 @@ export default function App() {
 
   // keepPractice: switching *to* the player whose practice is on (see
   // resumePractice), so the timer keeps going.
+  // Where a player's Pitch Practice is: the color game, or Tiny Tots.
+  function playViewFor(profileId) {
+    if (!inTinyTots(profileId)) return 'play-listen';
+    setPreToolView('home');
+    return 'tinytots';
+  }
+  function inPitchPractice(v) {
+    return v.startsWith('play-') || v === 'tinytots';
+  }
+
   function changeProfile(next, keepPractice = false) {
     if (profile !== 'melody') setLastActiveProfile(profile);
     if (next !== profile) {
@@ -1042,7 +1052,7 @@ export default function App() {
       setRoundResults({});
       setRoundOutcomes({});
     setRoundMixups({});
-      setView(view.startsWith('play-') ? 'play-listen' : view);
+      setView(inPitchPractice(view) ? playViewFor(next) : view);
     }
     setProfile(next);
   }
@@ -1402,7 +1412,8 @@ export default function App() {
       profiles.filter((p) => !keptIds.has(p.id)).forEach((p) => deleteCloudProfile(p.id));
     }
     // Back to a fresh color test, built from the saved colors of whoever
-    // is playing (their colors may just have changed).
+    // is playing (their colors may just have changed) - or Tiny Tots, for
+    // a player in Tiny Tots.
     const player = draftProfiles.find((p) => p.id === profile) || draftProfiles[0];
     setProfile(player.id);
     newRound(player.id, player.colors);
@@ -1412,7 +1423,7 @@ export default function App() {
     setRoundResults({});
     setRoundOutcomes({});
     setRoundMixups({});
-    setView('play-listen');
+    setView(playViewFor(player.id));
   }
 
   async function handleSignedIn(user) {
