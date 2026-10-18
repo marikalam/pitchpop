@@ -6429,3 +6429,10 @@ body {
     max-width: 560px;
   }
 }
+/* Practice Mode: today's earlier minutes, under the timer. */
+.practice-today-note {
+  margin: -4px 0 0;
+  font: 600 13px 'IBM Plex Sans', sans-serif;
+  color: var(--ink-dim);
+  text-align: center;
+}
