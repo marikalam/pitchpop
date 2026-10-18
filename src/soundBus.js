@@ -34,7 +34,7 @@ export function currentSound() {
 // limiter after it so loud chords don't crackle.
 const BOOST = 2.2;
 const outputs = new WeakMap();
-function outputFor(ctx) {
+export function outputFor(ctx) {
   let out = outputs.get(ctx);
   if (!out) {
     out = ctx.createGain();

@@ -1655,6 +1655,7 @@ export default function App() {
           />
           {view === 'practice' ? (
             <PracticeMode
+              engine={engineRef.current}
               profileId={currentProfile.id}
               profileName={currentProfile.name}
               ready={authChecked}

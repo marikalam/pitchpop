@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { freshContext, wakeContext } from './soundBus.js';
+import { outputFor, playOutLoud, wakeContext } from './soundBus.js';
 
 // A basic metronome: one click per quarter note. Clicks are scheduled a
 // little ahead on the Web Audio clock (the usual "lookahead" approach), so
@@ -45,7 +45,10 @@ function noiseBuffer(ctx) {
   return buffer;
 }
 
+// Plays through the same output as Pitch Practice's chords (boosted, and
+// set to play out loud like a video app).
 function scheduleClick(ctx, time, noise) {
+  const out = outputFor(ctx);
   const src = ctx.createBufferSource();
   src.buffer = noise;
   const band = ctx.createBiquadFilter();
@@ -56,7 +59,7 @@ function scheduleClick(ctx, time, noise) {
   body.gain.setValueAtTime(0.0001, time);
   body.gain.exponentialRampToValueAtTime(3, time + 0.001);
   body.gain.exponentialRampToValueAtTime(0.0001, time + 0.04);
-  src.connect(band).connect(body).connect(ctx.destination);
+  src.connect(band).connect(body).connect(out);
   src.start(time);
   src.stop(time + 0.05);
 
@@ -65,14 +68,14 @@ function scheduleClick(ctx, time, noise) {
   edge.frequency.value = 800;
   const edgeGain = ctx.createGain();
   edgeGain.gain.setValueAtTime(0.0001, time);
-  edgeGain.gain.exponentialRampToValueAtTime(0.4, time + 0.002);
+  edgeGain.gain.exponentialRampToValueAtTime(0.8, time + 0.002);
   edgeGain.gain.exponentialRampToValueAtTime(0.0001, time + 0.035);
-  edge.connect(edgeGain).connect(ctx.destination);
+  edge.connect(edgeGain).connect(out);
   edge.start(time);
   edge.stop(time + 0.045);
 }
 
-export default function Metronome({ hidden = false }) {
+export default function Metronome({ engine, hidden = false }) {
   const [bpm, setBpm] = useState(loadBpm);
   const [running, setRunning] = useState(false);
   const [beat, setBeat] = useState(0); // bumps on every click, for the flash
@@ -93,9 +96,16 @@ export default function Metronome({ hidden = false }) {
 
   useEffect(() => {
     if (!running) return undefined;
-    const ctx = ctxRef.current;
+    let ctx = ctxRef.current;
     nextRef.current = ctx.currentTime + 0.05;
     const id = setInterval(() => {
+      // The piano may have started its sound afresh (after the phone was
+      // locked, a call...): keep clicking on the new one.
+      if (ctx.state === 'closed') {
+        ctx = ctxRef.current = engine.ensureAudio();
+        noiseRef.current = noiseBuffer(ctx);
+        nextRef.current = ctx.currentTime + 0.05;
+      }
       while (nextRef.current < ctx.currentTime + LOOKAHEAD_S) {
         const at = nextRef.current;
         scheduleClick(ctx, at, noiseRef.current);
@@ -112,22 +122,18 @@ export default function Metronome({ hidden = false }) {
     };
   }, [running]);
 
-  // Stop when leaving Practice Mode.
-  useEffect(
-    () => () => {
-      ctxRef.current?.close?.();
-    },
-    [],
-  );
 
   async function toggle() {
     if (running) {
       setRunning(false);
       return;
     }
-    // Created on the tap itself: phones only allow audio started by a tap.
-    ctxRef.current = freshContext(ctxRef.current, () => new (window.AudioContext || window.webkitAudioContext)());
+    // The piano's own audio (the one Pitch Practice plays through), woken
+    // on the tap itself: phones only allow audio started by a tap.
+    playOutLoud();
+    ctxRef.current = engine.ensureAudio();
     await wakeContext(ctxRef.current);
+    if (noiseRef.current && noiseRef.current.sampleRate !== ctxRef.current.sampleRate) noiseRef.current = null;
     if (!noiseRef.current) noiseRef.current = noiseBuffer(ctxRef.current);
     setRunning(true);
   }

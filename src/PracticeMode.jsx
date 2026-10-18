@@ -242,7 +242,7 @@ function PracticeRing({ ms, status }) {
 }
 
 // A saved practice earns a sticker (onSaved; picked with stickerSlot).
-export default function PracticeMode({ profileId, profileName, ready = true, onSaved, stickerSlot, next, endOnOpen, onEndHandled }) {
+export default function PracticeMode({ engine, profileId, profileName, ready = true, onSaved, stickerSlot, next, endOnOpen, onEndHandled }) {
   const [practice, setPractice] = useState(loadPractice);
   const [log, setLog] = useState(loadPracticeLog);
   const [now, setNow] = useState(Date.now);
@@ -534,7 +534,7 @@ export default function PracticeMode({ profileId, profileName, ready = true, onS
         )}
       </section>
 
-      <Metronome hidden={tab !== 'metronome'} />
+      <Metronome engine={engine} hidden={tab !== 'metronome'} />
 
       <section className="practice-card practice-card-counter" aria-label="Repetition counter" hidden={tab !== 'counter'}>
         <div className="practice-card-title">🔁 Repetition counter</div>
