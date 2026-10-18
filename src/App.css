@@ -5118,12 +5118,6 @@ body {
   background: #fff;
   transform: scale(1.18);
 }
-.sticker-pick-go {
-  margin-top: 10px;
-}
-.sticker-pick-go:disabled {
-  opacity: 0.55;
-}
 .prog-sticker-waiting {
   background: #fff4d6;
   font-size: 26px;
