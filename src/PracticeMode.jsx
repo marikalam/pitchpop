@@ -397,10 +397,12 @@ export default function PracticeMode({ profileId, profileName, ready = true, onS
           <>
             <div className="practice-time practice-time-done">{formatMinutes(minutes)}</div>
             <p className="practice-summary">Saved! Great practice, {profileName}.</p>
-            {stickerSlot}
-            <button className="pill-btn-primary pill-btn-full" onClick={newPractice}>
-              Start a new practice
-            </button>
+            {/* A new practice only once the sticker is in. */}
+            {(stickerSlot || ((then) => then))(
+              <button className="pill-btn-primary pill-btn-full" onClick={newPractice}>
+                Start a new practice
+              </button>,
+            )}
           </>
         )}
 

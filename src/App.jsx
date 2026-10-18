@@ -428,7 +428,7 @@ function FocusTag({ focus }) {
   );
 }
 
-function RoundSummary({ playerId, playerName, correct, wrong, streak, summary, history, focus, signedIn, onStick, onSignIn }) {
+function RoundSummary({ playerId, playerName, correct, wrong, streak, summary, history, focus, signedIn, onStick, onSignIn, then }) {
   const tier = scoreTier(correct, summary.total);
   const text = TIER_TEXT[tier];
   const workOn = colorToWorkOn(summary);
@@ -451,7 +451,7 @@ function RoundSummary({ playerId, playerName, correct, wrong, streak, summary, h
           {correct === summary.total ? 'Every chord right!' : text.sub}
         </p>
       </div>
-      <StickerPicker playerId={playerId} signedIn={signedIn} from="pitch" onStick={onStick} onSignIn={onSignIn} />
+      <StickerPicker playerId={playerId} signedIn={signedIn} from="pitch" onStick={onStick} onSignIn={onSignIn} then={then} />
       <div className="stat-tiles stat-tiles-compact">
         <div className="stat-tile">
           <div className="stat-number">{correct}</div>
@@ -1375,13 +1375,16 @@ export default function App() {
   }
 
   // The sticker picker shown when an activity is finished.
-  const stickerPicker = (from) => (
+  // The sticker picker for a done screen; `then` (Play again...) shows
+  // once the sticker is in.
+  const stickerPicker = (from) => (then) => (
     <StickerPicker
       playerId={profile}
       signedIn={!!cloudUser}
       from={from}
       onStick={openStickerBookWith}
       onSignIn={openAccount}
+      then={then}
     />
   );
 
@@ -2205,15 +2208,17 @@ export default function App() {
               signedIn={!!cloudUser}
               onStick={openStickerBookWith}
               onSignIn={openAccount}
+              then={
+                <div className="feedback-actions">
+                  <button className="pill-btn-secondary" onClick={() => openTool('progress')}>
+                    📈 Progress
+                  </button>
+                  <button className="pill-btn-primary" onClick={startPlay}>
+                    Play again →
+                  </button>
+                </div>
+              }
             />
-            <div className="feedback-actions">
-              <button className="pill-btn-secondary" onClick={() => openTool('progress')}>
-                📈 Progress
-              </button>
-              <button className="pill-btn-primary" onClick={startPlay}>
-                Play again →
-              </button>
-            </div>
           </>
         )}
 

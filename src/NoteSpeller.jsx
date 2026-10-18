@@ -150,10 +150,12 @@ export default function NoteSpeller({ engine, playerId, onComplete, onOpenSettin
           <p className="screen-sub">
             You got {correctCount} out of {SESSION_ROUNDS} right.
           </p>
-          {stickerSlot}
-          <button className="pill-btn-primary" onClick={() => restart()}>
-            Play again →
-          </button>
+          {/* Play again only once the sticker is in. */}
+          {(stickerSlot || ((then) => then))(
+            <button className="pill-btn-primary" onClick={() => restart()}>
+              Play again →
+            </button>,
+          )}
         </div>
       </>
     );

@@ -43,17 +43,19 @@ export default function TinyTots({ colors, engine, onComplete, stickerSlot }) {
         <div className="complete-emoji">🎉</div>
         <h2 className="screen-title">All done!</h2>
         <p className="screen-sub">{TAPS} colors played. Great listening!</p>
-        {stickerSlot}
-        <button
-          className="pill-btn-primary"
-          onClick={() => {
-            setTaps(0);
-            setPopped(null);
-            setDone(false);
-          }}
-        >
-          Play again →
-        </button>
+        {/* Play again only once the sticker is in. */}
+        {(stickerSlot || ((then) => then))(
+          <button
+            className="pill-btn-primary"
+            onClick={() => {
+              setTaps(0);
+              setPopped(null);
+              setDone(false);
+            }}
+          >
+            Play again →
+          </button>,
+        )}
       </div>
     );
   }
