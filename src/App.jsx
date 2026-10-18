@@ -1034,6 +1034,13 @@ export default function App() {
     return v.startsWith('play-') || v === 'tinytots';
   }
 
+  // Whatever way a Tiny Tots player reaches the color game (Back, a link,
+  // the widget...), it's Tiny Tots for them.
+  useEffect(() => {
+    if (view.startsWith('play-') && inTinyTots(profile)) setView(playViewFor(profile));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view, profile]);
+
   function changeProfile(next, keepPractice = false) {
     if (profile !== 'melody') setLastActiveProfile(profile);
     if (next !== profile) {
