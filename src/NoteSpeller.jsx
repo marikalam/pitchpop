@@ -99,8 +99,18 @@ export default function NoteSpeller({ engine, playerId, onComplete, onOpenSettin
       playWrongBuzz();
       misses.current[target.letter] = (misses.current[target.letter] || 0) + 1;
     }
-    later(() => sayAndPlay(target, soundId), 350);
+    // Say the name and play the note, then on to the next note by itself
+    // (a wrong answer stays up a little longer, to see the right one).
+    later(async () => {
+      await sayAndPlay(target, soundId);
+      if (isCurrent(soundId)) later(() => nextRef.current(), correct ? 900 : 1800);
+    }, 350);
   }
+
+  // next() as of the latest render (it reads this round's state), for
+  // the timer that moves on by itself.
+  const nextRef = useRef(null);
+  nextRef.current = next;
 
   function next() {
     newSound();
