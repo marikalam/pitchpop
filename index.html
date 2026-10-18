@@ -3,6 +3,29 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <script>
+      // On an iPad, PitchPop is the phone design scaled up to fill the
+      // screen (a narrower page, shown bigger), instead of a thin column.
+      (function () {
+        var meta = document.querySelector('meta[name=viewport]');
+        var phone = meta.content;
+        function fit() {
+          var short = Math.min(screen.width, screen.height);
+          var long = Math.max(screen.width, screen.height);
+          if (short < 700) return (meta.content = phone);
+          var landscape = window.matchMedia('(orientation: landscape)').matches;
+          var w = landscape ? long : short;
+          var h = landscape ? short : long;
+          // A tall phone's page is about 480 wide and 880 high.
+          var scale = Math.max(1, Math.min(w / 480, h / 880));
+          meta.content = 'width=' + Math.round(w / scale) + ', user-scalable=no, viewport-fit=cover';
+        }
+        fit();
+        window.addEventListener('orientationchange', function () {
+          setTimeout(fit, 50);
+        });
+      })();
+    </script>
     <title>PitchPop</title>
     <link rel="icon" href="%BASE_URL%favicon.png" />
     <link rel="apple-touch-icon" href="%BASE_URL%apple-touch-icon.png" />
