@@ -201,7 +201,7 @@ function PracticeRing({ ms, status }) {
 }
 
 // A saved practice earns a sticker (onSaved; picked with stickerSlot).
-export default function PracticeMode({ profileId, profileName, ready = true, onSaved, stickerSlot, endOnOpen, onEndHandled }) {
+export default function PracticeMode({ profileId, profileName, ready = true, onSaved, stickerSlot, next, endOnOpen, onEndHandled }) {
   const [practice, setPractice] = useState(loadPractice);
   const [log, setLog] = useState(loadPracticeLog);
   const [now, setNow] = useState(Date.now);
@@ -397,11 +397,14 @@ export default function PracticeMode({ profileId, profileName, ready = true, onS
           <>
             <div className="practice-time practice-time-done">{formatMinutes(minutes)}</div>
             <p className="practice-summary">Saved! Great practice, {profileName}.</p>
-            {/* A new practice only once the sticker is in. */}
+            {/* Done practicing: on to what's next today (once the sticker
+                is in). */}
             {(stickerSlot || ((then) => then))(
-              <button className="pill-btn-primary pill-btn-full" onClick={newPractice}>
-                Start a new practice
-              </button>,
+              next || (
+                <button className="pill-btn-primary pill-btn-full" onClick={newPractice}>
+                  Start a new practice
+                </button>
+              ),
             )}
           </>
         )}
