@@ -164,7 +164,59 @@ async function speak(text, fallbackText = text) {
   }
 }
 
+// The language PitchPop speaks in for whoever is playing: 'en', or 'ja'
+// (the phone's own Japanese voice - colors, ドレミ and results).
+let lang = 'en';
+export function setSpeechLanguage(next) {
+  lang = next === 'ja' ? 'ja' : 'en';
+}
+
+const JA_COLORS = {
+  red: 'あか',
+  yellow: 'きいろ',
+  blue: 'あお',
+  black: 'くろ',
+  green: 'みどり',
+  orange: 'オレンジ',
+  purple: 'むらさき',
+  pink: 'ピンク',
+  brown: 'ちゃいろ',
+  'light green': 'きみどり',
+};
+const JA_NOTES = { C: 'ド', D: 'レ', E: 'ミ', F: 'ファ', G: 'ソ', A: 'ラ', B: 'シ' };
+
+function japaneseVoice(voices) {
+  const ja = voices.filter((v) => v.lang.toLowerCase().replace('_', '-').startsWith('ja'));
+  const score = (v) => {
+    const t = `${v.name} ${v.voiceURI || ''}`.toLowerCase();
+    return (/premium|enhanced|siri/.test(t) ? 4 : 0) + (/kyoko|o-ren/.test(t) ? 2 : 0);
+  };
+  return ja.sort((a, b) => score(b) - score(a))[0] || null;
+}
+
+// The phone's Japanese voice (on iPhones: Kyoko).
+async function speakJapanese(text) {
+  if (isMuted() || !('speechSynthesis' in window)) return;
+  const soundId = currentSound();
+  const voices = await loadVoices();
+  if (!isCurrent(soundId)) return;
+  window.speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = 'ja-JP';
+  utterance.rate = 0.95;
+  const voice = japaneseVoice(voices);
+  if (voice) utterance.voice = voice;
+  await new Promise((resolve) => {
+    utterance.onend = resolve;
+    utterance.onerror = resolve;
+    // Never wait forever if the voice doesn't answer.
+    setTimeout(resolve, 4000);
+    window.speechSynthesis.speak(utterance);
+  });
+}
+
 export async function speakColorName(name) {
+  if (lang === 'ja') return speakJapanese(JA_COLORS[name] || name);
   await speak(name.charAt(0).toUpperCase() + name.slice(1));
 }
 
@@ -176,11 +228,16 @@ export async function speakColorName(name) {
 const LETTER_SOUNDS = { A: 'Ay', B: 'Bee', C: 'See', D: 'Dee', E: 'Ee', F: 'Eff', G: 'Gee' };
 
 export async function speakNoteName(letter) {
+  if (lang === 'ja') return speakJapanese(JA_NOTES[letter] || letter);
   await speak(`${letter}.`, `${LETTER_SOUNDS[letter] || letter}.`);
 }
 
 export async function speakResults(correct, total) {
   const wrong = total - correct;
+  if (lang === 'ja') {
+    speakJapanese(correct === total ? `すごい！${total}もん ぜんぶ せいかい！` : `${correct}もん せいかい、${wrong}もん まちがい。`);
+    return;
+  }
   const text = correct === total ? `Perfect! You got all ${total} correct!` : `You got ${correct} correct and ${wrong} wrong.`;
   speak(text);
 }

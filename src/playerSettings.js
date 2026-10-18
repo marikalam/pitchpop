@@ -10,6 +10,7 @@ const MAPS = {
   clef: 'pitchpop-notespeller-player-clef-v1',
   level: 'pitchpop-notespeller-player-level-v1',
   letters: 'pitchpop-notespeller-my-notes-v1',
+  voice: 'pitchpop-voice-lang-v1',
 };
 // Never changed on this phone: any phone's settings win over these.
 const NEVER = '1970-01-01T00:00:00.000Z';
