@@ -2,7 +2,8 @@ import { Capacitor } from '@capacitor/core';
 import { App as CapacitorApp } from '@capacitor/app';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { PianoEngine, noteLabel, playCorrectChime, playWrongBuzz } from './piano.js';
-import { speakColorName, speakResults, prewarmVoices, unlockAudio } from './speech.js';
+import { speakColorName, speakResults, prewarmVoices, setSpeechLanguage, unlockAudio } from './speech.js';
+import { voiceLang } from './voiceLang.js';
 import { isCurrent, later, newSound } from './soundBus.js';
 import Rainbow from './Rainbow.jsx';
 import LogoMark from './LogoMark.jsx';
@@ -696,6 +697,8 @@ export default function App() {
   const lastProfile = profiles.find((p) => p.id === lastActiveProfile) || profiles[0];
   // Without PitchPop Family, Pitch Practice plays the first few colors.
   const planOK = hasPlan(cloudUser);
+  // The voice speaks in whoever is playing's language.
+  setSpeechLanguage(voiceLang(profile));
   const profileColorNames = planOK ? currentProfile.colors : currentProfile.colors.slice(0, FREE_COLORS);
   const streak = streakFor(streakDays[profile]);
 

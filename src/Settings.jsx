@@ -4,6 +4,7 @@ import { firstDay, streakFor } from './streak.js';
 import { LEARNING_ORDER, READY_PCT, READY_ROUNDS } from './progress.js';
 import { setTypesNotes, typesNotes } from './typeNotes.js';
 import { inTinyTots, setTinyTots } from './tinyTots.js';
+import { setVoiceLang, voiceLang } from './voiceLang.js';
 import {
   CLEF_MODES,
   LETTERS,
@@ -133,6 +134,7 @@ export function PlayerSettingsCard({ profile, colors, onUpdate, onRemove, canRem
     setTypesNotes(profile.id, on);
   }
   const [totsOn, setTotsOn] = useState(() => inTinyTots(profile.id));
+  const [voice, setVoice] = useState(() => voiceLang(profile.id));
   const [readLetters, setReadLetters] = useState(() => readingLetters(profile.id));
   const [readClef, setReadClef] = useState(() => readingClef(profile.id));
   const [readLevel, setReadLevel] = useState(() => readingLevel(profile.id));
@@ -233,6 +235,39 @@ export function PlayerSettingsCard({ profile, colors, onUpdate, onRemove, canRem
             </span>
             <input type="checkbox" className="ps-switch" checked={notesOn} onChange={(e) => toggleNotes(e.target.checked)} />
           </label>
+        )}
+      </div>
+
+      {/* The voice: colors, note names and results, in English or
+          Japanese (ドレミ). */}
+      <div className="ps-section">
+        <h4 className="ps-section-title">🗣️ Voice</h4>
+        <div className="ps-row">
+          <span className="ps-label">Speaks</span>
+          <div className="ns-segmented" role="radiogroup" aria-label="Voice language">
+            {[
+              ['en', 'English'],
+              ['ja', '日本語'],
+            ].map(([id, label]) => (
+              <button
+                key={id}
+                role="radio"
+                aria-checked={voice === id}
+                className={`ns-segment${voice === id ? ' ns-segment-active' : ''}`}
+                onClick={() => {
+                  setVoice(id);
+                  setVoiceLang(profile.id, id);
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+        {voice === 'ja' && (
+          <p className="ps-hint ps-hint-indent">
+            Colors (あか, きいろ…), notes in ドレミ and results are spoken in Japanese with the iPhone's Japanese voice.
+          </p>
         )}
       </div>
 
