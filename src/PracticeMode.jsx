@@ -66,22 +66,10 @@ function elapsedMs(p, now) {
 
 const wholeMinutes = (ms) => Math.floor(ms / 60000);
 
-// Practicing more than once a day adds up: the timer counts on from the
-// minutes already saved today (morning practice, then the afternoon's
-// starts where it left off).
-function earlierToday(profileId) {
-  return profileId ? practiceStats(loadPracticeLog()[profileId] || []).todayMinutes : 0;
-}
-const dayMs = (p, now) => elapsedMs(p, now) + earlierToday(p.profileId) * 60000;
-
-// Whether a practice gets saved: MIN_PRACTICE_MINUTES on its own, or any
-// whole minute added to a practice already saved today.
-const counts = (minutes, earlier) => minutes >= MIN_PRACTICE_MINUTES || (earlier > 0 && minutes >= 1);
-
 function reflectOnLockScreen(p, now, playerName) {
   showPracticeOnLockScreen({
     status: p.status,
-    elapsedMs: p.status === 'running' || p.status === 'paused' ? dayMs(p, now) : elapsedMs(p, now),
+    elapsedMs: elapsedMs(p, now),
     playerName,
   });
 }
@@ -91,8 +79,7 @@ function reflectOnLockScreen(p, now, playerName) {
 // whose it is.
 export function readPracticeTimer(now = Date.now()) {
   const p = loadPractice();
-  const on = p.status === 'running' || p.status === 'paused';
-  return { status: p.status, minutes: wholeMinutes(on ? dayMs(p, now) : elapsedMs(p, now)), profileId: p.profileId };
+  return { status: p.status, minutes: wholeMinutes(elapsedMs(p, now)), profileId: p.profileId };
 }
 
 // Stops a practice that's on, from outside Practice Mode: signing out,
@@ -104,7 +91,7 @@ export function stopPractice() {
   const t = Date.now();
   if ((p.status === 'running' || p.status === 'paused') && p.profileId) {
     const minutes = wholeMinutes(elapsedMs(p, t));
-    if (counts(minutes, earlierToday(p.profileId))) recordPractice(loadPracticeLog(), p.profileId, minutes, new Date(t));
+    if (minutes >= MIN_PRACTICE_MINUTES) recordPractice(loadPracticeLog(), p.profileId, minutes, new Date(t));
   }
   try {
     localStorage.setItem(PRACTICE_KEY, JSON.stringify(EMPTY));
@@ -409,9 +396,9 @@ export default function PracticeMode({ engine, profileId, profileName, ready = t
     }
     const t = Date.now();
     const minutes = wholeMinutes(elapsedMs(practice, t));
-    if (['running', 'paused'].includes(practice.status) && counts(minutes, earlierToday(practice.profileId))) {
+    if (['running', 'paused'].includes(practice.status) && minutes >= MIN_PRACTICE_MINUTES) {
       setLog((prev) => recordPractice(prev, practice.profileId, minutes, new Date(t)));
-      if (minutes >= MIN_PRACTICE_MINUTES) onSaved?.(practice.profileId);
+      onSaved?.(practice.profileId);
     }
     setNow(t);
     setPractice({ ...EMPTY, profileId });
@@ -438,13 +425,12 @@ export default function PracticeMode({ engine, profileId, profileName, ready = t
     const t = Date.now();
     const total = elapsedMs(practice, t);
     const minutes = wholeMinutes(total);
-    if (!counts(minutes, earlierToday(profileId))) {
+    if (minutes < MIN_PRACTICE_MINUTES) {
       update({ status: 'tooShort', elapsedBefore: total, startedAt: null });
       return;
     }
     setLog((prev) => recordPractice(prev, profileId, minutes, new Date(t)));
-    // A sticker for a real practice (not a minute or two added on).
-    if (minutes >= MIN_PRACTICE_MINUTES) onSaved?.(profileId);
+    onSaved?.(profileId);
     update({ status: 'saved', elapsedBefore: total, startedAt: null });
   }
 
@@ -494,7 +480,7 @@ export default function PracticeMode({ engine, profileId, profileName, ready = t
 
         {practice.status === 'saved' && (
           <>
-            <div className="practice-time practice-time-done">{formatMinutes(stats.todayMinutes)}</div>
+            <div className="practice-time practice-time-done">{formatMinutes(minutes)}</div>
             <p className="practice-summary">
               Saved! {stats.todayMinutes > minutes ? `${formatMinutes(stats.todayMinutes)} today in all. ` : ''}Great practice,{' '}
               {profileName}.
@@ -515,9 +501,7 @@ export default function PracticeMode({ engine, profileId, profileName, ready = t
           <>
             <div className="practice-time practice-time-paused">{formatMinutes(minutes)}</div>
             <p className="practice-summary">
-              {stats.todayMinutes > 0
-                ? 'Practice at least 1 more minute to add it to today.'
-                : `A practice needs at least ${MIN_PRACTICE_MINUTES} minutes to be saved.`}
+              A practice needs at least {MIN_PRACTICE_MINUTES} minutes to be saved.
             </p>
             <div className="practice-actions">
               <button className="pill-btn-secondary" onClick={newPractice}>
@@ -548,11 +532,10 @@ export default function PracticeMode({ engine, profileId, profileName, ready = t
         {['idle', 'running', 'paused'].includes(practice.status) && !(practice.status === 'idle' && away) && (
           <>
             {/* Today's total: what's saved today, plus this practice. */}
-            <PracticeRing ms={(on ? elapsedMs(practice, now) : 0) + stats.todayMinutes * 60000} status={practice.status} />
-            {stats.todayMinutes > 0 && (
-              <p className="practice-today-note">
-                {on ? `Counting on from ${formatMinutes(stats.todayMinutes)} earlier today` : `${formatMinutes(stats.todayMinutes)} so far today`}
-              </p>
+            {/* Every practice starts from 0. */}
+            <PracticeRing ms={on ? elapsedMs(practice, now) : 0} status={practice.status} />
+            {!on && stats.todayMinutes > 0 && (
+              <p className="practice-today-note">{formatMinutes(stats.todayMinutes)} practiced earlier today</p>
             )}
             <p className="practice-status">
               {practice.status === 'idle' &&
