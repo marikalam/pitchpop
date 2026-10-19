@@ -48,7 +48,61 @@ function loadTab() {
 const STATUSES = ['idle', 'running', 'paused', 'tooShort', 'saved'];
 const EMPTY = { status: 'idle', startedAt: null, elapsedBefore: 0, count: 0, profileId: null };
 
+// A practice left running with nobody using the app stops by itself 2
+// hours after the last tap: the timer counts up to then, and it becomes a
+// break (autoStopped) the next time anyone looks.
+const IDLE_LIMIT_MS = 2 * 60 * 60 * 1000;
+const ACTIVE_KEY = 'pitchpop-practice-active-v1';
+function lastActive() {
+  try {
+    return Number(localStorage.getItem(ACTIVE_KEY)) || 0;
+  } catch {
+    return 0;
+  }
+}
+let lastNoted = 0;
+// Any tap in the app counts as someone being there.
+if (typeof document !== 'undefined') {
+  document.addEventListener(
+    'pointerdown',
+    () => {
+      const t = Date.now();
+      if (t - lastNoted < 20000) return;
+      lastNoted = t;
+      try {
+        localStorage.setItem(ACTIVE_KEY, String(t));
+      } catch {
+        /* ignore */
+      }
+    },
+    true,
+  );
+}
+// When a running practice stops counting: 2 hours after the later of its
+// start (or resume) and the last tap.
+const stopsAt = (p) => Math.max(p.startedAt || 0, lastActive()) + IDLE_LIMIT_MS;
+
+// The practice as it is now: a running one past its limit becomes a break.
+function settle(p, now = Date.now()) {
+  if (p.status !== 'running' || now <= stopsAt(p)) return p;
+  const end = stopsAt(p);
+  return { ...p, status: 'paused', elapsedBefore: p.elapsedBefore + Math.max(0, end - p.startedAt), startedAt: null, autoStopped: true };
+}
+
 function loadPractice() {
+  const p = loadSavedPractice();
+  const settled = settle(p);
+  if (settled !== p) {
+    try {
+      localStorage.setItem(PRACTICE_KEY, JSON.stringify(settled));
+    } catch {
+      /* ignore */
+    }
+  }
+  return settled;
+}
+
+function loadSavedPractice() {
   try {
     // (Older versions could pause by themselves and saved an idlePaused
     // flag; that's now an ordinary break.)
@@ -61,7 +115,7 @@ function loadPractice() {
 }
 
 function elapsedMs(p, now) {
-  return p.elapsedBefore + (p.status === 'running' ? now - p.startedAt : 0);
+  return p.elapsedBefore + (p.status === 'running' ? Math.min(now, stopsAt(p)) - p.startedAt : 0);
 }
 
 const wholeMinutes = (ms) => Math.floor(ms / 60000);
@@ -373,6 +427,8 @@ export default function PracticeMode({ engine, profileId, profileName, ready = t
     const tick = () => {
       const t = Date.now();
       setNow(t);
+      // Two hours with nobody tapping: it stops by itself.
+      setPractice((p) => settle(p, t));
     };
     tick();
     const id = setInterval(tick, 1000);
@@ -408,17 +464,17 @@ export default function PracticeMode({ engine, profileId, profileName, ready = t
     if (practiceElsewhere(profileId)) return;
     setMoved(null);
     setNow(Date.now());
-    update({ status: 'running', startedAt: Date.now(), elapsedBefore: 0, id: newPracticeId() });
+    update({ status: 'running', startedAt: Date.now(), elapsedBefore: 0, id: newPracticeId(), autoStopped: false });
   }
 
   function pause() {
     const t = Date.now();
-    setPractice((p) => ({ ...p, status: 'paused', elapsedBefore: elapsedMs(p, t), startedAt: null }));
+    setPractice((p) => ({ ...p, status: 'paused', elapsedBefore: elapsedMs(p, t), startedAt: null, autoStopped: false }));
   }
 
   function resume() {
     setNow(Date.now());
-    update({ status: 'running', startedAt: Date.now() });
+    update({ status: 'running', startedAt: Date.now(), autoStopped: false });
   }
 
   function end() {
@@ -547,7 +603,8 @@ export default function PracticeMode({ engine, profileId, profileName, ready = t
                       ? `📱 ${profileName} is already practicing on another phone`
                       : null)}
               {practice.status === 'running' && minutes >= MIN_PRACTICE_MINUTES && '⭐ A sticker is waiting when you end'}
-              {practice.status === 'paused' && 'The timer is stopped'}
+              {practice.status === 'paused' &&
+                (practice.autoStopped ? '⏸ Stopped by itself after 2 hours with no taps' : 'The timer is stopped')}
             </p>
             {practice.status === 'idle' ? (
               <button className="pill-btn-primary pill-btn-full practice-go" onClick={start}>
