@@ -42,6 +42,32 @@ export function watchVolume(onVolume) {
   };
 }
 
+// Calls onOutput({ kind, name }) now and whenever the sound moves (kind is
+// 'phone', 'headphones', 'bluetooth', 'car', 'airplay' or 'other'; name is
+// what iOS calls it, e.g. "Honda Civic"). iPhone app only.
+export function watchOutput(onOutput) {
+  if (!DeviceVolume) return () => {};
+  const read = () =>
+    DeviceVolume.getOutput()
+      .then(onOutput)
+      .catch(() => {});
+  read();
+  const listener = DeviceVolume.addListener('output', onOutput);
+  const onVisible = () => {
+    if (document.visibilityState === 'visible') read();
+  };
+  document.addEventListener('visibilitychange', onVisible);
+  return () => {
+    document.removeEventListener('visibilitychange', onVisible);
+    listener.then((l) => l.remove()).catch(() => {});
+  };
+}
+
+// iOS's "play on" menu, to send the sound to the iPhone instead of the car.
+export function pickOutput() {
+  DeviceVolume?.pickOutput().catch(() => {});
+}
+
 export function playSoundCheck() {
   // First, so the sound check's own note (which covers the silent switch
   // too) takes the place of the one-time tip.
