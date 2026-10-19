@@ -3118,6 +3118,22 @@ body {
   animation: volume-warning-in 0.25s ease-out;
 }
 
+.output-pill {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.output-pill-keep {
+  appearance: none;
+  border: none;
+  background: none;
+  color: #b4530a;
+  font: 700 14px 'IBM Plex Sans', sans-serif;
+  padding: 7px 6px;
+  cursor: pointer;
+}
+
 @keyframes volume-warning-in {
   from {
     opacity: 0;

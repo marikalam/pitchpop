@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { isMuted, setMuted, soundState, wakeAudio } from './soundBus.js';
-import { LOW_VOLUME, playSoundCheck, watchVolume } from './soundCheck.js';
+import { LOW_VOLUME, pickOutput, playSoundCheck, watchOutput, watchVolume } from './soundCheck.js';
 
 // PitchPop always plays sound (even with the iPhone on silent, like
 // Instagram); there's no mute button, so a stray tap can't leave it quiet.
@@ -28,6 +28,36 @@ function useSound() {
   return { state, low: volume !== null && volume <= LOW_VOLUME };
 }
 
+// Bluetooth devices the family said to keep playing on (✕ on the pill),
+// e.g. their headphones, so the pill doesn't keep asking.
+const KEEP_KEY = 'pitchpop-keep-output-v1';
+function keptOutputs() {
+  try {
+    return JSON.parse(localStorage.getItem(KEEP_KEY)) || [];
+  } catch {
+    return [];
+  }
+}
+
+// In the iPhone app, where the sound is going when it's the car or a
+// Bluetooth speaker (anywhere other than the phone or wired headphones).
+function useAwayOutput() {
+  const [output, setOutput] = useState(null);
+  const [kept, setKept] = useState(keptOutputs);
+  useEffect(() => watchOutput(setOutput), []);
+  const away = output && (output.kind === 'car' || output.kind === 'bluetooth') && !kept.includes(output.name);
+  const keep = () => {
+    const next = [...kept, output.name];
+    setKept(next);
+    try {
+      localStorage.setItem(KEEP_KEY, JSON.stringify(next));
+    } catch {
+      /* ignore */
+    }
+  };
+  return { away: away ? output : null, keep };
+}
+
 function turnOn() {
   setMuted(false);
   wakeAudio();
@@ -36,10 +66,22 @@ function turnOn() {
 
 export function SoundNotice() {
   const { state, low } = useSound();
+  const { away, keep } = useAwayOutput();
   let text = null;
   if (state === 'muted') text = 'Sound is off · tap to turn on';
   else if (low) text = 'Turn the volume up';
   else if (state === 'blocked') text = 'Tap for sound';
+  if (!text && away)
+    return (
+      <span className="output-pill">
+        <button className="volume-warning" onClick={pickOutput}>
+          <span aria-hidden="true">{away.kind === 'car' ? '🚗' : '🎧'}</span> Play on iPhone
+        </button>
+        <button className="output-pill-keep" onClick={keep} aria-label={`Keep playing on ${away.name}`}>
+          ✕
+        </button>
+      </span>
+    );
   if (!text) return null;
   return (
     <button className="volume-warning" onClick={turnOn}>
