@@ -33,6 +33,9 @@ No ads, no tracking, no analytics. You don't need an account to play. An optiona
 ## Keywords (100, comma-separated, no spaces needed)
 ear training,perfect pitch,chords,music,eguchi,piano,colors,listening,solfege,music game
 
+## Copyright
+© 2026 Marika Lam
+
 ## URLs
 - Privacy Policy URL: https://marikalam.github.io/apps/pitchpop/privacy.html
 - Support URL: https://marikalam.github.io/

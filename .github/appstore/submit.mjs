@@ -101,6 +101,11 @@ if (!version) {
 
 await api('PATCH', `/v1/appStoreVersions/${version.id}/relationships/build`, { type: 'builds', id: build.id });
 
+// The copyright line on the App Store page.
+const COPYRIGHT = `© ${new Date().getFullYear()} Marika Lam`;
+await api('PATCH', `/v1/appStoreVersions/${version.id}`, { type: 'appStoreVersions', id: version.id, attributes: { copyright: COPYRIGHT } });
+console.log(`Copyright: ${COPYRIGHT}`);
+
 const locs = (await api('GET', `/v1/appStoreVersions/${version.id}/appStoreVersionLocalizations`)).data;
 for (const loc of locs) {
   await api('PATCH', `/v1/appStoreVersionLocalizations/${loc.id}`, {
