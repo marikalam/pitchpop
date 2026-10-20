@@ -1952,12 +1952,6 @@ body {
   font-size: 13px;
 }
 
-.ns-progress {
-  flex-direction: row;
-  justify-content: center;
-  gap: 10px;
-}
-
 .ns-title {
   font-size: clamp(18px, 5vw, 22px);
 }
@@ -4901,6 +4895,12 @@ body {
 .progress-dot-check.progress-dot-filled {
   background: #8b5cf6;
 }
+.progress-dot.progress-dot-right {
+  background: var(--accent-green);
+}
+.progress-dot.progress-dot-wrong {
+  background: var(--accent-red);
+}
 .progress-dot-now {
   box-shadow: 0 0 0 2px #fff, 0 0 0 4px #1d2140;
 }
@@ -6089,21 +6089,6 @@ body {
 }
 
 /* ---------- NoteSpeller, dressed up ---------- */
-.ns-progress-row {
-  position: relative;
-  padding-right: 58px;
-}
-.ns-stars {
-  position: absolute;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  padding: 3px 10px;
-  border-radius: 999px;
-  background: #fff3bf;
-  color: #8a5a00;
-  font: 700 14px 'Fredoka', ui-rounded, system-ui, sans-serif;
-}
 .ns-staff-card {
   overflow: hidden;
   background:

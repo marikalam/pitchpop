@@ -22,6 +22,7 @@ import { weekProgress } from './progress.js';
 import { scheduleReminders } from './reminders.js';
 import { inTinyTots } from './tinyTots.js';
 import TypeNotes from './TypeNotes.jsx';
+import ProgressDots from './ProgressDots.jsx';
 import { typesNotes } from './typeNotes.js';
 import { buildSmartRound, checkPairFor, comebackQueue } from './smartRound.js';
 import Piano from './Piano.jsx';
@@ -361,32 +362,6 @@ function StreakBadge({ streak }) {
           {streak.current} {streak.current === 1 ? 'day' : 'days'} in a row
         </strong>
         {!streak.doneToday && <span className="streak-hint">Finish a round today to keep it going</span>}
-      </span>
-    </div>
-  );
-}
-
-// kinds (a smart round's plan, smartRound.js) colors the dots: an easy
-// start and finish, last round's misses and the mix-up checks.
-function ProgressDots({ current, total, kinds }) {
-  const items = [];
-  for (let i = 1; i <= total; i++) {
-    const kind = kinds?.[i - 1];
-    items.push(
-      <span
-        key={`d${i}`}
-        className={`progress-dot${i <= current ? ' progress-dot-filled' : ''}${kind && kind !== 'regular' ? ` progress-dot-${kind}` : ''}${i === current ? ' progress-dot-now' : ''}`}
-      />,
-    );
-    if (i < total) {
-      items.push(<span key={`l${i}`} className={`progress-line${i < current ? ' progress-line-filled' : ''}`} />);
-    }
-  }
-  return (
-    <div className="progress-wrap">
-      <div className={`progress-dots${total > 12 ? ' progress-dots-many' : ''}`}>{items}</div>
-      <span className="progress-count">
-        {current} / {total}
       </span>
     </div>
   );
@@ -2052,7 +2027,7 @@ export default function App() {
               onBack={goHome}
             />
             <StreakBadge streak={streak} />
-            <ProgressDots current={roundIndex + 1} total={SESSION_ROUNDS} kinds={roundFocus?.kinds} />
+            <ProgressDots current={roundIndex + 1} total={SESSION_ROUNDS} kinds={roundFocus?.kinds} outcomes={roundOutcomes} />
             <h2 className="screen-title">Listen to the chord</h2>
             <p className="screen-sub">Tap the rainbow to hear it</p>
             {roundIndex === 0 && roundFocus && <FocusTag focus={roundFocus} />}
@@ -2083,7 +2058,7 @@ export default function App() {
               showBack
               onBack={goHome}
             />
-            <ProgressDots current={roundIndex + 1} total={SESSION_ROUNDS} kinds={roundFocus?.kinds} />
+            <ProgressDots current={roundIndex + 1} total={SESSION_ROUNDS} kinds={roundFocus?.kinds} outcomes={roundOutcomes} />
             <h2 className="screen-title">Listen to the chord again?</h2>
             <button className="rainbow-play-wrap" onClick={relistenTap} aria-label="Replay chord">
               <Rainbow colors={COLORS} activeName={null} visible pretty />
@@ -2112,7 +2087,7 @@ export default function App() {
               showBack
               onBack={goHome}
             />
-            <ProgressDots current={roundIndex + 1} total={SESSION_ROUNDS} kinds={roundFocus?.kinds} />
+            <ProgressDots current={roundIndex + 1} total={SESSION_ROUNDS} kinds={roundFocus?.kinds} outcomes={roundOutcomes} />
             <KindChip focus={roundFocus} index={roundIndex} name={currentColor.name} />
             <h2 className={`screen-title${tries.out.length ? ' question-retry' : ''}`} key={`${tries.out.length}${tries.reveal}`}>
               {tries.reveal
@@ -2167,7 +2142,7 @@ export default function App() {
               showBack
               onBack={goHome}
             />
-            <ProgressDots current={roundIndex + 1} total={SESSION_ROUNDS} kinds={roundFocus?.kinds} />
+            <ProgressDots current={roundIndex + 1} total={SESSION_ROUNDS} kinds={roundFocus?.kinds} outcomes={roundOutcomes} />
             <div
               className={`feedback-icon-wrap${answerCorrect ? ' feedback-correct' : ' feedback-incorrect'}${answerCorrect && typesNotes(profile) ? ' feedback-icon-small' : ''}`}
             >

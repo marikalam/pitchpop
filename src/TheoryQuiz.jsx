@@ -4,7 +4,7 @@ import { later, newSound } from './soundBus.js';
 import { speakResults } from './speech.js';
 import { GLOSSARY } from './theoryGlossary.js';
 import { TheoryPicture } from './MusicTheory.jsx';
-import { ProgressDots } from './NoteSpeller.jsx';
+import ProgressDots from './ProgressDots.jsx';
 
 // The Music Theory quiz: 20 pictures from the glossary, one at a time
 // ("What is this?"), with four names to pick from - like Pitch Practice
@@ -40,6 +40,8 @@ export default function TheoryQuiz({ onComplete, stickerSlot }) {
   const [index, setIndex] = useState(0);
   const [answered, setAnswered] = useState(null);
   const [correctCount, setCorrectCount] = useState(0);
+  // Right or wrong for each question answered ({ [index]: true | false }).
+  const [outcomes, setOutcomes] = useState({});
   const [done, setDone] = useState(false);
   const { entry, choices } = quiz[index];
 
@@ -52,6 +54,7 @@ export default function TheoryQuiz({ onComplete, stickerSlot }) {
     if (answered) return;
     const correct = choice.id === entry.id;
     setAnswered({ picked: choice.id, correct });
+    setOutcomes((o) => ({ ...o, [index]: correct }));
     newSound();
     if (correct) {
       playCorrectChime();
@@ -79,6 +82,7 @@ export default function TheoryQuiz({ onComplete, stickerSlot }) {
     setIndex(0);
     setAnswered(null);
     setCorrectCount(0);
+    setOutcomes({});
     setDone(false);
   }
 
@@ -109,12 +113,7 @@ export default function TheoryQuiz({ onComplete, stickerSlot }) {
 
   return (
     <div className="tq-screen">
-      <div className="ns-progress-row">
-        <ProgressDots current={index + 1} total={SESSION_ROUNDS} />
-        <span className="ns-stars" aria-label={`${correctCount} right`}>
-          ⭐ {correctCount}
-        </span>
-      </div>
+      <ProgressDots current={index + 1} total={SESSION_ROUNDS} outcomes={outcomes} />
       <h2 className="screen-title tq-title">What is this? 🎼</h2>
       <div
         className={`staff-card tq-card${answered ? (answered.correct ? ' ns-staff-right' : ' ns-staff-wrong') : ''}`}
