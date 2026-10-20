@@ -226,9 +226,18 @@ export async function speakNoteName(letter) {
   await speak(`${letter}.`, `${LETTER_SOUNDS[letter] || letter}.`);
 }
 
-// Any English words, e.g. the Theory quiz reading its choices out loud.
+// Any English words, e.g. the Theory quiz reading its question out loud.
 export function speakWords(text) {
   return speak(text);
+}
+
+// Resolves once the voice is ready to talk (the first time it's used it
+// takes a few seconds to load), or after `ms` at most.
+export function voiceReady(ms = 6000) {
+  const loaded = getPiperModule()
+    .then((m) => m.loadPiper())
+    .catch(() => {});
+  return Promise.race([loaded, new Promise((resolve) => setTimeout(resolve, ms))]);
 }
 
 export async function speakResults(correct, total) {

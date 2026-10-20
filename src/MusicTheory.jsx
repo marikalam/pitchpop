@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import * as GLYPHS from './theoryGlyphs.js';
 import { GLOSSARY, THEORY_CATEGORIES } from './theoryGlossary.js';
 import TheoryQuiz from './TheoryQuiz.jsx';
+import { prewarmVoices } from './speech.js';
 
 // Music Theory: a picture glossary of basic terms, grouped by topic, with
 // chips to show one topic at a time - and a quiz on them (TheoryQuiz.jsx).
@@ -84,6 +85,8 @@ export function TheoryPicture({ picture, label }) {
 export default function MusicTheory({ startMode = 'glossary', onComplete, stickerSlot }) {
   const [category, setCategory] = useState('all');
   const [mode, setMode] = useState(startMode);
+  // The quiz talks: get the voice loading as soon as Music Theory opens.
+  useEffect(() => prewarmVoices(), []);
   const sections = THEORY_CATEGORIES.filter((c) => category === 'all' || c.id === category);
 
   const modes = (

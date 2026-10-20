@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { playCorrectChime, playWrongBuzz } from './piano.js';
 import { isCurrent, later, newSound } from './soundBus.js';
-import { speakResults, speakWords } from './speech.js';
+import { speakResults, speakWords, voiceReady } from './speech.js';
 import { GLOSSARY } from './theoryGlossary.js';
 import { TheoryPicture } from './MusicTheory.jsx';
 import ProgressDots from './ProgressDots.jsx';
@@ -14,9 +14,10 @@ import ProgressDots from './ProgressDots.jsx';
 // next question. A right answer leaves only that button; a wrong one shows
 // the right one in green next to the pick.
 //
-// For players who can't read yet, each question reads its four choices
-// out loud, lighting up each button as its name is said (tap the picture
-// to hear them again), and the answer's name is said after every pick.
+// For players who can't read yet, everything is said out loud: the
+// question ("What is this?") and its four choices, each button lit up as
+// its name is said; then after a pick, the answer and what it means. Tap
+// the picture to hear it again.
 const SESSION_ROUNDS = 20;
 const CHOICES = 4;
 
@@ -66,11 +67,15 @@ export default function TheoryQuiz({ onComplete, stickerSlot }) {
   const [reading, setReading] = useState(null);
   const { entry, choices } = quiz[index];
 
-  // Reads the four choices, one at a time, each button lit while its name
-  // is said. Any newer sound (an answer, the next question) stops it.
-  async function readChoices() {
+  // Says the question, then the four choices one at a time, each button
+  // lit while its name is said. Any newer sound (an answer, the next
+  // question) stops it.
+  async function readQuestion() {
     const soundId = newSound();
-    await pause(400);
+    await voiceReady();
+    if (!isCurrent(soundId)) return;
+    await sayAtMost('What is this?', 4000);
+    await pause(300);
     for (const choice of choices) {
       if (!isCurrent(soundId)) return;
       setReading(choice.id);
@@ -80,13 +85,26 @@ export default function TheoryQuiz({ onComplete, stickerSlot }) {
     if (isCurrent(soundId)) setReading(null);
   }
 
-  // Each new question reads its choices.
+  // The answer out loud: right or not, its name, then what it means.
+  async function readAnswer(correct, soundId = newSound()) {
+    await sayAtMost(correct ? `Yes! ${spoken(entry.term)}.` : `That's ${spoken(entry.term)}.`, 4000);
+    if (!isCurrent(soundId)) return;
+    await pause(300);
+    if (isCurrent(soundId)) await speakWords(entry.text);
+  }
+
+  // Each new question is read out loud.
   useEffect(() => {
-    if (!done) readChoices();
+    if (!done) readQuestion();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [index, quiz, done]);
 
   useEffect(() => () => newSound(), []);
+
+  function hearAgain() {
+    if (answered) readAnswer(answered.correct);
+    else readQuestion();
+  }
 
   function answer(choice) {
     if (answered) return;
@@ -94,9 +112,9 @@ export default function TheoryQuiz({ onComplete, stickerSlot }) {
     setAnswered({ picked: choice.id, correct });
     setOutcomes((o) => ({ ...o, [index]: correct }));
     setReading(null);
-    newSound();
-    // Then the right answer's name, out loud.
-    later(() => speakWords(correct ? spoken(entry.term) : `That's ${spoken(entry.term)}`), 600);
+    const soundId = newSound();
+    // Then the answer and its meaning, out loud.
+    later(() => readAnswer(correct, soundId), 600);
     if (correct) {
       playCorrectChime();
       setCorrectCount((c) => c + 1);
@@ -157,18 +175,17 @@ export default function TheoryQuiz({ onComplete, stickerSlot }) {
       <h2 className="screen-title tq-title">What is this? 🎼</h2>
       <div
         className={`staff-card tq-card${answered ? (answered.correct ? ' ns-staff-right' : ' ns-staff-wrong') : ''}`}
-        // Tap the picture to hear the choices again.
+        // Tap the picture to hear it again: the question and choices, or
+        // once answered, the answer and its meaning.
         role="button"
         tabIndex={0}
-        aria-label="Hear the choices"
-        onClick={() => !answered && readChoices()}
-        onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && !answered && readChoices()}
+        aria-label={answered ? 'Hear the answer' : 'Hear the question'}
+        onClick={hearAgain}
+        onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && hearAgain()}
       >
-        {!answered && (
-          <span className="ns-tap-hint" aria-hidden="true">
-            🔊 Tap to hear
-          </span>
-        )}
+        <span className="ns-tap-hint" aria-hidden="true">
+          🔊 Tap to hear
+        </span>
         <TheoryPicture key={entry.id} picture={entry.picture} label="Music sign" />
       </div>
       {answered ? (
