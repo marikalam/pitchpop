@@ -53,6 +53,11 @@ export default function NoteSpeller({ engine, playerId, onComplete, stickerSlot 
     misses.current = {};
   }
 
+  function hearNote() {
+    newSound();
+    engine.playPitch(target.letter, target.octave);
+  }
+
   // Says the letter, then plays the note - unless another sound has started
   // meanwhile (see soundBus.js).
   async function sayAndPlay(note, soundId = newSound()) {
@@ -138,6 +143,12 @@ export default function NoteSpeller({ engine, playerId, onComplete, stickerSlot 
       <h2 className="screen-title ns-title">What note is this? 🎵</h2>
       <div
         className={`staff-card ns-staff-card${answered ? (answered.correct ? ' ns-staff-right' : ' ns-staff-wrong') : ''}`}
+        // Tap anywhere on the staff to hear the note.
+        role="button"
+        tabIndex={0}
+        aria-label="Hear the note"
+        onClick={hearNote}
+        onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && hearNote()}
       >
         <span className="ns-deco ns-deco-1" aria-hidden="true">
           ♪
@@ -149,16 +160,9 @@ export default function NoteSpeller({ engine, playerId, onComplete, stickerSlot 
           ♩
         </span>
         <Staff note={target} highlight={answered ? (answered.correct ? 'correct' : 'wrong') : null} />
-        <button
-          className="staff-play-btn ns-play-btn"
-          onClick={() => {
-            newSound();
-            engine.playPitch(target.letter, target.octave);
-          }}
-          aria-label="Hear the note"
-        >
-          🔊 Hear
-        </button>
+        <span className="ns-tap-hint" aria-hidden="true">
+          🔊 Tap to hear
+        </span>
       </div>
 
       <div className="ns-answer">

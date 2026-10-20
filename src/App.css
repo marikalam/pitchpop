@@ -481,22 +481,6 @@ body {
   align-items: center;
 }
 
-.staff-play-btn {
-  appearance: none;
-  border: none;
-  cursor: pointer;
-  margin: 2px 0 8px;
-  padding: 10px 20px;
-  border-radius: 999px;
-  background: #eef2fd;
-  color: var(--accent-blue);
-  font: 700 15px 'IBM Plex Sans', sans-serif;
-}
-
-.staff-play-btn:active {
-  transform: scale(0.97);
-}
-
 .staff {
   display: block;
   width: 100%;
@@ -1971,13 +1955,24 @@ body {
   max-height: none;
 }
 
-.ns-play-btn {
+.ns-staff-card {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ns-staff-card:active {
+  transform: scale(0.99);
+}
+
+/* Where to tap to hear the note: the whole card plays it. */
+.ns-tap-hint {
   position: absolute;
-  top: 8px;
-  right: 8px;
-  margin: 0;
-  padding: 6px 12px;
-  font-size: 13px;
+  top: 10px;
+  right: 14px;
+  font: 700 13px 'IBM Plex Sans', sans-serif;
+  color: #2b8a3e;
+  opacity: 0.75;
+  pointer-events: none;
 }
 
 .ns-answer {
@@ -6129,10 +6124,6 @@ body {
 }
 .ns-staff-card .staff {
   position: relative;
-}
-.ns-play-btn {
-  background: #d3f9d8;
-  color: #2b8a3e;
 }
 /* Letter keys: each its own soft color, like little piano blocks. */
 .notespeller-key {
