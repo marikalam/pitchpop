@@ -19,6 +19,11 @@ import { recordNoteRound } from './todayPlan.js';
 // every answer, right or wrong, links the written note to its name and
 // its sound.
 const SESSION_ROUNDS = 20;
+// The answer is a key on a one-octave piano (like the chord notes in Pitch
+// Practice), with the letter on each key. Letters a player isn't reading
+// yet are dimmed; the black keys are only there to look like a piano.
+const KEYS = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+const BLACK_AFTER = ['C', 'D', 'F', 'G', 'A'];
 function ProgressDots({ current, total }) {
   const items = [];
   for (let i = 1; i <= total; i++) {
@@ -172,8 +177,8 @@ export default function NoteSpeller({ engine, playerId, onComplete, onOpenSettin
   }
 
   // Everything fits on one screen, no scrolling: the staff takes whatever
-  // height is left, and once a note is answered the feedback and Next
-  // replace the letter keys in the same spot.
+  // height is left. Once a note is answered the right key lights up green
+  // (a wrong one pink), and the next note comes by itself.
   return (
     <div className="ns-screen">
       {clefPicker}
@@ -202,31 +207,39 @@ export default function NoteSpeller({ engine, playerId, onComplete, onOpenSettin
       </div>
 
       <div className="ns-answer">
-        {answered ? (
-          <div className="note-feedback">
-            <p className={`note-feedback-text${answered.correct ? ' note-feedback-correct' : ''}`}>
-              {answered.correct
-                ? `🎉 Yes! That's ${target.letter}.`
-                : `That's ${target.letter}. You picked ${answered.picked}.`}
-            </p>
-            <div className="feedback-actions">
-              <button className="pill-btn-secondary" onClick={() => sayAndPlay(target)}>
-                🔊 Hear it
+        <p
+          className={`note-feedback-text ns-key-prompt${answered ? (answered.correct ? ' note-feedback-correct' : '') : ' ns-key-prompt-ask'}`}
+          aria-live="polite"
+        >
+          {answered
+            ? answered.correct
+              ? `🎉 Yes! That's ${target.letter}.`
+              : `That's ${target.letter}. You tapped ${answered.picked}.`
+            : 'Tap the key'}
+        </p>
+        <div className="tn-piano ns-piano">
+          {KEYS.map((letter) => {
+            const offered = lettersFor(clefMode, level, myLetters).includes(letter);
+            const right = answered && letter === target.letter;
+            const wrong = answered && !answered.correct && letter === answered.picked;
+            return (
+              <button
+                key={letter}
+                className={`tn-key ns-key-${letter}${offered ? '' : ' ns-key-off'}${right ? ' ns-key-right' : ''}${wrong ? ' tn-key-wrong' : ''}`}
+                onClick={() => answer(letter)}
+                disabled={!!answered || !offered}
+                aria-label={letter}
+              >
+                <span className="tn-key-letter">{letter}</span>
               </button>
-              <button className="pill-btn-primary" onClick={next}>
-                {roundIndex + 1 >= SESSION_ROUNDS ? 'Finish' : 'Next'} →
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div className="note-answer-grid">
-            {lettersFor(clefMode, level, myLetters).map((letter) => (
-              <button key={letter} className={`notespeller-key ns-key-${letter}`} onClick={() => answer(letter)}>
-                {letter}
-              </button>
-            ))}
-          </div>
-        )}
+            );
+          })}
+          {KEYS.map((letter, k) =>
+            BLACK_AFTER.includes(letter) ? (
+              <span key={`${letter}#`} className="tn-black ns-black" style={{ '--k': k + 1 }} aria-hidden="true" />
+            ) : null,
+          )}
+        </div>
       </div>
     </div>
   );

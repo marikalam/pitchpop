@@ -2042,15 +2042,38 @@ body {
 
 .ns-answer {
   flex: none;
-  height: 124px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  gap: 8px;
 }
 
-.ns-answer .note-answer-grid .notespeller-key {
-  min-height: 56px;
-  font-size: 22px;
+.ns-key-prompt {
+  height: 24px;
+  line-height: 24px;
+  white-space: nowrap;
+}
+
+.ns-key-prompt-ask {
+  color: var(--ink-dim);
+}
+
+.ns-piano {
+  height: clamp(120px, 19vh, 180px);
+}
+
+/* NoteSpeller's black keys are only for looks: taps go to the white key. */
+.ns-black {
+  pointer-events: none;
+}
+
+.ns-piano .ns-key-off {
+  background: #c9cde0;
+  color: #8a8fa8;
+}
+
+.ns-piano .ns-key-right {
+  background: var(--accent-green);
+  color: #fff;
 }
 
 .ns-answer .note-feedback-text {
