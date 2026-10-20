@@ -1,11 +1,6 @@
-import { freshContext, wakeContext } from './soundBus.js';
-let audioCtx = null;
+import { audioContext } from './soundBus.js';
 
-function ensureAudio() {
-  audioCtx = freshContext(audioCtx, () => new (window.AudioContext || window.webkitAudioContext)());
-  wakeContext(audioCtx);
-  return audioCtx;
-}
+const ensureAudio = audioContext;
 
 function playClick() {
   const ctx = ensureAudio();

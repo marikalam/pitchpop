@@ -1,4 +1,4 @@
-import { currentSound, later, playBuffer, freshContext, soundOutput, wakeContext } from './soundBus.js';
+import { audioContext, currentSound, later, playBuffer, soundOutput, wakeContext } from './soundBus.js';
 import { freqMidi, loadPianoSamples, pianoSample } from './pianoSamples.js';
 
 // Sharps are for the Piano screen's black keys; everything else uses the
@@ -232,7 +232,7 @@ export class PianoEngine {
   }
 
   ensureAudio() {
-    this.ctx = freshContext(this.ctx, () => new (window.AudioContext || window.webkitAudioContext)());
+    this.ctx = audioContext();
     return this.ctx;
   }
 
@@ -402,13 +402,7 @@ export class PianoEngine {
   }
 }
 
-let chimeCtx = null;
-
-function ensureChimeAudio() {
-  chimeCtx = freshContext(chimeCtx, () => new (window.AudioContext || window.webkitAudioContext)());
-  wakeContext(chimeCtx);
-  return chimeCtx;
-}
+const ensureChimeAudio = audioContext;
 
 function chimeTone(ctx, out, freqHz, startTime, duration, peak) {
   const osc = ctx.createOscillator();

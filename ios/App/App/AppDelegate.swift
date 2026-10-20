@@ -25,14 +25,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         return true
     }
 
-    // Puts the audio session back the way PitchPop needs it: playing even on
-    // silent, mixed with other apps' audio. Also run each time PitchPop comes
-    // back to the screen (SceneDelegate), since a phone call, Siri or another
-    // app can change it while PitchPop is away.
+    // Puts the audio session's category back the way PitchPop needs it:
+    // playing even on silent, mixed with other apps' audio. Also run each
+    // time PitchPop comes back to the screen (SceneDelegate), since a phone
+    // call, Siri or another app can change it while PitchPop is away. It
+    // only sets the category - like MathPop - and leaves turning the
+    // session on to the web view when it plays; activating it from here
+    // as well could leave the web view's sound silent.
     static func keepAudible() {
-        let session = AVAudioSession.sharedInstance()
-        try? session.setCategory(.playback, options: [.mixWithOthers])
-        try? session.setActive(true)
+        try? AVAudioSession.sharedInstance().setCategory(.playback, options: [.mixWithOthers])
     }
 
     func applicationWillResignActive(_ application: UIApplication) {

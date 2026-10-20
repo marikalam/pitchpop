@@ -95,8 +95,6 @@ public class DeviceVolumePlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func getVolume(_ call: CAPPluginCall) {
-        let session = AVAudioSession.sharedInstance()
-        try? session.setActive(true)
-        call.resolve(["volume": session.outputVolume])
+        call.resolve(["volume": AVAudioSession.sharedInstance().outputVolume])
     }
 }

@@ -1,3 +1,5 @@
+import { Capacitor } from '@capacitor/core';
+
 // One sound at a time. Every chord, note run, voice clip and answer sound
 // registers here; starting something new (newSound) quickly fades out
 // whatever is still playing and cancels anything waiting to play (e.g. the
@@ -55,6 +57,9 @@ export function outputFor(ctx) {
 // loud even with the ringer on silent, instead of being treated as quiet
 // background sound. (WebKit's Audio Session API; iOS 17 and later.)
 export function playOutLoud() {
+  // The iPhone app sets this itself (AppDelegate), and changing it from
+  // here too fought with that.
+  if (Capacitor.isNativePlatform()) return;
   try {
     if (navigator.audioSession && navigator.audioSession.type !== 'playback') navigator.audioSession.type = 'playback';
   } catch {
@@ -142,106 +147,45 @@ function track(ctx, gain, nodes) {
   return stop;
 }
 
-// ---------- Sound on/off, and waking sound up ----------
-// Every audio context PitchPop makes registers here, so they can be
-// muted together (the speaker button, like Instagram's) and woken up again
-// when the iPhone has paused them - after a call, Siri, an alarm or
-// another app - which used to leave PitchPop silent until it was
-// restarted. Any tap, and coming back to the app, wakes them. Muting lasts
-// until it's switched back on (or the volume is turned up), not across
-// restarts, so the app never opens silent.
-const contexts = new Set();
+// ---------- One audio context, sound on/off, and waking sound up ----------
+// All of PitchPop plays through ONE audio context, made on first use and
+// kept for good (only remade if it's ever closed) - the way MathPop does
+// it, which iPhones handle well. Every tap anywhere resumes it (that tap
+// is what iOS needs to let sound play), and so does each sound before it
+// plays, so after a call, Siri, an alarm, the lock screen or another app
+// the next tap brings sound back. (PitchPop used to make several contexts
+// and replace them after the lock screen; on iPhones that could leave it
+// silent.) The speaker button mutes it; muting lasts until it's switched
+// back on (or the volume is turned up), not across restarts, so the app
+// never opens silent.
+let shared = null;
 let muted = false;
 
 function announceState() {
   window.dispatchEvent(new Event('pitchpop-sound-state'));
 }
 
-// iPhones (older iOS especially) can leave an audio context silent after
-// a call, Siri, the phone locking or a trip to another app - stuck, or
-// even saying it's running while nothing comes out - and then the volume
-// buttons don't reach PitchPop either. So after any of those, the next
-// sound makes a new context instead (the sounds themselves are kept).
-let staleSince = 0;
-const born = new WeakMap();
-// Contexts that didn't wake up when asked.
-const stuck = new WeakSet();
-const KEEP_NEW_MS = 5000;
-function goneStale() {
-  staleSince = Date.now();
-  needsUnlock = true;
-}
-
-// After the lock screen or another app, the first tap also plays a moment
-// of silence through an <audio> element: on iPhones that's what reliably
-// wakes up the phone's sound for the page again, so the chord that tap
-// plays is heard. (A tap has to start it; iOS won't otherwise.)
-let needsUnlock = false;
-// 0.05 s of silence.
-const SILENCE =
-  'data:audio/wav;base64,UklGRrQBAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YZABAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA';
-function unlockWithSilence() {
-  if (!needsUnlock || muted) return;
-  needsUnlock = false;
-  try {
-    const el = new Audio(SILENCE);
-    el.setAttribute('playsinline', '');
-    el.play()?.catch(() => {});
-  } catch {
-    /* ignore */
+export function audioContext() {
+  if (!shared || shared.state === 'closed') {
+    playOutLoud();
+    shared = new (window.AudioContext || window.webkitAudioContext)();
+    shared.addEventListener?.('statechange', announceState);
+    if (muted) shared.suspend().catch(() => {});
+    announceState();
   }
+  wakeContext(shared);
+  return shared;
 }
 
-// The context to play on: `ctx` while it's healthy, else a new one from
-// `make` (the old one is closed).
-export function freshContext(ctx, make) {
-  // A context made in the last few seconds is kept even if it hasn't
-  // started yet: right after the phone unlocks, iOS can take a while to
-  // give sound back, and replacing the context on every tap (each new one
-  // just as slow) used to keep Pitch Practice silent for good.
-  const young = ctx && Date.now() - (born.get(ctx) || 0) < KEEP_NEW_MS;
-  const fine =
-    ctx &&
-    ctx.state !== 'closed' &&
-    (young || (ctx.state !== 'interrupted' && !stuck.has(ctx) && born.get(ctx) > staleSince));
-  if (fine) return ctx;
-  if (ctx) {
-    contexts.delete(ctx);
-    if (ctx.state !== 'closed') ctx.close().catch(() => {});
-  }
-  const next = trackContext(make());
-  // A new context made in the same millisecond still counts as after it.
-  born.set(next, Math.max(Date.now(), staleSince + 1));
-  return next;
-}
-
-export function trackContext(ctx) {
-  playOutLoud();
-  contexts.add(ctx);
-  ctx.addEventListener?.('statechange', () => {
-    if (ctx.state === 'interrupted') goneStale();
-  });
-  ctx.addEventListener?.('statechange', announceState);
-  if (muted) ctx.suspend().catch(() => {});
-  announceState();
-  return ctx;
-}
-
-// Resumes a paused context (unless muted); never waits more than 0.4 s,
-// as an iPhone mid-interruption may not answer.
+// Resumes the context if it's paused (unless muted); never waits more
+// than 0.4 s, as an iPhone mid-interruption may not answer.
 export function wakeContext(ctx) {
   if (muted || !ctx || ctx.state === 'running' || ctx.state === 'closed') return Promise.resolve();
-  const resumed = ctx.resume().catch(() => {});
-  // Still not playing after a good while: its next sound gets a new
-  // context. (Not judged sooner: iOS can be slow to give sound back.)
-  setTimeout(() => {
-    if (ctx.state !== 'running' && ctx.state !== 'closed' && !muted) stuck.add(ctx);
-  }, 1500);
-  return Promise.race([resumed, new Promise((resolve) => setTimeout(resolve, 400))]);
+  return Promise.race([ctx.resume().catch(() => {}), new Promise((resolve) => setTimeout(resolve, 400))]);
 }
 
 export function wakeAudio() {
-  contexts.forEach((ctx) => wakeContext(ctx));
+  if (shared) wakeContext(shared);
 }
 
 export function isMuted() {
@@ -252,10 +196,7 @@ export function setMuted(on) {
   if (on === muted) return;
   if (on) newSound();
   muted = on;
-  contexts.forEach((ctx) => {
-    if (ctx.state === 'closed') return;
-    (on ? ctx.suspend() : ctx.resume()).catch(() => {});
-  });
+  if (shared && shared.state !== 'closed') (on ? shared.suspend() : shared.resume()).catch(() => {});
   announceState();
 }
 
@@ -263,22 +204,12 @@ export function setMuted(on) {
 // or 'on'.
 export function soundState() {
   if (muted) return 'muted';
-  const live = [...contexts].filter((ctx) => ctx.state !== 'closed');
-  return live.some((ctx) => ctx.state !== 'running') ? 'blocked' : 'on';
+  return shared && shared.state !== 'closed' && shared.state !== 'running' ? 'blocked' : 'on';
 }
 
 if (typeof document !== 'undefined') {
-  document.addEventListener(
-    'pointerdown',
-    () => {
-      unlockWithSilence();
-      wakeAudio();
-    },
-    true,
-  );
+  document.addEventListener('pointerdown', wakeAudio, true);
   document.addEventListener('visibilitychange', () => {
-    // Back from the lock screen or another app: start sound afresh.
-    if (document.hidden) goneStale();
     if (!document.hidden) wakeAudio();
   });
 }
