@@ -1709,7 +1709,14 @@ export default function App() {
               stickerSlot={stickerPicker('tots')}
             />
           ) : (
-            <MusicTheory />
+            <MusicTheory
+              key={profile}
+              onComplete={() => {
+                setStreakDays(recordStreakDay(streakDays, profile));
+                earnSticker(profile);
+              }}
+              stickerSlot={stickerPicker('theory')}
+            />
           )}
         </div>
       </div>

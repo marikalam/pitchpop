@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import * as GLYPHS from './theoryGlyphs.js';
 import { GLOSSARY, THEORY_CATEGORIES } from './theoryGlossary.js';
+import TheoryQuiz from './TheoryQuiz.jsx';
 
 // Music Theory: a picture glossary of basic terms, grouped by topic, with
-// chips to show one topic at a time.
+// chips to show one topic at a time - and a quiz on them (TheoryQuiz.jsx).
 const SPACE = 20;
 const GLYPH_SCALE = SPACE / 250;
 // Glyph outlines are in font units: 250 per staff space, 125 per position.
@@ -26,7 +27,7 @@ function verticalRange(picture) {
   return [high + MARGIN_POS, low - MARGIN_POS];
 }
 
-function TheoryPicture({ picture, label }) {
+export function TheoryPicture({ picture, label }) {
   const [topPos, bottomPos] = verticalRange(picture);
   const yFor = (pos) => ((topPos - pos) * SPACE) / 2;
   const width = picture.width * SPACE;
@@ -80,12 +81,42 @@ function TheoryPicture({ picture, label }) {
   );
 }
 
-export default function MusicTheory() {
+export default function MusicTheory({ onComplete, stickerSlot }) {
   const [category, setCategory] = useState('all');
+  const [mode, setMode] = useState('glossary');
   const sections = THEORY_CATEGORIES.filter((c) => category === 'all' || c.id === category);
+
+  const modes = (
+    <div className="ns-segmented theory-modes" role="tablist" aria-label="Glossary or quiz">
+      {[
+        { id: 'glossary', label: '📖 Glossary' },
+        { id: 'quiz', label: '🎯 Quiz' },
+      ].map((m) => (
+        <button
+          key={m.id}
+          role="tab"
+          aria-selected={mode === m.id}
+          className={`ns-segment${mode === m.id ? ' ns-segment-active' : ''}`}
+          onClick={() => setMode(m.id)}
+        >
+          {m.label}
+        </button>
+      ))}
+    </div>
+  );
+
+  if (mode === 'quiz') {
+    return (
+      <>
+        {modes}
+        <TheoryQuiz onComplete={onComplete} stickerSlot={stickerSlot} />
+      </>
+    );
+  }
 
   return (
     <>
+      {modes}
       <h2 className="screen-title">Music Theory</h2>
       <p className="screen-sub">Glossary: what the signs in your music mean</p>
 
