@@ -38,6 +38,8 @@ export const LEVELS = [
 export const CLEF_MODES = [
   { id: 'treble', label: 'Treble clef' },
   { id: 'bass', label: 'Bass clef' },
+  // Half treble, half bass, mixed together in the same 20 notes.
+  { id: 'both', label: 'Both' },
 ];
 
 // Each player's NoteSpeller settings, set in Players & colors:
@@ -148,7 +150,8 @@ const sameNote = (a, b) => a && b && a.clef === b.clef && a.letter === b.letter 
 // The answer buttons for a level: easy only offers the letters it can ask,
 // so beginners pick from five instead of seven.
 export function lettersFor(clef, level = 'medium', myLetters) {
-  const inPool = new Set(notesFor(clef, level, myLetters).map((n) => n.letter));
+  const clefs = clef === 'both' ? ['treble', 'bass'] : [clef];
+  const inPool = new Set(clefs.flatMap((c) => notesFor(c, level, myLetters)).map((n) => n.letter));
   return LETTERS.filter((l) => inPool.has(l));
 }
 
@@ -157,7 +160,18 @@ export function lettersFor(clef, level = 'medium', myLetters) {
 // same note twice in a row. With only two or three notes that would make
 // the order easy to guess (C, D, C, D…), so then it's random, just never
 // three in a row.
+// 'both': half of each clef, shuffled together (never the same note twice
+// in a row).
 export function buildNoteQueue(clef, total, level = 'medium', myLetters) {
+  if (clef === 'both') {
+    const half = Math.ceil(total / 2);
+    let mixed = shuffle([
+      ...buildNoteQueue('treble', half, level, myLetters),
+      ...buildNoteQueue('bass', total - half, level, myLetters),
+    ]);
+    for (let tries = 0; tries < 50 && mixed.some((n, i) => sameNote(n, mixed[i - 1])); tries++) mixed = shuffle(mixed);
+    return mixed;
+  }
   const pool = notesFor(clef, level, myLetters);
   const queue = [];
   if (pool.length < 4) {
