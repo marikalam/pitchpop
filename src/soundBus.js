@@ -160,15 +160,44 @@ let staleSince = 0;
 const born = new WeakMap();
 // Contexts that didn't wake up when asked.
 const stuck = new WeakSet();
+const KEEP_NEW_MS = 5000;
 function goneStale() {
   staleSince = Date.now();
+  needsUnlock = true;
+}
+
+// After the lock screen or another app, the first tap also plays a moment
+// of silence through an <audio> element: on iPhones that's what reliably
+// wakes up the phone's sound for the page again, so the chord that tap
+// plays is heard. (A tap has to start it; iOS won't otherwise.)
+let needsUnlock = false;
+// 0.05 s of silence.
+const SILENCE =
+  'data:audio/wav;base64,UklGRrQBAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YZABAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA';
+function unlockWithSilence() {
+  if (!needsUnlock || muted) return;
+  needsUnlock = false;
+  try {
+    const el = new Audio(SILENCE);
+    el.setAttribute('playsinline', '');
+    el.play()?.catch(() => {});
+  } catch {
+    /* ignore */
+  }
 }
 
 // The context to play on: `ctx` while it's healthy, else a new one from
 // `make` (the old one is closed).
 export function freshContext(ctx, make) {
+  // A context made in the last few seconds is kept even if it hasn't
+  // started yet: right after the phone unlocks, iOS can take a while to
+  // give sound back, and replacing the context on every tap (each new one
+  // just as slow) used to keep Pitch Practice silent for good.
+  const young = ctx && Date.now() - (born.get(ctx) || 0) < KEEP_NEW_MS;
   const fine =
-    ctx && ctx.state !== 'closed' && ctx.state !== 'interrupted' && !stuck.has(ctx) && born.get(ctx) > staleSince;
+    ctx &&
+    ctx.state !== 'closed' &&
+    (young || (ctx.state !== 'interrupted' && !stuck.has(ctx) && born.get(ctx) > staleSince));
   if (fine) return ctx;
   if (ctx) {
     contexts.delete(ctx);
@@ -196,10 +225,13 @@ export function trackContext(ctx) {
 // as an iPhone mid-interruption may not answer.
 export function wakeContext(ctx) {
   if (muted || !ctx || ctx.state === 'running' || ctx.state === 'closed') return Promise.resolve();
-  return Promise.race([ctx.resume().catch(() => {}), new Promise((resolve) => setTimeout(resolve, 400))]).then(() => {
-    // Still not playing: its next sound gets a new context.
-    if (ctx.state !== 'running' && !muted) stuck.add(ctx);
-  });
+  const resumed = ctx.resume().catch(() => {});
+  // Still not playing after a good while: its next sound gets a new
+  // context. (Not judged sooner: iOS can be slow to give sound back.)
+  setTimeout(() => {
+    if (ctx.state !== 'running' && ctx.state !== 'closed' && !muted) stuck.add(ctx);
+  }, 1500);
+  return Promise.race([resumed, new Promise((resolve) => setTimeout(resolve, 400))]);
 }
 
 export function wakeAudio() {
@@ -230,7 +262,14 @@ export function soundState() {
 }
 
 if (typeof document !== 'undefined') {
-  document.addEventListener('pointerdown', wakeAudio, true);
+  document.addEventListener(
+    'pointerdown',
+    () => {
+      unlockWithSilence();
+      wakeAudio();
+    },
+    true,
+  );
   document.addEventListener('visibilitychange', () => {
     // Back from the lock screen or another app: start sound afresh.
     if (document.hidden) goneStale();

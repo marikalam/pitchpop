@@ -2563,6 +2563,102 @@ body {
   height: 76px;
 }
 
+.theory-modes {
+  margin: 0 auto 14px;
+  width: min(320px, 100%);
+}
+
+.theory-modes .ns-segment {
+  flex: 1;
+  white-space: nowrap;
+}
+
+/* ---------- Theory quiz ---------- */
+.tq-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tq-title {
+  margin: 0;
+}
+
+.tq-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: clamp(120px, 22vh, 200px);
+  padding: 12px;
+}
+
+.tq-card .theory-picture {
+  width: 100%;
+  max-width: 240px;
+  height: 100%;
+}
+
+.tq-feedback {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tq-meaning {
+  margin: 0;
+  text-align: center;
+  font-size: 15px;
+  line-height: 1.35;
+  color: var(--ink-dim);
+}
+
+.tq-choices {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.tq-choice {
+  appearance: none;
+  border: none;
+  cursor: pointer;
+  min-height: 60px;
+  padding: 8px 10px;
+  border-radius: 16px;
+  background: var(--card-bg);
+  box-shadow: var(--shadow-sm);
+  color: var(--ink);
+  font: 700 17px/1.15 'Fredoka', ui-rounded, system-ui, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tq-choice:active:not(:disabled) {
+  transform: translateY(2px);
+}
+
+.tq-choice:disabled {
+  cursor: default;
+}
+
+.tq-choice-right {
+  background: var(--accent-green);
+  color: #fff;
+}
+
+.tq-choice-wrong {
+  background: #fde3e1;
+  color: var(--accent-red);
+  box-shadow: inset 0 0 0 3px var(--accent-red);
+}
+
+.tq-choice-dim {
+  opacity: 0.45;
+}
+
+.tq-next {
+  align-self: center;
+}
+
 .theory-staff-line {
   stroke: #8a90a8;
   stroke-width: 1.3;

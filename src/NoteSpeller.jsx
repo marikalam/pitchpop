@@ -24,7 +24,7 @@ const SESSION_ROUNDS = 20;
 // yet are dimmed; the black keys are only there to look like a piano.
 const KEYS = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
 const BLACK_AFTER = ['C', 'D', 'F', 'G', 'A'];
-function ProgressDots({ current, total }) {
+export function ProgressDots({ current, total }) {
   const items = [];
   for (let i = 1; i <= total; i++) {
     items.push(<span key={`d${i}`} className={`progress-dot${i <= current ? ' progress-dot-filled' : ''}`} />);
