@@ -2,15 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { playCorrectChime, playWrongBuzz } from './piano.js';
 import { speakNoteName, speakResults } from './speech.js';
 import { isCurrent, later, newSound } from './soundBus.js';
-import {
-  CLEF_MODES,
-  buildNoteQueue,
-  lettersFor,
-  readingClef,
-  readingLetters,
-  readingLevel,
-  setReadingClef,
-} from './noteReading.js';
+import { buildNoteQueue, lettersFor, readingClef, readingLetters, readingLevel } from './noteReading.js';
 import Staff from './Staff.jsx';
 import { recordNoteRound } from './todayPlan.js';
 
@@ -42,12 +34,11 @@ export function ProgressDots({ current, total }) {
   );
 }
 
-export default function NoteSpeller({ engine, playerId, onComplete, onOpenSettings, stickerSlot }) {
-  // Clef, part of the staff and letters are set per player in Players &
-  // colors.
-  // The clef can be switched right here too (saved for the player).
-  const [clefMode, setClefMode] = useState(() => readingClef(playerId));
-  const [{ level, myLetters }] = useState(() => ({
+export default function NoteSpeller({ engine, playerId, onComplete, stickerSlot }) {
+  // Clef (treble, bass or both), part of the staff and letters are set per
+  // player in Players & colors.
+  const [{ clefMode, level, myLetters }] = useState(() => ({
+    clefMode: readingClef(playerId),
     level: readingLevel(playerId),
     myLetters: readingLetters(playerId),
   }));
@@ -67,21 +58,13 @@ export default function NoteSpeller({ engine, playerId, onComplete, onOpenSettin
     queue.forEach((n) => engine.getPitchBuffer(n.letter, n.octave));
   }, [queue, engine]);
 
-  function restart(clef = clefMode) {
-    setQueue(buildNoteQueue(clef, SESSION_ROUNDS, level, myLetters));
+  function restart() {
+    setQueue(buildNoteQueue(clefMode, SESSION_ROUNDS, level, myLetters));
     setRoundIndex(0);
     setAnswered(null);
     setCorrectCount(0);
     setDone(false);
     misses.current = {};
-  }
-
-  function chooseClef(clef) {
-    if (clef === clefMode) return;
-    newSound();
-    setClefMode(clef);
-    setReadingClef(playerId, clef);
-    restart(clef);
   }
 
   // Says the letter, then plays the note - unless another sound has started
@@ -130,35 +113,9 @@ export default function NoteSpeller({ engine, playerId, onComplete, onOpenSettin
     setAnswered(null);
   }
 
-  // Treble or bass, big enough for small fingers, and where to change
-  // the rest of this player's NoteSpeller settings.
-  const clefPicker = (
-    <div className="ns-settings ns-summary">
-      <div className="ns-segmented ns-clef-switch" role="radiogroup" aria-label="Clef">
-        {CLEF_MODES.map((m) => (
-          <button
-            key={m.id}
-            role="radio"
-            aria-checked={clefMode === m.id}
-            className={`ns-segment${clefMode === m.id ? ' ns-segment-active' : ''}`}
-            onClick={() => chooseClef(m.id)}
-          >
-            {m.label.replace(' clef', '')}
-          </button>
-        ))}
-      </div>
-      {onOpenSettings && (
-        <button className="ns-summary-change" onClick={onOpenSettings} aria-label="NoteSpeller settings">
-          ⚙️
-        </button>
-      )}
-    </div>
-  );
-
   if (done) {
     return (
       <>
-        {clefPicker}
         <div className="complete-wrap">
           <div className="complete-emoji">🎼</div>
           <h2 className="screen-title">NoteSpeller complete!</h2>
@@ -167,7 +124,7 @@ export default function NoteSpeller({ engine, playerId, onComplete, onOpenSettin
           </p>
           {/* Play again only once the sticker is in. */}
           {(stickerSlot || ((then) => then))(
-            <button className="pill-btn-primary" onClick={() => restart()}>
+            <button className="pill-btn-primary" onClick={restart}>
               Play again →
             </button>,
           )}
@@ -181,7 +138,6 @@ export default function NoteSpeller({ engine, playerId, onComplete, onOpenSettin
   // (a wrong one pink), and the next note comes by itself.
   return (
     <div className="ns-screen">
-      {clefPicker}
       <div className="ns-progress-row">
         <ProgressDots current={roundIndex + 1} total={SESSION_ROUNDS} />
         <span className="ns-stars" aria-label={`${correctCount} right`}>
