@@ -1818,15 +1818,6 @@ body {
 
 /* NoteSpeller settings card: labelled Clef and Level rows, each an
    equal-width segmented control. */
-.ns-settings {
-  display: flex;
-  flex-direction: column;
-  padding: 6px 14px 10px;
-  border-radius: 18px;
-  background: var(--card-bg);
-  box-shadow: var(--shadow-sm);
-}
-
 .ns-setting-row {
   display: grid;
   grid-template-columns: 52px 1fr;
@@ -1923,47 +1914,6 @@ body {
 }
 
 /* NoteSpeller's one-line summary of the player's settings. */
-.ns-summary {
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.ns-screen .ns-summary {
-  padding: 8px 8px 8px 14px;
-}
-
-.ns-clef-switch {
-  flex: none;
-}
-
-.ns-clef-switch .ns-segment {
-  padding: 6px 14px;
-}
-
-.ns-summary-text {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: var(--ink-dim);
-  font: 700 13px 'IBM Plex Sans', sans-serif;
-}
-
-.ns-summary-change {
-  appearance: none;
-  flex-shrink: 0;
-  border: none;
-  cursor: pointer;
-  padding: 6px 10px;
-  border-radius: 999px;
-  background: #eef1f7;
-  color: var(--accent-blue);
-  font: 700 13px 'IBM Plex Sans', sans-serif;
-}
-
 .ns-level-hint {
   margin: 0;
   padding-left: 62px;
@@ -1991,10 +1941,6 @@ body {
   display: flex;
   flex-direction: column;
   gap: 10px;
-}
-
-.ns-screen .ns-settings {
-  padding: 2px 12px;
 }
 
 .ns-screen .ns-setting-row {
@@ -5843,21 +5789,6 @@ body {
 }
 
 /* NoteSpeller: Treble / Bass as big buttons. */
-.ns-summary .ns-clef-switch {
-  flex: 1;
-  padding: 4px;
-  border-radius: 16px;
-}
-.ns-summary .ns-clef-switch .ns-segment {
-  padding: 12px 10px;
-  border-radius: 12px;
-  font: 700 20px 'Fredoka', ui-rounded, system-ui, sans-serif;
-}
-.ns-summary .ns-summary-change {
-  padding: 12px 14px;
-  font-size: 18px;
-}
-
 /* Home greeting: bigger, with stickers around it. */
 .home-fit .home-hero {
   gap: 6px;
