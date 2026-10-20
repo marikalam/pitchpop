@@ -746,6 +746,8 @@ export default function App() {
   // (smartRound.js), or null: { name, partner }.
   // A sticker just picked on the "All done!" screen, to stick in the book.
   const [placingSticker, setPlacingSticker] = useState(null);
+  // Music Theory's tab: the glossary, or the quiz when opened from the plan.
+  const [theoryMode, setTheoryMode] = useState('glossary');
   const [stickerBackTo, setStickerBackTo] = useState(null);
   const [planReason, setPlanReason] = useState(null);
   // The home page's End practice: Practice Mode opens and ends it.
@@ -1358,6 +1360,7 @@ export default function App() {
     if (id === 'explore') return openExplore();
     if (id === 'notespeller') return openNoteSpeller();
     if (id === 'plan') return openPlan();
+    if (id === 'theory') setTheoryMode('glossary');
     if (PAID_VIEWS.includes(id) && !hasPlan(cloudUser)) return openPlan();
     if (!TOOL_VIEWS.includes(view)) setPreToolView(view);
     setView(id);
@@ -1380,11 +1383,22 @@ export default function App() {
 
   // The sticker picker shown when an activity is finished.
   // Today's practice item to open.
-  const openPlanItem = (id) => (id === 'color-test' || id === 'tots' ? startPlay() : openTool(id));
+  const openPlanItem = (id) => {
+    if (id === 'color-test' || id === 'tots') return startPlay();
+    openTool(id);
+    // From the plan, Music Theory opens on its quiz.
+    if (id === 'theory') setTheoryMode('quiz');
+  };
 
   // After finishing something: the next thing on today's list (not `doneId`),
   // or home when the list is all done.
-  const NEXT_LABELS = { 'color-test': 'Pitch Practice', tots: 'Tiny Tots', notespeller: 'NoteSpeller', practice: 'Piano practice' };
+  const NEXT_LABELS = {
+    'color-test': 'Pitch Practice',
+    tots: 'Tiny Tots',
+    notespeller: 'NoteSpeller',
+    theory: 'Theory quiz',
+    practice: 'Piano practice',
+  };
   const nextUpButton = (doneId) => {
     const next = todayPlan({
       playerId: profile,
@@ -1695,6 +1709,7 @@ export default function App() {
               onSignIn={openAccount}
               placing={placingSticker}
               onPlaced={() => setPlacingSticker(null)}
+              next={nextUpButton()}
             />
           ) : view === 'tinytots' ? (
             <TinyTots
@@ -1710,9 +1725,11 @@ export default function App() {
             />
           ) : (
             <MusicTheory
-              key={profile}
+              key={`${profile}-${theoryMode}`}
+              startMode={theoryMode}
               onComplete={() => {
                 setStreakDays(recordStreakDay(streakDays, profile));
+                markDoneToday(profile, 'theory');
                 earnSticker(profile);
               }}
               stickerSlot={stickerPicker('theory')}
