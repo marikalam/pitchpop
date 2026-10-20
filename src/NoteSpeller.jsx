@@ -76,9 +76,18 @@ export default function NoteSpeller({ engine, playerId, onComplete, stickerSlot 
     }
     // Say the name and play the note, then on to the next note by itself
     // (a wrong answer stays up a little longer, to see the right one).
+    // It moves on even if the sound never finishes (the phone's sound
+    // paused, or the voice slow to load), so the screen can't get stuck.
+    let moved = false;
+    const moveOn = () => {
+      if (moved || !isCurrent(soundId)) return;
+      moved = true;
+      nextRef.current();
+    };
+    later(moveOn, correct ? 4000 : 5000);
     later(async () => {
       await sayAndPlay(target, soundId);
-      if (isCurrent(soundId)) later(() => nextRef.current(), correct ? 900 : 1800);
+      if (isCurrent(soundId)) later(moveOn, correct ? 900 : 1800);
     }, 350);
   }
 
@@ -127,10 +136,18 @@ export default function NoteSpeller({ engine, playerId, onComplete, stickerSlot 
     <div className="ns-screen">
       <ProgressDots current={roundIndex + 1} total={SESSION_ROUNDS} outcomes={outcomes} />
       <h2 className="screen-title ns-title">What note is this? 🎵</h2>
-      <div className={`staff-card ns-staff-card${answered ? (answered.correct ? ' ns-staff-right' : ' ns-staff-wrong') : ''}`}>
-        <span className="ns-deco ns-deco-1" aria-hidden="true">♪</span>
-        <span className="ns-deco ns-deco-2" aria-hidden="true">♫</span>
-        <span className="ns-deco ns-deco-3" aria-hidden="true">♩</span>
+      <div
+        className={`staff-card ns-staff-card${answered ? (answered.correct ? ' ns-staff-right' : ' ns-staff-wrong') : ''}`}
+      >
+        <span className="ns-deco ns-deco-1" aria-hidden="true">
+          ♪
+        </span>
+        <span className="ns-deco ns-deco-2" aria-hidden="true">
+          ♫
+        </span>
+        <span className="ns-deco ns-deco-3" aria-hidden="true">
+          ♩
+        </span>
         <Staff note={target} highlight={answered ? (answered.correct ? 'correct' : 'wrong') : null} />
         <button
           className="staff-play-btn ns-play-btn"

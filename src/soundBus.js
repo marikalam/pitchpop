@@ -91,12 +91,18 @@ export function playBuffer(ctx, buffer, volume = 1, when = 0, { rate = 1, releas
   }
   source.connect(gain).connect(outputFor(ctx));
   const stop = track(ctx, gain, [source]);
-  // Resolves when it finishes or is stopped by newSound().
+  // Resolves when it finishes or is stopped by newSound() - or, if the
+  // phone has paused sound (the context never runs, so 'ended' never
+  // comes), once it would have finished, so nothing waits on it forever.
+  const lasts =
+    (releaseAt ? releaseAt + 0.6 - ctx.currentTime : buffer.duration / rate) + Math.max(0, when - ctx.currentTime);
   const ended = new Promise((resolve) => {
-    source.addEventListener('ended', () => {
+    const done = () => {
       playing.delete(stop);
       resolve();
-    });
+    };
+    source.addEventListener('ended', done);
+    setTimeout(done, lasts * 1000 + 500);
   });
   source.start(when);
   if (releaseAt) source.stop(releaseAt + 0.6);
