@@ -2557,6 +2557,10 @@ body {
   gap: 10px;
 }
 
+.tq-choices-one {
+  grid-template-columns: 1fr;
+}
+
 .tq-choice {
   appearance: none;
   border: none;
