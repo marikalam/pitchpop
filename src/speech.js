@@ -226,6 +226,11 @@ export async function speakNoteName(letter) {
   await speak(`${letter}.`, `${LETTER_SOUNDS[letter] || letter}.`);
 }
 
+// Any English words, e.g. the Theory quiz reading its choices out loud.
+export function speakWords(text) {
+  return speak(text);
+}
+
 export async function speakResults(correct, total) {
   const wrong = total - correct;
   if (lang === 'ja') {

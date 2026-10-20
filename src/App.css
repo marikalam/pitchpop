@@ -2579,6 +2579,23 @@ body {
   cursor: default;
 }
 
+.tq-card {
+  position: relative;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* The choice being read out loud. */
+.tq-choice-reading {
+  background: #eef2fd;
+  box-shadow: 0 0 0 4px var(--accent-blue), var(--shadow-sm);
+  transform: scale(1.04);
+}
+
+.tq-choice {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
 .tq-choice-right {
   background: var(--accent-green);
   color: #fff;
