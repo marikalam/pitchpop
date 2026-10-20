@@ -1464,9 +1464,8 @@ export default function App() {
       draftProfiles.forEach(saveCloudProfile);
       profiles.filter((p) => !keptIds.has(p.id)).forEach((p) => deleteCloudProfile(p.id));
     }
-    // Back to a fresh color test, built from the saved colors of whoever
-    // is playing (their colors may just have changed) - or Tiny Tots, for
-    // a player in Tiny Tots.
+    // Back to the home page. The next color test starts fresh, built from
+    // the saved colors of whoever is playing (they may just have changed).
     const player = draftProfiles.find((p) => p.id === profile) || draftProfiles[0];
     setProfile(player.id);
     newRound(player.id, player.colors);
@@ -1476,7 +1475,7 @@ export default function App() {
     setRoundResults({});
     setRoundOutcomes({});
     setRoundMixups({});
-    setView(playViewFor(player.id));
+    goHome();
   }
 
   async function handleSignedIn(user) {
