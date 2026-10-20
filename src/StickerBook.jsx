@@ -9,7 +9,7 @@ import { playStickerPick, playStickerStick } from './piano.js';
 // sticker is peeled up, flown over and pressed onto its spot, then does
 // its little move. (Stickers earned but not picked yet wait here: tapping
 // a shadow picks one.)
-export default function StickerBook({ player, signedIn, onSignIn, placing, onPlaced }) {
+export default function StickerBook({ player, signedIn, onSignIn, placing, onPlaced, next = null }) {
   const [stickers, setStickers] = useState(() => (signedIn ? playerStickers(player.id) : []));
   const [pending, setPending] = useState(() => (signedIn ? pendingStickers(player.id) : 0));
   const [chosen, setChosen] = useState(null);
@@ -159,6 +159,9 @@ export default function StickerBook({ player, signedIn, onSignIn, placing, onPla
               ⭐ In your sticker book! ⭐
             </p>
           )}
+          {/* Just stuck one in after an activity: what's left in today's
+              practice (or All done). */}
+          {phase === 'landed' && !choosing && next && <div className="sbook-next">{next}</div>}
           {!signedIn && (
             <button className="pill-btn-secondary sbook-signin" onClick={onSignIn}>
               Sign in or create account

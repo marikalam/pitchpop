@@ -81,9 +81,9 @@ export function TheoryPicture({ picture, label }) {
   );
 }
 
-export default function MusicTheory({ onComplete, stickerSlot }) {
+export default function MusicTheory({ startMode = 'glossary', onComplete, stickerSlot }) {
   const [category, setCategory] = useState('all');
-  const [mode, setMode] = useState('glossary');
+  const [mode, setMode] = useState(startMode);
   const sections = THEORY_CATEGORIES.filter((c) => category === 'all' || c.id === category);
 
   const modes = (

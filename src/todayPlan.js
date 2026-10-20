@@ -39,7 +39,8 @@ export function recordNoteRound(playerId, misses, ended = new Date()) {
   write(NOTES_KEY, { ...all, [playerId]: [...(all[playerId] || []), entry].slice(-KEEP_NOTE_ROUNDS) });
 }
 
-// Something without a history of its own done today (Tiny Tots).
+// Something without a history of its own done today (Tiny Tots, the
+// Theory quiz).
 export function markDoneToday(playerId, id) {
   if (!keepsRecords()) return;
   const all = read(DONE_KEY);
@@ -95,6 +96,16 @@ export function todayPlan({ playerId, rounds = [], practices = [], colorNames = 
           ? 'All right last time! · 20 notes'
           : 'Read 20 notes on the staff',
       done: noteRounds.some((r) => r.day === today),
+    });
+  }
+
+  if (!tinyTots) {
+    items.push({
+      id: 'theory',
+      icon: '📖',
+      title: 'Theory quiz',
+      sub: '20 music signs',
+      done: !!(read(DONE_KEY)[playerId]?.day === today && read(DONE_KEY)[playerId]?.theory),
     });
   }
 
