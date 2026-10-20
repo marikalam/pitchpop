@@ -3,6 +3,7 @@ import { playCorrectChime, playWrongBuzz } from './piano.js';
 import { speakNoteName, speakResults } from './speech.js';
 import { isCurrent, later, newSound } from './soundBus.js';
 import { buildNoteQueue, lettersFor, readingClef, readingLetters, readingLevel } from './noteReading.js';
+import ProgressDots from './ProgressDots.jsx';
 import Staff from './Staff.jsx';
 import { recordNoteRound } from './todayPlan.js';
 
@@ -16,24 +17,6 @@ const SESSION_ROUNDS = 20;
 // yet are dimmed; the black keys are only there to look like a piano.
 const KEYS = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
 const BLACK_AFTER = ['C', 'D', 'F', 'G', 'A'];
-export function ProgressDots({ current, total }) {
-  const items = [];
-  for (let i = 1; i <= total; i++) {
-    items.push(<span key={`d${i}`} className={`progress-dot${i <= current ? ' progress-dot-filled' : ''}`} />);
-    if (i < total) {
-      items.push(<span key={`l${i}`} className={`progress-line${i < current ? ' progress-line-filled' : ''}`} />);
-    }
-  }
-  return (
-    <div className="progress-wrap ns-progress">
-      <div className="progress-dots">{items}</div>
-      <span className="progress-count">
-        {current} / {total}
-      </span>
-    </div>
-  );
-}
-
 export default function NoteSpeller({ engine, playerId, onComplete, stickerSlot }) {
   // Clef (treble, bass or both), part of the staff and letters are set per
   // player in Players & colors.
@@ -46,6 +29,8 @@ export default function NoteSpeller({ engine, playerId, onComplete, stickerSlot 
   const [roundIndex, setRoundIndex] = useState(0);
   const [answered, setAnswered] = useState(null);
   const [correctCount, setCorrectCount] = useState(0);
+  // Right or wrong for each note answered ({ [index]: true | false }).
+  const [outcomes, setOutcomes] = useState({});
   const [done, setDone] = useState(false);
   // Letters missed this round, for tomorrow's "Today's practice".
   const misses = useRef({});
@@ -63,6 +48,7 @@ export default function NoteSpeller({ engine, playerId, onComplete, stickerSlot 
     setRoundIndex(0);
     setAnswered(null);
     setCorrectCount(0);
+    setOutcomes({});
     setDone(false);
     misses.current = {};
   }
@@ -79,6 +65,7 @@ export default function NoteSpeller({ engine, playerId, onComplete, stickerSlot 
     if (answered) return;
     const correct = letter === target.letter;
     setAnswered({ picked: letter, correct });
+    setOutcomes((o) => ({ ...o, [roundIndex]: correct }));
     const soundId = newSound();
     if (correct) {
       playCorrectChime();
@@ -138,12 +125,7 @@ export default function NoteSpeller({ engine, playerId, onComplete, stickerSlot 
   // (a wrong one pink), and the next note comes by itself.
   return (
     <div className="ns-screen">
-      <div className="ns-progress-row">
-        <ProgressDots current={roundIndex + 1} total={SESSION_ROUNDS} />
-        <span className="ns-stars" aria-label={`${correctCount} right`}>
-          ⭐ {correctCount}
-        </span>
-      </div>
+      <ProgressDots current={roundIndex + 1} total={SESSION_ROUNDS} outcomes={outcomes} />
       <h2 className="screen-title ns-title">What note is this? 🎵</h2>
       <div className={`staff-card ns-staff-card${answered ? (answered.correct ? ' ns-staff-right' : ' ns-staff-wrong') : ''}`}>
         <span className="ns-deco ns-deco-1" aria-hidden="true">♪</span>
