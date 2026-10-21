@@ -2502,6 +2502,20 @@ body {
   margin-top: 12px;
 }
 
+.scales-table td.hanon-now {
+  background: var(--accent-blue);
+  color: #fff;
+  border-radius: 6px;
+}
+
+/* Play: the bar sounding now, under the title. */
+.hanon-now-playing {
+  margin: 4px 0 12px;
+  padding: 6px 8px 8px;
+  border-radius: 14px;
+  background: #eef2fd;
+}
+
 .theory-modes {
   margin: 0 auto 14px;
   width: min(320px, 100%);
