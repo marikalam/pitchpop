@@ -178,17 +178,28 @@ if (!submission) {
     })
   ).data;
 }
-try {
-  await api('POST', '/v1/reviewSubmissionItems', {
-    type: 'reviewSubmissionItems',
-    relationships: {
-      reviewSubmission: { data: { type: 'reviewSubmissions', id: submission.id } },
-      appStoreVersion: { data: { type: 'appStoreVersions', id: version.id } },
-    },
-  });
-} catch (err) {
-  // Already in this submission from an earlier try.
-  if (!String(err).includes('409')) throw err;
+// Adds the version to the submission. Apple refuses (409) while it's
+// still checking new screenshots, so that's tried again for a few
+// minutes; a 409 because it's already in from an earlier try is fine.
+const hasItems = async () =>
+  (await api('GET', `/v1/reviewSubmissions/${submission.id}/items`)).data.length > 0;
+for (let attempt = 1; ; attempt++) {
+  try {
+    await api('POST', '/v1/reviewSubmissionItems', {
+      type: 'reviewSubmissionItems',
+      relationships: {
+        reviewSubmission: { data: { type: 'reviewSubmissions', id: submission.id } },
+        appStoreVersion: { data: { type: 'appStoreVersions', id: version.id } },
+      },
+    });
+    break;
+  } catch (err) {
+    if (!String(err).includes('409')) throw err;
+    if (await hasItems()) break;
+    if (attempt >= 10) throw err;
+    console.log(`Not ready to submit yet (try ${attempt}):\n${err.message}`);
+    await new Promise((r) => setTimeout(r, 30000));
+  }
 }
 await api('PATCH', `/v1/reviewSubmissions/${submission.id}`, {
   type: 'reviewSubmissions',
