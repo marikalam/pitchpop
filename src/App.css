@@ -2516,6 +2516,18 @@ body {
   background: #eef2fd;
 }
 
+.color-settings-group + .color-settings-group {
+  margin-top: 10px;
+}
+
+.color-settings-group-label {
+  margin-bottom: 6px;
+  font: 700 12px 'IBM Plex Sans', sans-serif;
+  color: var(--ink-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
 .theory-modes {
   margin: 0 auto 14px;
   width: min(320px, 100%);

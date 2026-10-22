@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { usesBlackKeys } from './blackKeys.js';
 import { deleteAccount, requestPasswordReset, signIn, signOut, signUp, updatePassword } from './cloud.js';
 import { firstDay, streakFor } from './streak.js';
 import { LEARNING_ORDER, READY_PCT, READY_ROUNDS } from './progress.js';
@@ -181,23 +182,33 @@ export function PlayerSettingsCard({ profile, colors, onUpdate, onRemove, canRem
         <div className="ps-row ps-row-top">
           <span className="ps-label">Colors</span>
           <div>
-            <div className="color-settings-grid">
-              {[...colors]
-                .sort((a, b) => LEARNING_ORDER.indexOf(a.name) - LEARNING_ORDER.indexOf(b.name))
-                .map((color) => (
-                <button
-                  key={color.name}
-                  className={`color-setting${profile.colors.includes(color.name) ? ' color-setting-active' : ''}${
-                    color.name === LEARNING_ORDER.find((n) => !profile.colors.includes(n)) ? ' color-setting-next' : ''
-                  }`}
-                  style={{ background: color.hex, color: color.text }}
-                  onClick={() => toggleColor(color.name)}
-                  aria-pressed={profile.colors.includes(color.name)}
-                >
-                  {color.name}
-                </button>
+            {[
+              ['White keys', colors.filter((c) => !usesBlackKeys(c))],
+              ['Black keys', colors.filter(usesBlackKeys)],
+            ]
+              .filter(([, group]) => group.length)
+              .map(([label, group]) => (
+                <div key={label} className="color-settings-group">
+                  <div className="color-settings-group-label">{label}</div>
+                  <div className="color-settings-grid">
+                    {[...group]
+                      .sort((a, b) => LEARNING_ORDER.indexOf(a.name) - LEARNING_ORDER.indexOf(b.name))
+                      .map((color) => (
+                        <button
+                          key={color.name}
+                          className={`color-setting${profile.colors.includes(color.name) ? ' color-setting-active' : ''}${
+                            color.name === LEARNING_ORDER.find((n) => !profile.colors.includes(n)) ? ' color-setting-next' : ''
+                          }`}
+                          style={{ background: color.hex, color: color.text }}
+                          onClick={() => toggleColor(color.name)}
+                          aria-pressed={profile.colors.includes(color.name)}
+                        >
+                          {color.name}
+                        </button>
+                      ))}
+                  </div>
+                </div>
               ))}
-            </div>
             <p className="ps-hint">
               Learning order: {profile.colors.map((c) => c[0].toUpperCase() + c.slice(1)).join(', ')}
             </p>
