@@ -36,7 +36,13 @@ export function watchVolume(onVolume) {
     if (document.visibilityState === 'visible') read();
   };
   document.addEventListener('visibilitychange', onVisible);
+  // The change events don't always come (iOS sends them only while its
+  // audio session is on), so it's also checked every couple of seconds.
+  const poll = setInterval(() => {
+    if (document.visibilityState === 'visible') read();
+  }, 2000);
   return () => {
+    clearInterval(poll);
     document.removeEventListener('visibilitychange', onVisible);
     listener.then((l) => l.remove()).catch(() => {});
   };

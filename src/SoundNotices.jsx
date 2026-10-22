@@ -58,6 +58,8 @@ export default function SoundNotices() {
 
   function dismiss() {
     if (notice === 'silent') markHintSeen();
+    // "Got it": they can hear, so the "Turn the volume up" pill goes too.
+    window.dispatchEvent(new Event('pitchpop-can-hear'));
     setNotice(null);
   }
 

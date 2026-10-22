@@ -124,6 +124,9 @@ public class DeviceVolumePlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func getVolume(_ call: CAPPluginCall) {
-        call.resolve(["volume": AVAudioSession.sharedInstance().outputVolume])
+        let session = AVAudioSession.sharedInstance()
+        // The volume is only up to date while the session is active.
+        try? session.setActive(true)
+        call.resolve(["volume": session.outputVolume])
     }
 }
