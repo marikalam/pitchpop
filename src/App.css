@@ -2674,6 +2674,17 @@ body {
   align-self: center;
 }
 
+/* The part of a picture its term is about (the ledger line, the ♯...). */
+.theory-glyph.theory-focus {
+  fill: #f76707;
+}
+
+.theory-staff-line.theory-focus,
+.theory-stroke.theory-focus {
+  stroke: #f76707;
+  stroke-width: 3.2;
+}
+
 .theory-staff-line {
   stroke: #8a90a8;
   stroke-width: 1.3;
