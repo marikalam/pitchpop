@@ -12,10 +12,11 @@ import { recordNoteRound } from './todayPlan.js';
 // every answer, right or wrong, links the written note to its name and
 // its sound.
 const SESSION_ROUNDS = 20;
-// The answer is a key on a one-octave piano (like the chord notes in Pitch
-// Practice), with the letter on each key. Letters a player isn't reading
-// yet are dimmed; the black keys are only there to look like a piano.
-const KEYS = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+// The answer is a key on a piano from C up to the next C (like the chord
+// notes in Pitch Practice), with the letter on each key; either C answers
+// C. Letters a player isn't reading yet are dimmed; the black keys are
+// only there to look like a piano.
+const KEYS = ['C', 'D', 'E', 'F', 'G', 'A', 'B', 'C'];
 const BLACK_AFTER = ['C', 'D', 'F', 'G', 'A'];
 export default function NoteSpeller({ engine, playerId, onComplete, stickerSlot }) {
   // Clef (treble, bass or both), part of the staff and letters are set per
@@ -66,10 +67,11 @@ export default function NoteSpeller({ engine, playerId, onComplete, stickerSlot 
     engine.playPitch(note.letter, note.octave);
   }
 
-  function answer(letter) {
+  // key: which of the keys was tapped (there are two Cs).
+  function answer(letter, key) {
     if (answered) return;
     const correct = letter === target.letter;
-    setAnswered({ picked: letter, correct });
+    setAnswered({ picked: letter, key, correct });
     setOutcomes((o) => ({ ...o, [roundIndex]: correct }));
     const soundId = newSound();
     if (correct) {
@@ -177,15 +179,15 @@ export default function NoteSpeller({ engine, playerId, onComplete, stickerSlot 
             : 'Tap the key'}
         </p>
         <div className="tn-piano ns-piano">
-          {KEYS.map((letter) => {
+          {KEYS.map((letter, k) => {
             const offered = lettersFor(clefMode, level, myLetters).includes(letter);
             const right = answered && letter === target.letter;
-            const wrong = answered && !answered.correct && letter === answered.picked;
+            const wrong = answered && !answered.correct && k === answered.key;
             return (
               <button
-                key={letter}
+                key={k}
                 className={`tn-key ns-key-${letter}${offered ? '' : ' ns-key-off'}${right ? ' ns-key-right' : ''}${wrong ? ' tn-key-wrong' : ''}`}
-                onClick={() => answer(letter)}
+                onClick={() => answer(letter, k)}
                 disabled={!!answered || !offered}
                 aria-label={letter}
               >
@@ -194,7 +196,7 @@ export default function NoteSpeller({ engine, playerId, onComplete, stickerSlot 
             );
           })}
           {KEYS.map((letter, k) =>
-            BLACK_AFTER.includes(letter) ? (
+            BLACK_AFTER.includes(letter) && k < KEYS.length - 1 ? (
               <span key={`${letter}#`} className="tn-black ns-black" style={{ '--k': k + 1 }} aria-hidden="true" />
             ) : null,
           )}
