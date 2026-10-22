@@ -21,6 +21,8 @@ public class DeviceVolumePlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "getVolume", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "getOutput", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "pickOutput", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "audioInfo", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "activateAudio", returnType: CAPPluginReturnPromise),
     ]
 
     private var observation: NSKeyValueObservation?
@@ -59,6 +61,33 @@ public class DeviceVolumePlugin: CAPPlugin, CAPBridgedPlugin {
             kind = "other"
         }
         return ["kind": kind, "name": port?.portName ?? ""]
+    }
+
+    // For the Sound test in Players & colors: how the phone's audio
+    // session is set up right now.
+    @objc func audioInfo(_ call: CAPPluginCall) {
+        let session = AVAudioSession.sharedInstance()
+        call.resolve([
+            "ios": UIDevice.current.systemVersion,
+            "category": session.category.rawValue.replacingOccurrences(of: "AVAudioSessionCategory", with: ""),
+            "mixes": session.categoryOptions.contains(.mixWithOthers),
+            "otherAudio": session.isOtherAudioPlaying,
+            "volume": session.outputVolume,
+            "output": output(),
+        ])
+    }
+
+    // The Sound test's "Wake up iPhone sound": sets the category again and
+    // turns the audio session on.
+    @objc func activateAudio(_ call: CAPPluginCall) {
+        let session = AVAudioSession.sharedInstance()
+        do {
+            try session.setCategory(.playback, options: [.mixWithOthers])
+            try session.setActive(true)
+            call.resolve(["ok": true])
+        } catch {
+            call.resolve(["ok": false, "error": error.localizedDescription])
+        }
     }
 
     @objc func getOutput(_ call: CAPPluginCall) {
