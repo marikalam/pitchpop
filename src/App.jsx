@@ -55,6 +55,7 @@ import { FREE_COLORS, hasPlan, notePhone, plansOn, startPlans } from './plan.js'
 import Paywall from './Paywall.jsx';
 import TodayPlan from './TodayPlan.jsx';
 import { markDoneToday, todayPlan } from './todayPlan.js';
+import { usesBlackKeys } from './blackKeys.js';
 import { loadPracticeLog } from './practiceLog.js';
 
 const COLORS = [
@@ -1986,10 +1987,12 @@ export default function App() {
             <div className="rainbow-slot">
               <Rainbow colors={COLORS} activeName={celebrate} visible={!!celebrate} />
             </div>
-            {/* Every color, for everyone - Explore is for hearing them all,
-                not just the ones this player is learning. */}
+            {/* Every white-key color, for everyone - Explore is for hearing
+                them all, not just the ones this player is learning. A
+                black-key chord (light green) only once the player has it
+                in Pitch Practice. */}
             <div className="grid">
-              {COLORS.map((color) => (
+              {COLORS.filter((c) => !usesBlackKeys(c) || profileColorNames.includes(c.name)).map((color) => (
                 <button
                   key={color.name}
                   className={`pad${justPlayed === color.name ? ' pad-played' : ''}`}
