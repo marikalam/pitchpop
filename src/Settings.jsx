@@ -44,7 +44,17 @@ function PasswordField({ label, value, onChange, autoComplete, placeholder }) {
           aria-label={visible ? 'Hide password' : 'Show password'}
           aria-pressed={visible}
         >
-          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <svg
+            viewBox="0 0 24 24"
+            width="22"
+            height="22"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
             <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" />
             <circle cx="12" cy="12" r="3" />
             {visible && <path d="M4 4l16 16" />}
@@ -113,8 +123,8 @@ export function LearningGuide() {
             <b>➕ Add one color at a time</b>
             <span>
               In this order: {LEARNING_ORDER.slice(3).map(cap).join(', ')}. Add the next color only when they get{' '}
-              {READY_PCT}% or more on every color, {READY_ROUNDS} rounds in a row. The Progress page shows when
-              they're ready.
+              {READY_PCT}% or more on every color, {READY_ROUNDS} rounds in a row. The Progress page shows when they're
+              ready.
             </span>
           </li>
           <li>
@@ -127,7 +137,17 @@ export function LearningGuide() {
   );
 }
 
-export function PlayerSettingsCard({ profile, colors, onUpdate, onRemove, canRemove, playDays, onSignIn, freeColors, onLocked }) {
+export function PlayerSettingsCard({
+  profile,
+  colors,
+  onUpdate,
+  onRemove,
+  canRemove,
+  playDays,
+  onSignIn,
+  freeColors,
+  onLocked,
+}) {
   // The notes level is kept on this device, and changes straight away.
   const [notesOn, setNotesOn] = useState(() => typesNotes(profile.id));
   function toggleNotes(on) {
@@ -139,6 +159,25 @@ export function PlayerSettingsCard({ profile, colors, onUpdate, onRemove, canRem
   const [readLetters, setReadLetters] = useState(() => readingLetters(profile.id));
   const [readClef, setReadClef] = useState(() => readingClef(profile.id));
   const [readLevel, setReadLevel] = useState(() => readingLevel(profile.id));
+  // Which section is open: one at a time, Pitch Practice to start.
+  const [open, setOpen] = useState('pitch');
+  const section = (id, icon, title, summary, body) => (
+    <div className={`ps-fold${open === id ? ' ps-fold-open' : ''}`}>
+      <button className="ps-fold-head" onClick={() => setOpen(open === id ? null : id)} aria-expanded={open === id}>
+        <span className="ps-fold-icon" aria-hidden="true">
+          {icon}
+        </span>
+        <span className="ps-fold-text">
+          <b>{title}</b>
+          <span>{summary}</span>
+        </span>
+        <span className="ps-fold-arrow" aria-hidden="true">
+          ▾
+        </span>
+      </button>
+      {open === id && <div className="ps-fold-body">{body}</div>}
+    </div>
+  );
 
   // NoteSpeller's letters for this player (at least two stay on).
   function toggleReadLetter(letter) {
@@ -155,9 +194,7 @@ export function PlayerSettingsCard({ profile, colors, onUpdate, onRemove, canRem
       onLocked?.();
       return;
     }
-    const next = profile.colors.includes(name)
-      ? profile.colors.filter((c) => c !== name)
-      : [...profile.colors, name];
+    const next = profile.colors.includes(name) ? profile.colors.filter((c) => c !== name) : [...profile.colors, name];
     onUpdate({ colors: next.length ? next : ['red'] });
   }
 
@@ -170,179 +207,187 @@ export function PlayerSettingsCard({ profile, colors, onUpdate, onRemove, canRem
           onChange={(e) => onUpdate({ name: e.target.value })}
           aria-label={`${profile.name} name`}
         />
-        <button className="remove-player-btn" type="button" onClick={onRemove} disabled={!canRemove}>
-          Remove
+        {/* The voice, small: tap to switch English / 日本語 (colors,
+            notes in ドレミ and results in Japanese). */}
+        <button
+          className="voice-pill"
+          type="button"
+          onClick={() => {
+            const next = voice === 'ja' ? 'en' : 'ja';
+            setVoice(next);
+            setVoiceLang(profile.id, next);
+          }}
+          aria-label={`Voice: ${voice === 'ja' ? 'Japanese' : 'English'}. Tap to switch.`}
+        >
+          🗣 {voice === 'ja' ? '日本語' : 'EN'}
         </button>
       </div>
       <PlayerHistory days={playDays} onSignIn={onSignIn} />
 
       {/* Pitch Practice: which colors, and how the player plays them. */}
-      <div className="ps-section">
-        <h4 className="ps-section-title">🌈 Pitch Practice</h4>
-        <div className="ps-row ps-row-top">
-          <span className="ps-label">Colors</span>
-          <div>
-            {[
-              ['White keys', colors.filter((c) => !usesBlackKeys(c))],
-              ['Black keys', colors.filter(usesBlackKeys)],
-            ]
-              .filter(([, group]) => group.length)
-              .map(([label, group]) => (
-                <div key={label} className="color-settings-group">
-                  <div className="color-settings-group-label">{label}</div>
-                  <div className="color-settings-grid">
-                    {[...group]
-                      .sort((a, b) => LEARNING_ORDER.indexOf(a.name) - LEARNING_ORDER.indexOf(b.name))
-                      .map((color) => (
-                        <button
-                          key={color.name}
-                          className={`color-setting${profile.colors.includes(color.name) ? ' color-setting-active' : ''}${
-                            color.name === LEARNING_ORDER.find((n) => !profile.colors.includes(n)) ? ' color-setting-next' : ''
-                          }`}
-                          style={{ background: color.hex, color: color.text }}
-                          onClick={() => toggleColor(color.name)}
-                          aria-pressed={profile.colors.includes(color.name)}
-                        >
-                          {color.name}
-                        </button>
-                      ))}
+      {section(
+        'pitch',
+        '🌈',
+        'Pitch Practice',
+        `${profile.colors.length} ${profile.colors.length === 1 ? 'color' : 'colors'} · ${
+          totsOn ? 'Tiny Tots' : notesOn ? 'Color game · Type the notes' : 'Color game'
+        }`,
+        <>
+          <div className="ps-row ps-row-top">
+            <span className="ps-label">Colors</span>
+            <div>
+              {[
+                ['White keys', colors.filter((c) => !usesBlackKeys(c))],
+                ['Black keys', colors.filter(usesBlackKeys)],
+              ]
+                .filter(([, group]) => group.length)
+                .map(([label, group]) => (
+                  <div key={label} className="color-settings-group">
+                    <div className="color-settings-group-label">{label}</div>
+                    <div className="color-settings-grid">
+                      {[...group]
+                        .sort((a, b) => LEARNING_ORDER.indexOf(a.name) - LEARNING_ORDER.indexOf(b.name))
+                        .map((color) => (
+                          <button
+                            key={color.name}
+                            className={`color-setting${profile.colors.includes(color.name) ? ' color-setting-active' : ''}${
+                              color.name === LEARNING_ORDER.find((n) => !profile.colors.includes(n))
+                                ? ' color-setting-next'
+                                : ''
+                            }`}
+                            style={{ background: color.hex, color: color.text }}
+                            onClick={() => toggleColor(color.name)}
+                            aria-pressed={profile.colors.includes(color.name)}
+                          >
+                            {color.name}
+                          </button>
+                        ))}
+                    </div>
                   </div>
-                </div>
+                ))}
+              <p className="ps-hint">
+                Learning order: {profile.colors.map((c) => c[0].toUpperCase() + c.slice(1)).join(', ')}
+              </p>
+            </div>
+          </div>
+          <div className="ps-row">
+            <span className="ps-label">Plays</span>
+            <div className="ns-segmented" role="radiogroup" aria-label="How Pitch Practice plays">
+              {[
+                [false, '🌈 Color game'],
+                [true, '🧸 Tiny Tots'],
+              ].map(([tots, label]) => (
+                <button
+                  key={label}
+                  role="radio"
+                  aria-checked={totsOn === tots}
+                  className={`ns-segment${totsOn === tots ? ' ns-segment-active' : ''}`}
+                  onClick={() => {
+                    setTotsOn(tots);
+                    setTinyTots(profile.id, tots);
+                  }}
+                >
+                  {label}
+                </button>
               ))}
-            <p className="ps-hint">
-              Learning order: {profile.colors.map((c) => c[0].toUpperCase() + c.slice(1)).join(', ')}
+            </div>
+          </div>
+          {totsOn ? (
+            <p className="ps-hint ps-hint-indent">
+              Big colors to tap: each plays its chord and says its name. No right or wrong.
             </p>
-          </div>
-        </div>
-        <div className="ps-row">
-          <span className="ps-label">Plays</span>
-          <div className="ns-segmented" role="radiogroup" aria-label="How Pitch Practice plays">
-            {[
-              [false, '🌈 Color game'],
-              [true, '🧸 Tiny Tots'],
-            ].map(([tots, label]) => (
-              <button
-                key={label}
-                role="radio"
-                aria-checked={totsOn === tots}
-                className={`ns-segment${totsOn === tots ? ' ns-segment-active' : ''}`}
-                onClick={() => {
-                  setTotsOn(tots);
-                  setTinyTots(profile.id, tots);
-                }}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
-        {totsOn ? (
-          <p className="ps-hint ps-hint-indent">Big colors to tap: each plays its chord and says its name. No right or wrong.</p>
-        ) : (
-          <label className="ps-switch-row">
-            <span className="ps-switch-text">
-              <b>🎹 Type the notes</b>
-              <span>After the color, play its letters (red: C, E, G)</span>
-            </span>
-            <input type="checkbox" className="ps-switch" checked={notesOn} onChange={(e) => toggleNotes(e.target.checked)} />
-          </label>
-        )}
-      </div>
-
-      {/* The voice: colors, note names and results, in English or
-          Japanese (ドレミ). */}
-      <div className="ps-section">
-        <h4 className="ps-section-title">🗣️ Voice</h4>
-        <div className="ps-row">
-          <span className="ps-label">Speaks</span>
-          <div className="ns-segmented" role="radiogroup" aria-label="Voice language">
-            {[
-              ['en', 'English'],
-              ['ja', '日本語'],
-            ].map(([id, label]) => (
-              <button
-                key={id}
-                role="radio"
-                aria-checked={voice === id}
-                className={`ns-segment${voice === id ? ' ns-segment-active' : ''}`}
-                onClick={() => {
-                  setVoice(id);
-                  setVoiceLang(profile.id, id);
-                }}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
-        {voice === 'ja' && (
-          <p className="ps-hint ps-hint-indent">
-            Colors (あか, きいろ…), notes in ドレミ and results are spoken in Japanese with the iPhone's Japanese voice.
-          </p>
-        )}
-      </div>
+          ) : (
+            <label className="ps-switch-row">
+              <span className="ps-switch-text">
+                <b>🎹 Type the notes</b>
+                <span>After the color, play its letters (red: C, E, G)</span>
+              </span>
+              <input
+                type="checkbox"
+                className="ps-switch"
+                checked={notesOn}
+                onChange={(e) => toggleNotes(e.target.checked)}
+              />
+            </label>
+          )}
+        </>,
+      )}
 
       {/* NoteSpeller: what this player reads. */}
-      <div className="ps-section">
-        <h4 className="ps-section-title">🎼 NoteSpeller</h4>
-        <div className="ps-row">
-          <span className="ps-label">Clef</span>
-          <div className="ns-segmented" role="radiogroup" aria-label="Clef">
-            {CLEF_MODES.map((m) => (
-              <button
-                key={m.id}
-                role="radio"
-                aria-checked={readClef === m.id}
-                className={`ns-segment${readClef === m.id ? ' ns-segment-active' : ''}`}
-                onClick={() => {
-                  setReadClef(m.id);
-                  setReadingClef(profile.id, m.id);
-                }}
-              >
-                {m.label.replace(' clef', '')}
-              </button>
-            ))}
+      {section(
+        'notes',
+        '🎼',
+        'NoteSpeller',
+        `${CLEF_MODES.find((m) => m.id === readClef).label.replace(' clef', '')} · ${
+          LEVELS.find((l) => l.id === readLevel).label
+        } · ${readLetters.length === LETTERS.length ? 'All notes' : `Only ${readLetters.join(', ')}`}`,
+        <>
+          <div className="ps-row">
+            <span className="ps-label">Clef</span>
+            <div className="ns-segmented" role="radiogroup" aria-label="Clef">
+              {CLEF_MODES.map((m) => (
+                <button
+                  key={m.id}
+                  role="radio"
+                  aria-checked={readClef === m.id}
+                  className={`ns-segment${readClef === m.id ? ' ns-segment-active' : ''}`}
+                  onClick={() => {
+                    setReadClef(m.id);
+                    setReadingClef(profile.id, m.id);
+                  }}
+                >
+                  {m.label.replace(' clef', '')}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
-        <div className="ps-row">
-          <span className="ps-label">Staff</span>
-          <div className="ns-segmented" role="radiogroup" aria-label="Which part of the staff">
-            {LEVELS.map((l) => (
-              <button
-                key={l.id}
-                role="radio"
-                aria-checked={readLevel === l.id}
-                className={`ns-segment${readLevel === l.id ? ' ns-segment-active' : ''}`}
-                onClick={() => {
-                  setReadLevel(l.id);
-                  setReadingLevel(profile.id, l.id);
-                }}
-              >
-                {l.label}
-              </button>
-            ))}
+          <div className="ps-row">
+            <span className="ps-label">Staff</span>
+            <div className="ns-segmented" role="radiogroup" aria-label="Which part of the staff">
+              {LEVELS.map((l) => (
+                <button
+                  key={l.id}
+                  role="radio"
+                  aria-checked={readLevel === l.id}
+                  className={`ns-segment${readLevel === l.id ? ' ns-segment-active' : ''}`}
+                  onClick={() => {
+                    setReadLevel(l.id);
+                    setReadingLevel(profile.id, l.id);
+                  }}
+                >
+                  {l.label}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
-        <p className="ps-hint ps-hint-indent">{LEVELS.find((l) => l.id === readLevel).hint}</p>
-        <div className="ps-row">
-          <span className="ps-label">Notes</span>
-          <div className="ns-letter-picks" role="group" aria-label="NoteSpeller notes">
-            {LETTERS.map((l) => (
-              <button
-                key={l}
-                aria-pressed={readLetters.includes(l)}
-                className={`ns-letter-pick${readLetters.includes(l) ? ' ns-letter-pick-on' : ''}`}
-                onClick={() => toggleReadLetter(l)}
-              >
-                {l}
-              </button>
-            ))}
+          <p className="ps-hint ps-hint-indent">{LEVELS.find((l) => l.id === readLevel).hint}</p>
+          <div className="ps-row">
+            <span className="ps-label">Notes</span>
+            <div className="ns-letter-picks" role="group" aria-label="NoteSpeller notes">
+              {LETTERS.map((l) => (
+                <button
+                  key={l}
+                  aria-pressed={readLetters.includes(l)}
+                  className={`ns-letter-pick${readLetters.includes(l) ? ' ns-letter-pick-on' : ''}`}
+                  onClick={() => toggleReadLetter(l)}
+                >
+                  {l}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
-        <p className="ps-hint ps-hint-indent">
-          {readLetters.length === LETTERS.length ? 'All notes. Tap a letter to leave it out.' : `Only ${readLetters.join(', ')}`}
-        </p>
-      </div>
+          <p className="ps-hint ps-hint-indent">
+            {readLetters.length === LETTERS.length
+              ? 'All notes. Tap a letter to leave it out.'
+              : `Only ${readLetters.join(', ')}`}
+          </p>
+        </>,
+      )}
+      {canRemove && (
+        <button className="remove-player-link" type="button" onClick={onRemove}>
+          Remove player
+        </button>
+      )}
     </section>
   );
 }
@@ -448,7 +493,16 @@ export function SyncStatus({ user, onOpenAccount }) {
   );
 }
 
-export function AccountScreen({ user, playerCount, onSignedIn, onAccountDeleted, onOpenPlayers, onDone, recoveryMode, onPasswordUpdated }) {
+export function AccountScreen({
+  user,
+  playerCount,
+  onSignedIn,
+  onAccountDeleted,
+  onOpenPlayers,
+  onDone,
+  recoveryMode,
+  onPasswordUpdated,
+}) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -600,7 +654,9 @@ export function AccountScreen({ user, playerCount, onSignedIn, onAccountDeleted,
             <span className="account-row-label">Sync</span>
             <span className="account-row-value">On</span>
           </div>
-          <p className="account-row-help">Players and colors are saved to your account and load on any device you sign in on.</p>
+          <p className="account-row-help">
+            Players and colors are saved to your account and load on any device you sign in on.
+          </p>
         </div>
 
         <div className="account-section">
