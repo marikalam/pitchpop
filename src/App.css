@@ -1996,6 +1996,17 @@ body {
   height: clamp(120px, 19vh, 180px);
 }
 
+/* Eight white keys (C to C) instead of TypeNotes' seven. */
+.tn-piano.ns-piano {
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+}
+
+.ns-piano .tn-black.ns-black {
+  --white: calc((100% - 12px - 21px) / 8);
+  width: 22px;
+  left: calc(6px + var(--k) * (var(--white) + 3px) - 1.5px - 11px);
+}
+
 /* NoteSpeller's black keys are only for looks: taps go to the white key. */
 .ns-black {
   pointer-events: none;

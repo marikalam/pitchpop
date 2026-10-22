@@ -30,8 +30,9 @@ function shuffle(list) {
   return copy;
 }
 
-// A choice the way it's said: "Piano (p)" is "Piano", "Sharp ♯" is
-// "Sharp", "Bar line & measure" is "Bar line and measure".
+// A choice the way it's said and shown: "Piano (p)" is "Piano", "Sharp ♯"
+// is "Sharp" (the sign in the name would give the answer away), "Bar line
+// & measure" is "Bar line and measure".
 const spoken = (term) =>
   term
     .replace(/\(.*?\)/g, '')
@@ -191,7 +192,7 @@ export default function TheoryQuiz({ onComplete, stickerSlot }) {
       {answered ? (
         <div className="tq-feedback">
           <p className={`note-feedback-text${answered.correct ? ' note-feedback-correct' : ''}`}>
-            {answered.correct ? `🎉 Yes! ${entry.term}` : `That's ${entry.term}`}
+            {answered.correct ? `🎉 Yes! ${spoken(entry.term)}` : `That's ${spoken(entry.term)}`}
           </p>
           <p className="tq-meaning">{entry.text}</p>
         </div>
@@ -207,7 +208,7 @@ export default function TheoryQuiz({ onComplete, stickerSlot }) {
               onClick={() => answer(choice)}
               disabled={!!answered}
             >
-              {choice.term}
+              {spoken(choice.term)}
             </button>
           ))}
       </div>
