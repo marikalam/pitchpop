@@ -25,7 +25,16 @@ function useSound() {
       }),
     [],
   );
-  return { state, low: volume !== null && volume <= LOW_VOLUME };
+  // "Got it" on "Can you hear the chime?" hides the volume pill, until the
+  // volume goes down again.
+  const [heardAt, setHeardAt] = useState(null);
+  useEffect(() => {
+    const heard = () => setHeardAt(lastVolume.current ?? 0);
+    window.addEventListener('pitchpop-can-hear', heard);
+    return () => window.removeEventListener('pitchpop-can-hear', heard);
+  }, []);
+  const low = volume !== null && volume <= LOW_VOLUME && !(heardAt !== null && volume >= heardAt);
+  return { state, low };
 }
 
 // Bluetooth devices the family said to keep playing on (✕ on the pill),

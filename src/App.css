@@ -112,6 +112,8 @@ body {
   font-family: 'IBM Plex Sans', sans-serif;
   font-weight: 600;
   font-size: 14px;
+  white-space: nowrap;
+  flex: none;
 }
 
 .back-link-center {
@@ -3327,8 +3329,10 @@ body {
 /* ---------- Hearing PitchPop: volume warning, sound check notes ---------- */
 .nav-row-right {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
   align-items: center;
-  gap: 8px;
+  gap: 6px 8px;
   min-width: 0;
 }
 
