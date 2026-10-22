@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
-import { newSound } from './soundBus.js';
+import { later, newSound } from './soundBus.js';
 import { buildCadence, buildScale, FORMS, MAJOR_KEYS, MINOR_KEYS, midiFreq, prettyName } from './scales.js';
 
 // Scales: every major and minor scale with its notes on a keyboard and the
 // standard fingering for each hand, and a button to hear it up and down;
-// below it, the key's 5- or 3-chord cadence with fingering.
+// below it, the key's 5- or 3-chord cadence with fingering. While either
+// plays, the keys, notes and fingers sounding light up, like Hanon's.
 // The choice is remembered on this device.
 const KEY = 'pitchpop-scales-v1';
 const CHORD_GAP_MS = 1100;
@@ -30,8 +31,10 @@ const BLACK_AFTER = { 0: 1, 2: 3, 5: 6, 7: 8, 9: 10 }; // white pc -> black pc t
 // Two octaves from middle C (C4-B5), the scale's keys lit, with the right
 // hand's finger above each key and the left hand's below (a black key's
 // finger one row further out, so it never covers its white neighbor's).
-// `active` (a MIDI note) lights the key being played right now (Hanon).
+// `active` (a MIDI note, or a list for a chord) lights the keys being
+// played right now.
 export function Keyboard({ notes, rh, lh, active }) {
+  const now = new Set([].concat(active ?? []));
   const W = 24;
   const H = 92;
   const whites = [];
@@ -55,7 +58,7 @@ export function Keyboard({ notes, rh, lh, active }) {
           width={W - 1}
           height={H}
           rx="3"
-          className={`scale-key-white${lit.has(m) ? ' scale-key-lit' : ''}${m === active ? ' scale-key-now' : ''}`}
+          className={`scale-key-white${lit.has(m) ? ' scale-key-lit' : ''}${now.has(m) ? ' scale-key-now' : ''}`}
         />
       ))}
       {whites.map((m) => {
@@ -63,7 +66,15 @@ export function Keyboard({ notes, rh, lh, active }) {
         if (!(pc in BLACK_AFTER) || m === whites[whites.length - 1]) return null;
         const b = m + 1;
         return (
-          <rect key={b} x={blackX(b)} y="0" width="14" height={H * 0.6} rx="2" className={`scale-key-black${lit.has(b) ? ' scale-key-lit-black' : ''}${b === active ? ' scale-key-now' : ''}`} />
+          <rect
+            key={b}
+            x={blackX(b)}
+            y="0"
+            width="14"
+            height={H * 0.6}
+            rx="2"
+            className={`scale-key-black${lit.has(b) ? ' scale-key-lit-black' : ''}${now.has(b) ? ' scale-key-now' : ''}`}
+          />
         );
       })}
       {notes.map((n, i) => {
@@ -105,11 +116,15 @@ export default function Scales({ engine }) {
   const [choice, setChoice] = useState(loadChoice);
   // What's playing: false, 'scale' or 'cadence'.
   const [playing, setPlaying] = useState(false);
+  // What's sounding right now: for the scale { midi, col } (col = its
+  // column in the table, the same going down), for the cadence { chord }.
+  const [active, setActive] = useState(null);
   // Counts plays, so a finished or stopped one doesn't reset a newer one.
   const run = useRef(0);
   const stop = () => {
     run.current++;
     setPlaying(false);
+    setActive(null);
     newSound();
   };
   // Leaving the page stops the scale.
@@ -134,7 +149,9 @@ export default function Scales({ engine }) {
   const chordCount = choice.chords === 3 ? 3 : 5;
   const cadence = buildCadence(key.tonic, choice.mode === 'minor', chordCount);
   // Each chord with the left hand an octave below the right.
-  const cadenceFreqs = cadence.map((c) => [...c.notes.map((n) => n.midi - 12), ...c.notes.map((n) => n.midi)].map(midiFreq));
+  const cadenceFreqs = cadence.map((c) =>
+    [...c.notes.map((n) => n.midi - 12), ...c.notes.map((n) => n.midi)].map(midiFreq),
+  );
 
   // Get this key's notes ready ahead of time so Play starts right away.
   const noteKey = [...notes.map((n) => n.midi), ...cadenceFreqs.flat().map((f) => f.toFixed(2))].join(',');
@@ -157,19 +174,31 @@ export default function Scales({ engine }) {
     const id = ++run.current;
     setPlaying(what);
     const done = () => {
-      if (run.current === id) setPlaying(false);
+      if (run.current === id) {
+        setPlaying(false);
+        setActive(null);
+      }
     };
     let length;
     let start;
+    // When each step sounds (ms) and what it lights up.
+    let steps;
     if (what === 'scale') {
       // Melodic minor comes back down as the natural minor.
-      const down = buildScale(key.tonic, FORMS[form === 'melodic' ? 'natural' : form]).reverse().slice(1);
+      const down = buildScale(key.tonic, FORMS[form === 'melodic' ? 'natural' : form])
+        .reverse()
+        .slice(1);
       const freqs = [...notes, ...down].map((n) => midiFreq(n.midi));
       length = freqs.length * 300;
       start = () => engine.playMelody(freqs);
+      steps = [
+        ...notes.map((n, i) => ({ midi: n.midi, col: i })),
+        ...down.map((n, j) => ({ midi: n.midi, col: notes.length - 2 - j })),
+      ].map((a, i) => [i * 300, a]);
     } else {
       length = cadenceFreqs.length * CHORD_GAP_MS;
       start = () => engine.playChords(cadenceFreqs, CHORD_GAP_MS);
+      steps = cadence.map((_, i) => [i * CHORD_GAP_MS, { chord: i }]);
     }
     // A safety net in case the notes never get going.
     setTimeout(done, length + 8000);
@@ -178,8 +207,10 @@ export default function Scales({ engine }) {
     } catch {
       return done();
     }
+    if (run.current !== id) return;
+    steps.forEach(([at, a]) => later(() => setActive(a), at + 60));
     // Back to Play once it has finished (plus the last notes' ring).
-    if (run.current === id) setTimeout(done, length + 1200);
+    setTimeout(done, length + 1200);
   }
 
   return (
@@ -245,13 +276,15 @@ export default function Scales({ engine }) {
             {playing === 'scale' ? '■ Stop' : '▶\uFE0E Play'}
           </button>
         </div>
-        <Keyboard notes={notes} rh={key.rh} lh={key.lh} />
+        <Keyboard notes={notes} rh={key.rh} lh={key.lh} active={playing === 'scale' ? active?.midi : undefined} />
         <table className="scales-table">
           <tbody>
             <tr>
               <th scope="row">Notes</th>
               {notes.map((n, i) => (
-                <td key={i}>{n.name}</td>
+                <td key={i} className={playing === 'scale' && active?.col === i ? 'hanon-now' : undefined}>
+                  {n.name}
+                </td>
               ))}
             </tr>
             <tr>
@@ -259,7 +292,9 @@ export default function Scales({ engine }) {
                 Right hand
               </th>
               {key.rh.split('').map((f, i) => (
-                <td key={i}>{f}</td>
+                <td key={i} className={playing === 'scale' && active?.col === i ? 'hanon-now' : undefined}>
+                  {f}
+                </td>
               ))}
             </tr>
             <tr>
@@ -267,14 +302,16 @@ export default function Scales({ engine }) {
                 Left hand
               </th>
               {key.lh.split('').map((f, i) => (
-                <td key={i}>{f}</td>
+                <td key={i} className={playing === 'scale' && active?.col === i ? 'hanon-now' : undefined}>
+                  {f}
+                </td>
               ))}
             </tr>
           </tbody>
         </table>
         <p className="scales-note">
-          {form === 'melodic' ? 'Going down, play the natural minor notes. ' : ''}1 = thumb. Fingers shown going up; coming
-          down, use the same fingers in reverse.
+          {form === 'melodic' ? 'Going down, play the natural minor notes. ' : ''}1 = thumb. Fingers shown going up;
+          coming down, use the same fingers in reverse.
         </p>
       </section>
 
@@ -298,12 +335,28 @@ export default function Scales({ engine }) {
             </button>
           ))}
         </div>
+        {playing === 'cadence' && active?.chord !== undefined && cadence[active.chord] && (
+          <div className="hanon-now-playing">
+            <div className="hanon-pattern-title">
+              {cadence[active.chord].label} · chord {active.chord + 1} of {cadence.length}
+            </div>
+            <Keyboard
+              notes={cadence[active.chord].notes}
+              rh={cadence[active.chord].rh.split('')}
+              lh={cadence[active.chord].lh.split('')}
+              active={cadence[active.chord].notes.map((n) => n.midi)}
+            />
+          </div>
+        )}
         <table className="scales-table cadence-table">
           <tbody>
             <tr>
               <th scope="row">Chord</th>
               {cadence.map((c, i) => (
-                <td key={i} className="cadence-label">
+                <td
+                  key={i}
+                  className={`cadence-label${playing === 'cadence' && active?.chord === i ? ' hanon-now' : ''}`}
+                >
                   {c.label}
                 </td>
               ))}
@@ -311,7 +364,7 @@ export default function Scales({ engine }) {
             <tr>
               <th scope="row">Notes</th>
               {cadence.map((c, i) => (
-                <td key={i}>
+                <td key={i} className={playing === 'cadence' && active?.chord === i ? 'hanon-now' : undefined}>
                   <Stack items={c.notes.map((n) => n.name)} />
                 </td>
               ))}
@@ -321,7 +374,7 @@ export default function Scales({ engine }) {
                 Right hand
               </th>
               {cadence.map((c, i) => (
-                <td key={i}>
+                <td key={i} className={playing === 'cadence' && active?.chord === i ? 'hanon-now' : undefined}>
                   <Stack items={c.rh.split('')} />
                 </td>
               ))}
@@ -331,7 +384,7 @@ export default function Scales({ engine }) {
                 Left hand
               </th>
               {cadence.map((c, i) => (
-                <td key={i}>
+                <td key={i} className={playing === 'cadence' && active?.chord === i ? 'hanon-now' : undefined}>
                   <Stack items={c.lh.split('')} />
                 </td>
               ))}
