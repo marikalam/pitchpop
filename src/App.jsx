@@ -1734,7 +1734,6 @@ export default function App() {
           <h2 className="screen-title">Players &amp; colors</h2>
           <p className="screen-sub">Each player starts with Red, Yellow and Blue, then adds one color at a time.</p>
           <SyncStatus user={cloudUser} onOpenAccount={openAccount} />
-          <LearningGuide />
           <div className="settings-list">
             {draftProfiles.map((p) => (
               <PlayerSettingsCard
@@ -1769,6 +1768,8 @@ export default function App() {
           <button className="back-link back-link-center" onClick={goHome}>
             Cancel
           </button>
+          {/* Less used: the step-by-step guide and the sound test. */}
+          <LearningGuide />
           <SoundTest />
         </div>
       </div>
