@@ -29,6 +29,9 @@ function verticalRange(picture) {
 }
 
 export function TheoryPicture({ picture, label }) {
+  // The part the term is about, if the picture has more in it.
+  const focus = picture.focus || {};
+  const on = (yes) => (yes ? ' theory-focus' : '');
   const [topPos, bottomPos] = verticalRange(picture);
   const yFor = (pos) => ((topPos - pos) * SPACE) / 2;
   const width = picture.width * SPACE;
@@ -40,12 +43,12 @@ export function TheoryPicture({ picture, label }) {
           <line key={p} className="theory-staff-line" x1={SPACE * 0.3} x2={width - SPACE * 0.3} y1={yFor(p)} y2={yFor(p)} />
         ))}
       {(picture.barlines || []).map((x) => (
-        <line key={x} className="theory-staff-line" x1={x * SPACE} x2={x * SPACE} y1={yFor(0)} y2={yFor(8)} />
+        <line key={x} className={`theory-staff-line${on(focus.barlines)}`} x1={x * SPACE} x2={x * SPACE} y1={yFor(0)} y2={yFor(8)} />
       ))}
       {(picture.ledgers || []).map((l, i) => (
         <line
           key={i}
-          className="theory-staff-line"
+          className={`theory-staff-line${on(focus.ledgers)}`}
           x1={(l.x - l.width / 2) * SPACE}
           x2={(l.x + l.width / 2) * SPACE}
           y1={yFor(l.pos)}
@@ -53,7 +56,7 @@ export function TheoryPicture({ picture, label }) {
         />
       ))}
       {(picture.glyphs || []).map(({ g, x, pos }, i) => (
-        <path key={i} className="theory-glyph" d={GLYPHS[g].d} transform={`translate(${x * SPACE} ${yFor(pos)}) scale(${GLYPH_SCALE})`} />
+        <path key={i} className={`theory-glyph${on(focus.glyphs?.includes(i))}`} d={GLYPHS[g].d} transform={`translate(${x * SPACE} ${yFor(pos)}) scale(${GLYPH_SCALE})`} />
       ))}
       {(picture.hairpins || []).map(({ type, x1, x2, pos }, i) => {
         const [point, open] = type === 'crescendo' ? [x1, x2] : [x2, x1];
@@ -73,7 +76,7 @@ export function TheoryPicture({ picture, label }) {
         return (
           <path
             key={i}
-            className="theory-stroke"
+            className={`theory-stroke${on(focus.curves)}`}
             d={`M${x1 * SPACE} ${y} Q${mid} ${y + bow} ${x2 * SPACE} ${y}`}
           />
         );

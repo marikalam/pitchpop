@@ -12,6 +12,9 @@
 // - barlines: plain vertical bar lines at x
 // - hairpins: crescendo (open to the right) or diminuendo (open to the left)
 // - curves: a tie or slur arc from x1 to x2, bowing below pos
+// - focus: in a picture with more in it than the term, the part the term
+//   is about, drawn highlighted: { glyphs: [indexes], ledgers, barlines,
+//   curves } (e.g. the ledger line under the note, the ♯ before it)
 
 // Notehead widths, for centring marks on a note.
 const WHOLE_HEAD = 1.84;
@@ -40,7 +43,8 @@ export const GLOSSARY = [
     term: 'Treble clef',
     also: 'G clef',
     text: 'Curls around the G line. It is used for higher notes, usually played by the right hand.',
-    picture: { width: 4, staff: true, glyphs: [{ g: 'G_CLEF', x: 1, pos: 2 }] },
+    picture: {
+      focus: { glyphs: [0] }, width: 4, staff: true, glyphs: [{ g: 'G_CLEF', x: 1, pos: 2 }] },
   },
   {
     id: 'bass-clef',
@@ -48,7 +52,8 @@ export const GLOSSARY = [
     term: 'Bass clef',
     also: 'F clef',
     text: 'Its two dots sit on either side of the F line. It is used for lower notes, usually played by the left hand.',
-    picture: { width: 4, staff: true, glyphs: [{ g: 'F_CLEF', x: 0.8, pos: 6 }] },
+    picture: {
+      focus: { glyphs: [0] }, width: 4, staff: true, glyphs: [{ g: 'F_CLEF', x: 0.8, pos: 6 }] },
   },
   {
     id: 'ledger-lines',
@@ -56,6 +61,7 @@ export const GLOSSARY = [
     term: 'Ledger lines',
     text: 'Short extra lines for notes that are too high or too low for the staff. Middle C sits on one just below the treble staff.',
     picture: {
+      focus: { ledgers: true },
       width: 6.5,
       staff: true,
       glyphs: [
@@ -71,6 +77,7 @@ export const GLOSSARY = [
     term: 'Bar line & measure',
     text: 'A bar line divides the music into measures (also called bars), small groups of beats that make it easy to count.',
     picture: {
+      focus: { barlines: true },
       width: 7.6,
       staff: true,
       glyphs: [
@@ -88,6 +95,7 @@ export const GLOSSARY = [
     term: 'Final bar line',
     text: 'A thin line and a thick line together mean the end of the piece.',
     picture: {
+      focus: { glyphs: [1] },
       width: 5,
       staff: true,
       glyphs: [
@@ -102,6 +110,7 @@ export const GLOSSARY = [
     term: 'Time signature',
     text: 'The two numbers at the start. The top number says how many beats are in each measure; the bottom number says which note gets one beat. 4/4 means four quarter-note beats.',
     picture: {
+      focus: { glyphs: [1, 2] },
       width: 5.5,
       staff: true,
       glyphs: [
@@ -117,6 +126,7 @@ export const GLOSSARY = [
     term: 'Common time',
     text: 'A "C" in place of the time signature. It means the same as 4/4: four beats in every measure.',
     picture: {
+      focus: { glyphs: [1] },
       width: 5.5,
       staff: true,
       glyphs: [
@@ -168,6 +178,7 @@ export const GLOSSARY = [
     term: 'Dotted note',
     text: 'A dot after a note makes it half as long again. A dotted half note lasts 3 beats (2 + 1).',
     picture: {
+      focus: { glyphs: [1] },
       width: 5,
       staff: true,
       glyphs: [
@@ -212,6 +223,7 @@ export const GLOSSARY = [
     term: 'Sharp ♯',
     text: 'Play the note one half step higher, usually the black key just to the right.',
     picture: {
+      focus: { glyphs: [0] },
       width: 5.5,
       staff: true,
       glyphs: [
@@ -226,6 +238,7 @@ export const GLOSSARY = [
     term: 'Flat ♭',
     text: 'Play the note one half step lower, usually the black key just to the left.',
     picture: {
+      focus: { glyphs: [0] },
       width: 5.5,
       staff: true,
       glyphs: [
@@ -240,6 +253,7 @@ export const GLOSSARY = [
     term: 'Natural ♮',
     text: 'Cancels a sharp or flat, so you play the plain note again (usually a white key).',
     picture: {
+      focus: { glyphs: [0] },
       width: 5.5,
       staff: true,
       glyphs: [
@@ -301,6 +315,7 @@ export const GLOSSARY = [
     term: 'Repeat sign',
     text: 'Bar lines with two dots. Play the music between the repeat signs again.',
     picture: {
+      focus: { glyphs: [0, 3] },
       width: 8,
       staff: true,
       glyphs: [
@@ -318,6 +333,7 @@ export const GLOSSARY = [
     also: 'bird\'s eye',
     text: 'Hold the note longer than usual, until it feels right to move on.',
     picture: {
+      focus: { glyphs: [1] },
       width: 5,
       staff: true,
       glyphs: [
@@ -332,6 +348,7 @@ export const GLOSSARY = [
     term: 'Staccato',
     text: 'A dot above or below the note. Play it short and bouncy, letting go quickly.',
     picture: {
+      focus: { glyphs: [1] },
       width: 5,
       staff: true,
       glyphs: [
@@ -346,6 +363,7 @@ export const GLOSSARY = [
     term: 'Accent',
     text: 'The ">" mark means play that note a little louder than the ones around it.',
     picture: {
+      focus: { glyphs: [1] },
       width: 5,
       staff: true,
       glyphs: [
@@ -360,6 +378,7 @@ export const GLOSSARY = [
     term: 'Tie',
     text: 'A curve joining two of the same note. Play it once and hold it for both notes together.',
     picture: {
+      focus: { curves: true },
       width: 6,
       staff: true,
       glyphs: [
@@ -376,6 +395,7 @@ export const GLOSSARY = [
     term: 'Slur',
     text: 'A curve over different notes. Play them smoothly, connected, with no gaps (legato).',
     picture: {
+      focus: { curves: true },
       width: 6,
       staff: true,
       glyphs: [
