@@ -68,6 +68,15 @@ export function pickOutput() {
   DeviceVolume?.pickOutput().catch(() => {});
 }
 
+// For the Sound test: the phone's audio session (iPhone app only).
+export function audioInfo() {
+  return DeviceVolume ? DeviceVolume.audioInfo().catch((e) => ({ error: String(e) })) : Promise.resolve(null);
+}
+
+export function activateNativeAudio() {
+  return DeviceVolume ? DeviceVolume.activateAudio().catch((e) => ({ ok: false, error: String(e) })) : Promise.resolve(null);
+}
+
 export function playSoundCheck() {
   // First, so the sound check's own note (which covers the silent switch
   // too) takes the place of the one-time tip.

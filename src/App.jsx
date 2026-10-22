@@ -23,6 +23,7 @@ import { scheduleReminders } from './reminders.js';
 import { inTinyTots } from './tinyTots.js';
 import TypeNotes from './TypeNotes.jsx';
 import ProgressDots from './ProgressDots.jsx';
+import SoundTest from './SoundTest.jsx';
 import { typesNotes } from './typeNotes.js';
 import { buildSmartRound, checkPairFor, comebackQueue } from './smartRound.js';
 import Piano from './Piano.jsx';
@@ -1768,6 +1769,7 @@ export default function App() {
           <button className="back-link back-link-center" onClick={goHome}>
             Cancel
           </button>
+          <SoundTest />
         </div>
       </div>
     );
