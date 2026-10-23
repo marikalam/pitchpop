@@ -176,6 +176,7 @@ const JA_COLORS = {
   pink: 'ピンク',
   brown: 'ちゃいろ',
   'light green': 'きみどり',
+  beige: 'ベージュ',
 };
 const JA_NOTES = { C: 'ド', D: 'レ', E: 'ミ', F: 'ファ', G: 'ソ', A: 'ラ', B: 'シ' };
 

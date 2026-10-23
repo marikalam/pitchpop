@@ -55,8 +55,8 @@ export default function MethodInfo({ colors }) {
         </div>
         <p className="method-note">
           Once a child knows all nine reliably, the traditional method goes on to chords with black keys, and then to
-          hearing the separate notes inside a chord. PitchPop's first black-key color is <strong>light green</strong>:
-          A, C♯, E.
+          hearing the separate notes inside a chord. PitchPop's black-key colors are <strong>light green</strong> (A,
+          C♯, E) and <strong>beige</strong> (D, F♯, A).
         </p>
       </section>
 
