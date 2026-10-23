@@ -71,6 +71,7 @@ const COLORS = [
   { name: 'brown', hex: '#7A5238', text: '#FFFFFF', notes: ['G', 'C', 'E'] },
   // The first chord with a black key (A major).
   { name: 'light green', hex: '#9CCC65', text: '#1E3510', notes: ['A', 'C#', 'E'] },
+  { name: 'beige', hex: '#E4CFA6', text: '#3D2E17', notes: ['D', 'F#', 'A'] },
 ];
 
 // Players come from one of two lists. Signed in, it's the family account's
@@ -156,7 +157,7 @@ function buildQueue(names, total) {
 }
 
 // The order colors are usually learned in (red first).
-const LEARNING_ORDER = ['red', 'yellow', 'blue', 'black', 'green', 'orange', 'purple', 'pink', 'brown', 'light green'];
+const LEARNING_ORDER = ['red', 'yellow', 'blue', 'black', 'green', 'orange', 'purple', 'pink', 'brown', 'light green', 'beige'];
 
 // Every color the player is learning is an answer, like a full set of
 // flags, always in learning order, so each color stays in the same spot
