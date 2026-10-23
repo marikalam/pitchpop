@@ -470,6 +470,24 @@ body {
   transform: scale(0.97);
 }
 
+/* The chord's notes, small, under the color's name. */
+.option-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.option-notes {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: none;
+  opacity: 0.82;
+}
+
 .staff-card {
   background: var(--card-bg);
   border-radius: 22px;

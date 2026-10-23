@@ -2127,6 +2127,8 @@ export default function App() {
                     aria-label={out ? `${color.name} (not this one)` : color.name}
                   >
                     {color.name}
+                    {/* The chord's notes under its name (blue: B D G). */}
+                    <span className="option-notes">{color.notes.map(noteLabel).join(' ')}</span>
                   </button>
                 );
               })}
