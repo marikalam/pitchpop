@@ -428,6 +428,31 @@ export function playCorrectChime() {
   oscs.push(chimeTone(ctx, out, 783.99, now + 0.18, 0.3, 0.18));
 }
 
+// Tapping the PitchPop logo: a bubbly "pop" and a quick sparkle up a
+// rainbow of notes - fun, and a check that the sound is on.
+export function playLogoPop() {
+  const ctx = ensureChimeAudio();
+  const now = ctx.currentTime + 0.01;
+  const oscs = [];
+  const out = soundOutput(ctx, oscs, now + 1.1);
+  const pop = ctx.createOscillator();
+  pop.type = 'sine';
+  pop.frequency.setValueAtTime(300, now);
+  pop.frequency.exponentialRampToValueAtTime(900, now + 0.08);
+  const popGain = ctx.createGain();
+  popGain.gain.setValueAtTime(0.0001, now);
+  popGain.gain.linearRampToValueAtTime(0.25, now + 0.01);
+  popGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
+  pop.connect(popGain).connect(out);
+  pop.start(now);
+  pop.stop(now + 0.14);
+  oscs.push(pop);
+  // C E G C E G C, faster than the right-answer chime.
+  [523.25, 659.25, 783.99, 1046.5, 1318.51, 1567.98, 2093].forEach((hz, i) => {
+    oscs.push(chimeTone(ctx, out, hz, now + 0.12 + i * 0.06, 0.35, 0.12));
+  });
+}
+
 export function playWrongBuzz() {
   const ctx = ensureChimeAudio();
   const now = ctx.currentTime + 0.01;

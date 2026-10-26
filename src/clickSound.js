@@ -19,7 +19,7 @@ function playClick() {
 
 export function initClickSound() {
   document.addEventListener('click', (e) => {
-    if (e.target.closest('.option-btn') || e.target.closest('.melody-btn')) return;
+    if (e.target.closest('.option-btn, .melody-btn, .logo-btn')) return;
     try {
       playClick();
     } catch {
