@@ -110,7 +110,7 @@ export default function NoteSpeller({ engine, playerId, onComplete, stickerSlot 
       setDone(true);
       speakResults(correctCount, SESSION_ROUNDS);
       recordNoteRound(playerId, misses.current);
-      onComplete?.();
+      onComplete?.(correctCount, SESSION_ROUNDS);
       return;
     }
     setRoundIndex((i) => i + 1);

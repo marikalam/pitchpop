@@ -499,6 +499,7 @@ export function AccountScreen({
   onSignedIn,
   onAccountDeleted,
   onOpenPlayers,
+  onOpenStats,
   recoveryMode,
   onPasswordUpdated,
   startMode = 'sign-in',
@@ -666,6 +667,12 @@ export function AccountScreen({
               {playerCount} {playerCount === 1 ? 'player' : 'players'} ›
             </span>
           </button>
+          {onOpenStats && (
+            <button className="account-row account-row-button" onClick={onOpenStats}>
+              <span className="account-row-label">📊 PitchPop stats</span>
+              <span className="account-row-value">›</span>
+            </button>
+          )}
         </div>
 
         <button className="account-signout" onClick={handleSignOut}>

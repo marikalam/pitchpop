@@ -2,7 +2,7 @@ import { Capacitor } from '@capacitor/core';
 import { App as CapacitorApp } from '@capacitor/app';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { PianoEngine, noteLabel, playCorrectChime, playLogoPop, playWrongBuzz } from './piano.js';
-import { speakColorName, speakResults, prewarmVoices, setSpeechLanguage, unlockAudio } from './speech.js';
+import { prewarmVoices, setSpeechLanguage, speakColorName, speakResults, speechLanguage, unlockAudio } from './speech.js';
 import { voiceLang } from './voiceLang.js';
 import { isCurrent, later, newSound } from './soundBus.js';
 import Rainbow from './Rainbow.jsx';
@@ -33,15 +33,7 @@ import MusicTheory from './MusicTheory.jsx';
 import MethodInfo from './MethodInfo.jsx';
 import Scales from './Scales.jsx';
 import Hanon from './Hanon.jsx';
-import {
-  getUser,
-  loadCloudProfiles,
-  saveCloudProfile,
-  deleteCloudProfile,
-  onAuthEvent,
-  signInFromLink,
-  rememberedAccount,
-} from './cloud.js';
+import { canViewStats, deleteCloudProfile, getUser, loadCloudProfiles, onAuthEvent, rememberedAccount, saveCloudProfile, signInFromLink } from './cloud.js';
 import { listenForAppLinks, listenForWidgetLinks } from './appLink.js';
 import { SoundNotice } from './SoundButton.jsx';
 import { useScreenHistory } from './screenHistory.js';
@@ -56,6 +48,8 @@ import { FREE_COLORS, hasPlan, notePhone, plansOn, startPlans } from './plan.js'
 import Paywall from './Paywall.jsx';
 import TodayPlan from './TodayPlan.jsx';
 import { markDoneToday, todayPlan } from './todayPlan.js';
+import { statAppOpened, statRoundDone } from './stats.js';
+import StatsScreen from './StatsScreen.jsx';
 import { usesBlackKeys } from './blackKeys.js';
 import { loadPracticeLog } from './practiceLog.js';
 
@@ -636,6 +630,20 @@ export default function App() {
     };
   }, [opening, authChecked]);
   const [passwordRecovery, setPasswordRecovery] = useState(false);
+  // Anonymous usage stats (stats.js): the app was opened.
+  useEffect(() => {
+    statAppOpened();
+  }, []);
+  // The stats page is only for the accounts allowed to see it.
+  const [statsViewer, setStatsViewer] = useState(false);
+  useEffect(() => {
+    let live = true;
+    if (cloudUser?.id) canViewStats().then((ok) => live && setStatsViewer(ok));
+    else setStatsViewer(false);
+    return () => {
+      live = false;
+    };
+  }, [cloudUser?.id]);
   const [showWelcome, setShowWelcome] = useState(() => localStorage.getItem(WELCOME_KEY) !== '1');
 
   const [profile, setProfile] = useState(profiles[0].id);
@@ -1199,6 +1207,12 @@ export default function App() {
       setStreakDays(recordStreakDay(streakDays, profile));
       earnSticker(profile);
       recordRound(profile, summarizeRound(sessionQueue, roundOutcomes, roundMixups, roundFocus));
+      statRoundDone({
+        activity: inTinyTots(profile) ? 'tots' : 'color-test',
+        lang: speechLanguage(),
+        correct: Object.values(roundOutcomes).filter(Boolean).length,
+        total: SESSION_ROUNDS,
+      });
       setView('play-complete');
       return;
     }
@@ -1587,6 +1601,29 @@ export default function App() {
     );
   }
 
+  if (view === 'stats') {
+    return (
+      <div className="page">
+        <div className="app">
+          <AppHeader
+            profile={profile}
+            profiles={profiles}
+            onChangeProfile={changeProfile}
+            onOpenSettings={openSettings}
+            user={cloudUser}
+            onOpenAccount={openAccount}
+            onOpenTool={openTool}
+            onOpenPractice={openPracticeFromBadge}
+            showBack
+            onBack={openAccount}
+          />
+          <h2 className="screen-title">PitchPop stats</h2>
+          <StatsScreen />
+        </div>
+      </div>
+    );
+  }
+
   if (view === 'account') {
     return (
       <div className="page">
@@ -1610,6 +1647,7 @@ export default function App() {
             onSignedIn={handleSignedIn}
             onAccountDeleted={handleAccountDeleted}
             onOpenPlayers={openSettings}
+            onOpenStats={statsViewer ? () => setView('stats') : null}
             recoveryMode={passwordRecovery}
             onPasswordUpdated={() => setPasswordRecovery(false)}
           />
@@ -1638,9 +1676,10 @@ export default function App() {
             key={profile}
             engine={engineRef.current}
             playerId={profile}
-            onComplete={() => {
+            onComplete={(correct, total) => {
               setStreakDays(recordStreakDay(streakDays, profile));
               earnSticker(profile);
+              statRoundDone({ activity: 'notespeller', lang: speechLanguage(), correct, total });
             }}
             stickerSlot={stickerPicker('notes')}
           />
@@ -1679,7 +1718,10 @@ export default function App() {
               profileId={currentProfile.id}
               profileName={currentProfile.name}
               ready={authChecked}
-              onSaved={(id) => earnSticker(id)}
+              onSaved={(id) => {
+                earnSticker(id);
+                statRoundDone({ activity: 'practice', lang: speechLanguage() });
+              }}
               endOnOpen={endPracticeOnOpen}
               onEndHandled={() => setEndPracticeOnOpen(false)}
               stickerSlot={stickerPicker('practice')}
@@ -1723,6 +1765,7 @@ export default function App() {
                 setStreakDays(recordStreakDay(streakDays, profile));
                 earnSticker(profile);
                 markDoneToday(profile, 'tots');
+                statRoundDone({ activity: 'tots', lang: speechLanguage() });
               }}
               stickerSlot={stickerPicker('tots')}
             />
@@ -1730,10 +1773,11 @@ export default function App() {
             <MusicTheory
               key={`${profile}-${theoryMode}`}
               startMode={theoryMode}
-              onComplete={() => {
+              onComplete={(correct, total) => {
                 setStreakDays(recordStreakDay(streakDays, profile));
                 markDoneToday(profile, 'theory');
                 earnSticker(profile);
+                statRoundDone({ activity: 'theory', lang: speechLanguage(), correct, total });
               }}
               stickerSlot={stickerPicker('theory')}
             />

@@ -28,7 +28,7 @@ MADE FOR FAMILIES
 • Works offline, with a friendly voice built right into the app
 
 PRIVATE BY DESIGN
-No ads, no tracking, no analytics. You don't need an account to play. An optional account lets a family sync its players across devices, and you can delete it anytime from inside the app.
+No ads, no tracking, no third-party analytics. A family account keeps each player's progress and syncs your players across devices, and you can delete it anytime from inside the app.
 
 ## Keywords (100, comma-separated, no spaces needed)
 ear training,perfect pitch,chords,music,eguchi,piano,colors,listening,solfege,music game

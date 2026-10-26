@@ -6790,3 +6790,202 @@ body {
 .ns-piano .tn-key-letter {
   font-size: 18px;
 }
+
+/* ---------- PitchPop stats (Account -> PitchPop stats) ---------- */
+.stats-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+}
+
+.stats-range {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.stats-range-btn {
+  border: 0;
+  border-radius: 999px;
+  padding: 8px 16px;
+  background: var(--card-bg);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 700;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+}
+
+.stats-range-btn-active {
+  background: var(--accent-blue);
+  color: #fff;
+}
+
+.stats-tiles {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.stats-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: var(--card-bg);
+  box-shadow: var(--shadow-sm);
+}
+
+.stats-tile-value {
+  font-size: 30px;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.stats-tile-label,
+.stats-note,
+.stats-empty,
+.stats-axis,
+.stats-bar-note {
+  color: var(--ink-dim);
+  font-size: 13px;
+}
+
+.stats-note {
+  margin: 0;
+  text-align: center;
+}
+
+.stats-card {
+  padding: 16px;
+  border-radius: 18px;
+  background: var(--card-bg);
+  box-shadow: var(--shadow-sm);
+}
+
+.stats-card-title {
+  margin: 0 0 10px;
+  font-size: 16px;
+}
+
+.stats-chart-readout {
+  margin: 0 0 8px;
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.stats-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 140px;
+  border-bottom: 1px solid rgba(23, 26, 43, 0.12);
+}
+
+.stats-col {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.stats-col-fill {
+  width: 100%;
+  min-height: 2px;
+  border-radius: 4px 4px 0 0;
+  background: var(--accent-blue);
+  opacity: 0.55;
+}
+
+.stats-col-on .stats-col-fill {
+  opacity: 1;
+}
+
+.stats-axis {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+}
+
+.stats-bars {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stats-bar-row {
+  display: grid;
+  grid-template-columns: 7.5em 1fr auto;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.stats-bar-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stats-bar-track {
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(23, 26, 43, 0.06);
+}
+
+.stats-bar-fill {
+  display: block;
+  height: 100%;
+  min-width: 4px;
+  border-radius: 999px;
+  background: var(--accent-blue);
+}
+
+.stats-bar-value {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.stats-bar-note {
+  font-weight: 400;
+}
+
+/* Show me how: a shape with its sides or corners numbered. */
+
+.stats-families {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.stats-family {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.stats-family-email {
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.stats-family-meta {
+  color: var(--ink-dim);
+  font-size: 14px;
+}
