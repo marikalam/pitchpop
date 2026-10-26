@@ -499,16 +499,16 @@ export function AccountScreen({
   onSignedIn,
   onAccountDeleted,
   onOpenPlayers,
-  onDone,
   recoveryMode,
   onPasswordUpdated,
+  startMode = 'sign-in',
 }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
-  const [mode, setMode] = useState('sign-in');
+  const [mode, setMode] = useState(startMode);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [busy, setBusy] = useState(false);
@@ -798,10 +798,6 @@ export function AccountScreen({
           </button>
         </form>
       </div>
-
-      <button className="back-link back-link-center" onClick={onDone}>
-        Continue as guest
-      </button>
     </div>
   );
 }
