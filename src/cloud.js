@@ -394,3 +394,33 @@ export async function claimLivePractice(profileId, device, state, takeOver) {
     return undefined;
   }
 }
+
+// PitchPop stats (supabase/pitchpop_stats.sql): anonymous events sent by
+// stats.js, and for the accounts allowed to see them, the stats added up
+// on the server (null if not allowed or offline).
+export async function sendStatEvents(events) {
+  try {
+    const { error } = await supabase.from('pitchpop_events').insert(events);
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+export async function canViewStats() {
+  try {
+    const { data, error } = await supabase.rpc('pitchpop_can_view_stats');
+    return !error && data === true;
+  } catch {
+    return false;
+  }
+}
+
+export async function loadStats(days) {
+  try {
+    const { data, error } = await supabase.rpc('pitchpop_stats', { days });
+    return error ? null : data;
+  } catch {
+    return null;
+  }
+}

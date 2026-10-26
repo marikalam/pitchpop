@@ -129,7 +129,7 @@ export default function TheoryQuiz({ onComplete, stickerSlot }) {
     if (index + 1 >= SESSION_ROUNDS) {
       setDone(true);
       speakResults(correctCount, SESSION_ROUNDS);
-      onComplete?.();
+      onComplete?.(correctCount, SESSION_ROUNDS);
       return;
     }
     setIndex((i) => i + 1);

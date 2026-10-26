@@ -164,6 +164,7 @@ let lang = 'en';
 export function setSpeechLanguage(next) {
   lang = next === 'ja' ? 'ja' : 'en';
 }
+export const speechLanguage = () => lang;
 
 const JA_COLORS = {
   red: 'あか',

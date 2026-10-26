@@ -70,8 +70,11 @@ which usually needs a piano and a teacher, into a short daily game. A family can
 colors, and see a daily practice streak.
 
 **3. How to use the main features**
-No account is needed to play. PitchPop opens on its home page, which has a
-button for every part of the app: tap "Pitch Practice" to start playing.
+PitchPop opens on a sign-in screen: a parent creates a family account with
+email, which keeps each player's progress and stickers and syncs the
+family's players across devices. Please sign in with the demo account above
+(Sign in tab). The home page then has a button for every part of the app:
+tap "Pitch Practice" to start playing.
 - Menu: the ☰ button at the top left also opens every part of the app,
   grouped into Play, Learn and Practice, with "Home" and "Pitch Practice" first.
 - About: "How it works" on the home page (or ☰ → About) explains the
