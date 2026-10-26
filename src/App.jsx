@@ -2246,14 +2246,18 @@ export default function App() {
               onStick={openStickerBookWith}
               onSignIn={openAccount}
               then={
-                <div className="feedback-actions">
-                  <button className="pill-btn-secondary" onClick={() => openTool('progress')}>
-                    📈 Progress
-                  </button>
-                  <button className="pill-btn-primary" onClick={startPlay}>
-                    Play again →
-                  </button>
-                </div>
+                <>
+                  {/* On to what's next in today's practice (NoteSpeller...). */}
+                  {nextUpButton('color-test')}
+                  <div className="feedback-actions">
+                    <button className="pill-btn-secondary" onClick={() => openTool('progress')}>
+                      📈 Progress
+                    </button>
+                    <button className="pill-btn-secondary" onClick={startPlay}>
+                      Play again
+                    </button>
+                  </div>
+                </>
               }
             />
           </>
