@@ -1559,6 +1559,32 @@ export default function App() {
     );
   }
 
+  // PitchPop needs a family account: before anything else, sign up (or
+  // sign in) with email. (A password reset link goes to the account screen.)
+  if (!cloudUser && !passwordRecovery) {
+    return (
+      <div className="page">
+        <div className="app signup-gate">
+          <div className="signup-gate-logo">
+            <img className="opening-mark" src={`${import.meta.env.BASE_URL}icon-192.png`} alt="" />
+            <span className="logo opening-word">
+              <LogoWord />
+            </span>
+          </div>
+          <p className="signup-gate-sub">Every chord has a color. Make your family account to start playing.</p>
+          <AccountScreen
+            user={null}
+            playerCount={profiles.length}
+            onSignedIn={handleSignedIn}
+            onAccountDeleted={handleAccountDeleted}
+            onOpenPlayers={openSettings}
+            startMode="sign-up"
+          />
+        </div>
+      </div>
+    );
+  }
+
   if (view === 'account') {
     return (
       <div className="page">
@@ -1582,7 +1608,6 @@ export default function App() {
             onSignedIn={handleSignedIn}
             onAccountDeleted={handleAccountDeleted}
             onOpenPlayers={openSettings}
-            onDone={goHome}
             recoveryMode={passwordRecovery}
             onPasswordUpdated={() => setPasswordRecovery(false)}
           />

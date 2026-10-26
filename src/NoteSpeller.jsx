@@ -12,11 +12,12 @@ import { recordNoteRound } from './todayPlan.js';
 // every answer, right or wrong, links the written note to its name and
 // its sound.
 const SESSION_ROUNDS = 20;
-// The answer is a key on a piano from C up to the next C (like the chord
-// notes in Pitch Practice), with the letter on each key; either C answers
-// C. Letters a player isn't reading yet are dimmed; the black keys are
-// only there to look like a piano.
-const KEYS = ['C', 'D', 'E', 'F', 'G', 'A', 'B', 'C'];
+// The answer is a key on a piano from C up to the G above the next C (on
+// the treble staff: middle C up to the G above the top line), with the
+// letter on each key; any key with the right letter answers it. Letters a
+// player isn't reading yet are dimmed; the black keys are only there to
+// look like a piano.
+const KEYS = ['C', 'D', 'E', 'F', 'G', 'A', 'B', 'C', 'D', 'E', 'F', 'G'];
 const BLACK_AFTER = ['C', 'D', 'F', 'G', 'A'];
 export default function NoteSpeller({ engine, playerId, onComplete, stickerSlot }) {
   // Clef (treble, bass or both), part of the staff and letters are set per
@@ -67,7 +68,7 @@ export default function NoteSpeller({ engine, playerId, onComplete, stickerSlot 
     engine.playPitch(note.letter, note.octave);
   }
 
-  // key: which of the keys was tapped (there are two Cs).
+  // key: which of the keys was tapped (some letters are there twice).
   function answer(letter, key) {
     if (answered) return;
     const correct = letter === target.letter;

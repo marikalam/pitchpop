@@ -2016,15 +2016,16 @@ body {
   height: clamp(120px, 19vh, 180px);
 }
 
-/* Eight white keys (C to C) instead of TypeNotes' seven. */
+/* Twelve white keys (C up to the G above the next C) instead of
+   TypeNotes' seven. */
 .tn-piano.ns-piano {
-  grid-template-columns: repeat(8, minmax(0, 1fr));
+  grid-template-columns: repeat(12, minmax(0, 1fr));
 }
 
 .ns-piano .tn-black.ns-black {
-  --white: calc((100% - 12px - 21px) / 8);
-  width: 22px;
-  left: calc(6px + var(--k) * (var(--white) + 3px) - 1.5px - 11px);
+  --white: calc((100% - 12px - 33px) / 12);
+  width: 16px;
+  left: calc(6px + var(--k) * (var(--white) + 3px) - 1.5px - 8px);
 }
 
 /* NoteSpeller's black keys are only for looks: taps go to the white key. */
@@ -6756,4 +6757,36 @@ body {
   .practice-count-num {
     animation: none;
   }
+}
+
+/* ---------- Sign-up first (no account yet) ---------- */
+.signup-gate {
+  padding-top: max(36px, env(safe-area-inset-top));
+}
+
+.signup-gate-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.signup-gate-logo .opening-mark {
+  width: 80px;
+  height: 80px;
+  border-radius: 20px;
+  animation: none;
+}
+
+.signup-gate-sub {
+  margin: 12px auto 0;
+  max-width: 320px;
+  text-align: center;
+  color: var(--text-muted, #6b7090);
+  font-size: 16px;
+}
+
+/* Twelve keys are narrow: smaller letters. */
+.ns-piano .tn-key-letter {
+  font-size: 18px;
 }
