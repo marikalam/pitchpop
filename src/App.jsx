@@ -1,7 +1,7 @@
 import { Capacitor } from '@capacitor/core';
 import { App as CapacitorApp } from '@capacitor/app';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { PianoEngine, noteLabel, playCorrectChime, playWrongBuzz } from './piano.js';
+import { PianoEngine, noteLabel, playCorrectChime, playLogoPop, playWrongBuzz } from './piano.js';
 import { speakColorName, speakResults, prewarmVoices, setSpeechLanguage, unlockAudio } from './speech.js';
 import { voiceLang } from './voiceLang.js';
 import { isCurrent, later, newSound } from './soundBus.js';
@@ -303,13 +303,15 @@ function AppHeader({
       <div className="brand-row" ref={rowRef}>
         <div className="brand-left">
           <MainMenu onOpen={onOpenTool} />
-          {/* Tapping the logo plays its little animation (and, away from
-              the home page, also goes back home). */}
+          {/* Tapping the logo plays its little animation and a fun sound
+              (so you know the sound works), and away from the home page
+              also goes back home. */}
           <button
             className="logo-btn"
             aria-label={showBack ? 'PitchPop - back to home' : 'PitchPop'}
             onClick={() => {
               setLogoPlaying((n) => n + 1);
+              playLogoPop();
               if (showBack) onBack();
             }}
           >
