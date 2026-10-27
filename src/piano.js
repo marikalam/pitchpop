@@ -1,4 +1,4 @@
-import { audioContext, currentSound, later, playBuffer, soundOutput, wakeContext } from './soundBus.js';
+import { audioContext, currentSound, isMuted, later, outputFor, playBuffer, soundOutput, wakeContext } from './soundBus.js';
 import { freqMidi, loadPianoSamples, pianoSample } from './pianoSamples.js';
 
 // Sharps are for the Piano screen's black keys; everything else uses the
@@ -428,28 +428,38 @@ export function playCorrectChime() {
   oscs.push(chimeTone(ctx, out, 783.99, now + 0.18, 0.3, 0.18));
 }
 
-// Tapping the PitchPop logo: a bubbly "pop" and a quick sparkle up a
-// rainbow of notes - fun, and a check that the sound is on.
-export function playLogoPop() {
+// Tapping the PitchPop logo: a bubbly "pop", a quick run up a rainbow of
+// notes and a bright chord to end on - about a second and a half, loud
+// enough to be sure the sound is on. Waits for the sound to wake first
+// (after the lock screen it may be paused), so the start isn't lost. It
+// isn't one of the sounds a new sound stops: tapping the logo also leaves
+// the screen, which would otherwise cut it off.
+export async function playLogoPop() {
+  if (isMuted()) return;
   const ctx = ensureChimeAudio();
-  const now = ctx.currentTime + 0.01;
+  await wakeContext(ctx);
+  const now = ctx.currentTime + 0.02;
   const oscs = [];
-  const out = soundOutput(ctx, oscs, now + 1.1);
+  const out = ctx.createGain();
+  out.connect(outputFor(ctx));
   const pop = ctx.createOscillator();
   pop.type = 'sine';
-  pop.frequency.setValueAtTime(300, now);
-  pop.frequency.exponentialRampToValueAtTime(900, now + 0.08);
+  pop.frequency.setValueAtTime(260, now);
+  pop.frequency.exponentialRampToValueAtTime(980, now + 0.1);
   const popGain = ctx.createGain();
   popGain.gain.setValueAtTime(0.0001, now);
-  popGain.gain.linearRampToValueAtTime(0.25, now + 0.01);
-  popGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
+  popGain.gain.linearRampToValueAtTime(0.45, now + 0.012);
+  popGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.16);
   pop.connect(popGain).connect(out);
   pop.start(now);
-  pop.stop(now + 0.14);
+  pop.stop(now + 0.18);
   oscs.push(pop);
-  // C E G C E G C, faster than the right-answer chime.
-  [523.25, 659.25, 783.99, 1046.5, 1318.51, 1567.98, 2093].forEach((hz, i) => {
-    oscs.push(chimeTone(ctx, out, hz, now + 0.12 + i * 0.06, 0.35, 0.12));
+  // C E G C E G, then C E G C together.
+  [523.25, 659.25, 783.99, 1046.5, 1318.51, 1567.98].forEach((hz, i) => {
+    oscs.push(chimeTone(ctx, out, hz, now + 0.16 + i * 0.08, 0.4, 0.22));
+  });
+  [523.25, 659.25, 783.99, 1046.5].forEach((hz) => {
+    oscs.push(chimeTone(ctx, out, hz, now + 0.7, 0.9, 0.16));
   });
 }
 
