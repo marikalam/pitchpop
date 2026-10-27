@@ -6,6 +6,7 @@ import { buildNoteQueue, lettersFor, readingClef, readingLetters, readingLevel }
 import ProgressDots from './ProgressDots.jsx';
 import Staff from './Staff.jsx';
 import { recordNoteRound } from './todayPlan.js';
+import Icon from './Icon.jsx';
 
 // Note reading: a note is drawn on a treble or bass staff, the player
 // names it, and the app says the name and plays that exact pitch - so
@@ -121,7 +122,9 @@ export default function NoteSpeller({ engine, playerId, onComplete, stickerSlot 
     return (
       <>
         <div className="complete-wrap">
-          <div className="complete-emoji">🎼</div>
+          <div className="complete-emoji">
+            <Icon name="staff" />
+          </div>
           <h2 className="screen-title">NoteSpeller complete!</h2>
           <p className="screen-sub">
             You got {correctCount} out of {SESSION_ROUNDS} right.
@@ -143,7 +146,9 @@ export default function NoteSpeller({ engine, playerId, onComplete, stickerSlot 
   return (
     <div className="ns-screen">
       <ProgressDots current={roundIndex + 1} total={SESSION_ROUNDS} outcomes={outcomes} />
-      <h2 className="screen-title ns-title">What note is this? 🎵</h2>
+      <h2 className="screen-title ns-title">
+        What note is this? <Icon name="notes" />
+      </h2>
       <div
         className={`staff-card ns-staff-card${answered ? (answered.correct ? ' ns-staff-right' : ' ns-staff-wrong') : ''}`}
         // Tap anywhere on the staff to hear the note.
@@ -164,7 +169,7 @@ export default function NoteSpeller({ engine, playerId, onComplete, stickerSlot 
         </span>
         <Staff note={target} highlight={answered ? (answered.correct ? 'correct' : 'wrong') : null} />
         <span className="ns-tap-hint" aria-hidden="true">
-          🔊 Tap to hear
+          <Icon name="speaker" /> Tap to hear
         </span>
       </div>
 
@@ -173,11 +178,17 @@ export default function NoteSpeller({ engine, playerId, onComplete, stickerSlot 
           className={`note-feedback-text ns-key-prompt${answered ? (answered.correct ? ' note-feedback-correct' : '') : ' ns-key-prompt-ask'}`}
           aria-live="polite"
         >
-          {answered
-            ? answered.correct
-              ? `🎉 Yes! That's ${target.letter}.`
-              : `That's ${target.letter}. You tapped ${answered.picked}.`
-            : 'Tap the key'}
+          {answered ? (
+            answered.correct ? (
+              <>
+                <Icon name="party" /> Yes! That's {target.letter}.
+              </>
+            ) : (
+              `That's ${target.letter}. You tapped ${answered.picked}.`
+            )
+          ) : (
+            'Tap the key'
+          )}
         </p>
         <div className="tn-piano ns-piano">
           {KEYS.map((letter, k) => {

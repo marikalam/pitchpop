@@ -1,4 +1,5 @@
 import { noteLabel } from './piano.js';
+import Icon from './Icon.jsx';
 // "About the Eguchi method": where PitchPop's colors come from, how the
 // traditional method works, and how to practise with the app.
 
@@ -30,7 +31,7 @@ export default function MethodInfo({ colors }) {
       </section>
 
       <section className="method-card">
-        <h3 className="method-heading">🎨 The nine colors</h3>
+        <h3 className="method-heading"><Icon name="palette" /> The nine colors</h3>
         <p>
           The method starts with nine chords made only of white keys: the C, F and G chords, each in three positions.
           These are PitchPop’s colors.
@@ -61,7 +62,7 @@ export default function MethodInfo({ colors }) {
       </section>
 
       <section className="method-card">
-        <h3 className="method-heading">🔬 The research</h3>
+        <h3 className="method-heading"><Icon name="science" /> The research</h3>
         <p>
           In a long-term study in Japan (Sakakibara, 2014, <em>Psychology of Music</em>), 24 children aged 2 to 6 trained
           with this method, and every child who kept practicing (22 of them) developed absolute pitch, also called perfect
@@ -70,7 +71,7 @@ export default function MethodInfo({ colors }) {
       </section>
 
       <section className="method-card">
-        <h3 className="method-heading">👶 The best age</h3>
+        <h3 className="method-heading"><Icon name="baby" /> The best age</h3>
         <p>
           <strong>Start between ages 2 and 6</strong>: that’s the age of the children in the study, and the younger the
           better. The ability to learn perfect pitch fades after about age 6 to 7, and adults almost never can. Older
@@ -79,7 +80,7 @@ export default function MethodInfo({ colors }) {
       </section>
 
       <section className="method-card">
-        <h3 className="method-heading">🌱 How to practice</h3>
+        <h3 className="method-heading"><Icon name="sprout" /> How to practice</h3>
         <ul className="method-tips">
           <li>
             <strong>4 to 5 short sessions a day</strong>, each just 2 to 5 minutes (about 20 to 25 chords, or one round
@@ -102,7 +103,7 @@ export default function MethodInfo({ colors }) {
       </section>
 
       <section className="method-card">
-        <h3 className="method-heading">➕ When to add a new color</h3>
+        <h3 className="method-heading"><Icon name="plus" /> When to add a new color</h3>
         <ul className="method-tips">
           <li>
             Add a new color when your child recognizes their current colors with <strong>at least 90% accuracy</strong>{' '}

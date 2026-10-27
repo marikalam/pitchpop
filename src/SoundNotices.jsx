@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { isIPhoneWebsite } from './soundCheck.js';
+import Icon from './Icon.jsx';
 
 // Small notes at the bottom of the screen about hearing PitchPop:
 // - after "Sound check": "Can you hear the chime?" with what to do if not;
@@ -67,7 +68,7 @@ export default function SoundNotices() {
   return (
     <div className="sound-notice" role="status">
       <span className="sound-notice-icon" aria-hidden="true">
-        {notice === 'check' ? '🔊' : '🔕'}
+        <Icon name={notice === 'check' ? 'speaker' : 'mute'} />
       </span>
       <span className="sound-notice-text">
         {notice === 'check' ? (

@@ -6066,7 +6066,7 @@ body {
   width: min(250px, 66vw, 34vh);
   aspect-ratio: 1;
 }
-.pring svg {
+.pring > svg {
   width: 100%;
   height: 100%;
 }
@@ -6087,7 +6087,7 @@ body {
 .pring-paused .pring-fill {
   opacity: 0.45;
 }
-.pring-done svg {
+.pring-done > svg {
   animation: pring-glow 2.4s ease-in-out infinite;
 }
 @keyframes pring-glow {
@@ -6141,7 +6141,7 @@ body {
   box-shadow: 0 12px 22px -12px #845ef7;
 }
 @media (prefers-reduced-motion: reduce) {
-  .pring-done svg { animation: none; }
+  .pring-done > svg { animation: none; }
   .pring-fill { transition: none; }
 }
 
@@ -6988,4 +6988,21 @@ body {
 .stats-family-meta {
   color: var(--ink-dim);
   font-size: 14px;
+}
+
+/* ---------- PitchPop's own icons (Icon.jsx) ---------- */
+.pp-icon {
+  display: inline-block;
+  width: 1.2em;
+  height: 1.2em;
+  flex: none;
+  vertical-align: -0.22em;
+}
+
+/* On the colored home tiles, each icon sits in a white circle. */
+.home-tile-icon .pp-icon {
+  padding: 0.16em;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
 }

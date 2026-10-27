@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { bassOctave, noteLabel, playCorrectChime, playWrongBuzz } from './piano.js';
 import { later, newSound } from './soundBus.js';
+import Icon from './Icon.jsx';
 
 // After naming a chord's color, players on the notes level play its three
 // notes, bottom to top (red: C, E, G), on a one-octave piano with the
@@ -150,7 +151,7 @@ export default function TypeNotes({ color, engine, onNext, nextLabel }) {
               engine.playChord(color.notes);
             }}
           >
-            🔊 Hear the chord
+            <Icon name="speaker" /> Hear the chord
           </button>
         </div>
       )}

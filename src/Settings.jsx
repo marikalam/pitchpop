@@ -17,6 +17,7 @@ import {
   setReadingLetters,
   setReadingLevel,
 } from './noteReading.js';
+import Icon from './Icon.jsx';
 
 // A password input with an eye button that shows or hides what's typed.
 function PasswordField({ label, value, onChange, autoComplete, placeholder }) {
@@ -90,9 +91,13 @@ function PlayerHistory({ days, onSignIn }) {
     <p className="player-history">
       Playing since <strong>{formatDay(since)}</strong>
       <span className="player-history-streak">
-        {current > 0
-          ? `🔥 ${current} ${current === 1 ? 'day' : 'days'} in a row · best ${best}`
-          : `Best streak: ${best} ${best === 1 ? 'day' : 'days'}`}
+        {current > 0 ? (
+          <>
+            <Icon name="flame" /> {current} {current === 1 ? 'day' : 'days'} in a row · best {best}
+          </>
+        ) : (
+          `Best streak: ${best} ${best === 1 ? 'day' : 'days'}`
+        )}
       </span>
     </p>
   );
@@ -106,21 +111,29 @@ export function LearningGuide() {
   return (
     <section className="learn-guide">
       <button className="learn-guide-head" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
-        <span>📘 How to learn, step by step</span>
+        <span>
+          <Icon name="book" /> How to learn, step by step
+        </span>
         <span aria-hidden="true">{open ? '▲' : '▼'}</span>
       </button>
       {open && (
         <ol className="learn-steps">
           <li>
-            <b>🧸 Tiny Tots</b>
+            <b>
+              <Icon name="teddy" /> Tiny Tots
+            </b>
             <span>For little ones. Big colors to tap: each plays its chord and says its name. No right or wrong.</span>
           </li>
           <li>
-            <b>🌈 Start with 3 colors</b>
+            <b>
+              <Icon name="rainbow" /> Start with 3 colors
+            </b>
             <span>When they can play a short game, switch to the color game with Red, Yellow and Blue.</span>
           </li>
           <li>
-            <b>➕ Add one color at a time</b>
+            <b>
+              <Icon name="plus" /> Add one color at a time
+            </b>
             <span>
               In this order: {LEARNING_ORDER.slice(3).map(cap).join(', ')}. Add the next color only when they get{' '}
               {READY_PCT}% or more on every color, {READY_ROUNDS} rounds in a row. The Progress page shows when they're
@@ -128,7 +141,9 @@ export function LearningGuide() {
             </span>
           </li>
           <li>
-            <b>🎹 Type the notes</b>
+            <b>
+              <Icon name="keys" /> Type the notes
+            </b>
             <span>Once every color is mastered, turn on Type the notes: after the color, they play its letters.</span>
           </li>
         </ol>
@@ -165,7 +180,7 @@ export function PlayerSettingsCard({
     <div className={`ps-fold${open === id ? ' ps-fold-open' : ''}`}>
       <button className="ps-fold-head" onClick={() => setOpen(open === id ? null : id)} aria-expanded={open === id}>
         <span className="ps-fold-icon" aria-hidden="true">
-          {icon}
+          <Icon name={icon} />
         </span>
         <span className="ps-fold-text">
           <b>{title}</b>
@@ -219,7 +234,7 @@ export function PlayerSettingsCard({
           }}
           aria-label={`Voice: ${voice === 'ja' ? 'Japanese' : 'English'}. Tap to switch.`}
         >
-          🗣 {voice === 'ja' ? '日本語' : 'EN'}
+          <Icon name="speech" /> {voice === 'ja' ? '日本語' : 'EN'}
         </button>
       </div>
       <PlayerHistory days={playDays} onSignIn={onSignIn} />
@@ -227,7 +242,7 @@ export function PlayerSettingsCard({
       {/* Pitch Practice: which colors, and how the player plays them. */}
       {section(
         'pitch',
-        '🌈',
+        'rainbow',
         'Pitch Practice',
         `${profile.colors.length} ${profile.colors.length === 1 ? 'color' : 'colors'} · ${
           totsOn ? 'Tiny Tots' : notesOn ? 'Color game · Type the notes' : 'Color game'
@@ -274,9 +289,9 @@ export function PlayerSettingsCard({
             <span className="ps-label">Plays</span>
             <div className="ns-segmented" role="radiogroup" aria-label="How Pitch Practice plays">
               {[
-                [false, '🌈 Color game'],
-                [true, '🧸 Tiny Tots'],
-              ].map(([tots, label]) => (
+                [false, 'Color game', 'rainbow'],
+                [true, 'Tiny Tots', 'teddy'],
+              ].map(([tots, label, icon]) => (
                 <button
                   key={label}
                   role="radio"
@@ -287,7 +302,7 @@ export function PlayerSettingsCard({
                     setTinyTots(profile.id, tots);
                   }}
                 >
-                  {label}
+                  <Icon name={icon} /> {label}
                 </button>
               ))}
             </div>
@@ -299,7 +314,9 @@ export function PlayerSettingsCard({
           ) : (
             <label className="ps-switch-row">
               <span className="ps-switch-text">
-                <b>🎹 Type the notes</b>
+                <b>
+                  <Icon name="keys" /> Type the notes
+                </b>
                 <span>After the color, play its letters (red: C, E, G)</span>
               </span>
               <input
@@ -316,7 +333,7 @@ export function PlayerSettingsCard({
       {/* NoteSpeller: what this player reads. */}
       {section(
         'notes',
-        '🎼',
+        'staff',
         'NoteSpeller',
         `${CLEF_MODES.find((m) => m.id === readClef).label.replace(' clef', '')} · ${
           LEVELS.find((l) => l.id === readLevel).label
@@ -669,7 +686,9 @@ export function AccountScreen({
           </button>
           {onOpenStats && (
             <button className="account-row account-row-button" onClick={onOpenStats}>
-              <span className="account-row-label">📊 PitchPop stats</span>
+              <span className="account-row-label">
+                <Icon name="stats" /> PitchPop stats
+              </span>
               <span className="account-row-value">›</span>
             </button>
           )}

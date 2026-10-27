@@ -11,6 +11,7 @@ import CoffeeBreak from './CoffeeBreak.jsx';
 import { showPracticeOnLockScreen } from './liveActivity.js';
 import { newPracticeId, practiceElsewhere, takePracticeHere } from './livePractice.js';
 import { playStickerPick } from './piano.js';
+import Icon from './Icon.jsx';
 
 // A practice companion: a timer for the whole session, a tap counter for
 // repetitions ("5 times scales, then 5 times Hanon"), and each player's
@@ -30,10 +31,10 @@ const TAB_KEY = 'pitchpop-practice-tab-v1';
 // scrolling. Every panel stays mounted (just hidden), so the timer and the
 // metronome keep going while another tab is open.
 const TABS = [
-  { id: 'timer', icon: '⏱️', label: 'Timer' },
-  { id: 'metronome', icon: '🎵', label: 'Metronome' },
-  { id: 'counter', icon: '🔁', label: 'Counter' },
-  { id: 'history', icon: '📅', label: 'History' },
+  { id: 'timer', icon: 'timer', label: 'Timer' },
+  { id: 'metronome', icon: 'notes', label: 'Metronome' },
+  { id: 'counter', icon: 'repeat', label: 'Counter' },
+  { id: 'history', icon: 'calendar', label: 'History' },
 ];
 
 function loadTab() {
@@ -317,7 +318,7 @@ function PracticeRing({ ms, status }) {
         />
       </svg>
       <div className="pring-middle">
-        {status === 'paused' ? <CoffeeBreak /> : <span className="pring-top">{done ? '⭐' : '🎹'}</span>}
+        {status === 'paused' ? <CoffeeBreak /> : <span className="pring-top"><Icon name={done ? 'star' : 'keys'} /></span>}
         <span className="pring-time">
           {time}
           <span className="pring-unit">min</span>
@@ -524,7 +525,7 @@ export default function PracticeMode({ engine, profileId, profileName, ready = t
             onClick={() => chooseTab(t.id)}
           >
             <span className="practice-tab-icon" aria-hidden="true">
-              {t.icon}
+              <Icon name={t.icon} />
             </span>
             <span className="practice-tab-label">{t.label}</span>
             {live[t.id] && <span className="practice-tab-live" aria-label="running" />}
@@ -576,11 +577,11 @@ export default function PracticeMode({ engine, profileId, profileName, ready = t
               {formatMinutes(wholeMinutes(elapsedMs(away, now)))}
             </div>
             <p className="practice-status practice-away">
-              📱 {profileName} is {away.status === 'paused' ? 'on a break' : 'practicing'} on another phone
+              <Icon name="phone" /> {profileName} is {away.status === 'paused' ? 'on a break' : 'practicing'} on another phone
             </p>
             <p className="practice-away-note">One practice at a time for each player. Bring it here to keep going on this phone.</p>
             <button className="pill-btn-primary pill-btn-full" onClick={moveHere} disabled={moving}>
-              {moving ? 'Moving…' : '📲 Move practice to this phone'}
+              {moving ? 'Moving…' : <><Icon name="phone" /> Move practice to this phone</>}
             </button>
           </>
         )}
@@ -596,15 +597,15 @@ export default function PracticeMode({ engine, profileId, profileName, ready = t
             <p className="practice-status">
               {practice.status === 'idle' &&
                 (moved === 'moved'
-                  ? '📲 This practice moved to another phone'
+                  ? <><Icon name="phone" /> This practice moved to another phone</>
                   : moved === 'ended'
                     ? 'This practice was ended on another phone'
                     : moved === 'elsewhere'
-                      ? `📱 ${profileName} is already practicing on another phone`
+                      ? <><Icon name="phone" /> {profileName} is already practicing on another phone</>
                       : null)}
-              {practice.status === 'running' && minutes >= MIN_PRACTICE_MINUTES && '⭐ A sticker is waiting when you end'}
+              {practice.status === 'running' && minutes >= MIN_PRACTICE_MINUTES && <><Icon name="star" /> A sticker is waiting when you end</>}
               {practice.status === 'paused' &&
-                (practice.autoStopped ? '⏸ Stopped by itself after 2 hours with no taps' : 'The timer is stopped')}
+                (practice.autoStopped ? <><Icon name="pause" /> Stopped by itself after 2 hours with no taps</> : 'The timer is stopped')}
             </p>
             {practice.status === 'idle' ? (
               <button className="pill-btn-primary pill-btn-full practice-go" onClick={start}>
@@ -614,7 +615,7 @@ export default function PracticeMode({ engine, profileId, profileName, ready = t
               <div className="practice-actions">
                 {practice.status === 'running' ? (
                   <button className="pill-btn-secondary" onClick={pause}>
-                    ☕ Take a break
+                    <Icon name="cup" /> Take a break
                   </button>
                 ) : (
                   <button className="pill-btn-secondary" onClick={resume}>
@@ -633,7 +634,7 @@ export default function PracticeMode({ engine, profileId, profileName, ready = t
       <Metronome engine={engine} hidden={tab !== 'metronome'} />
 
       <section className="practice-card practice-card-counter" aria-label="Repetition counter" hidden={tab !== 'counter'}>
-        <div className="practice-card-title">🔁 Repetition counter</div>
+        <div className="practice-card-title"><Icon name="repeat" /> Repetition counter</div>
         <p className="practice-counter-desc">Tap each time you finish one, like 5 times through your scales.</p>
         {/* Every tap sends a rainbow bead sliding into the row, in fives
             like tally marks. */}
@@ -669,7 +670,7 @@ export default function PracticeMode({ engine, profileId, profileName, ready = t
       {/* Built only when open: it's the slowest part of Practice Mode. */}
       {tab === 'history' && (
         <section className="practice-card practice-card-history" aria-label={`${profileName}'s practice`}>
-          <div className="practice-card-title">📅 {profileName}’s practice</div>
+          <div className="practice-card-title"><Icon name="calendar" /> {profileName}’s practice</div>
           <div className="practice-week" aria-label="Minutes practiced each day this week">
             {stats.week.map((d) => {
               const top = Math.max(15, ...stats.week.map((w) => w.minutes));
@@ -686,7 +687,7 @@ export default function PracticeMode({ engine, profileId, profileName, ready = t
           </div>
           <div className="practice-stats">
             <div className="practice-stat">
-              <div className="practice-stat-value">🔥 {stats.streak.current}</div>
+              <div className="practice-stat-value"><Icon name="flame" /> {stats.streak.current}</div>
               <div className="practice-stat-label">{stats.streak.current === 1 ? 'day' : 'days'} in a row</div>
             </div>
             <div className="practice-stat">

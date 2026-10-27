@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { isMuted, setMuted, soundState, wakeAudio } from './soundBus.js';
 import { LOW_VOLUME, pickOutput, playSoundCheck, watchOutput, watchVolume } from './soundCheck.js';
+import Icon from './Icon.jsx';
 
 // PitchPop always plays sound (even with the iPhone on silent, like
 // Instagram); there's no mute button, so a stray tap can't leave it quiet.
@@ -84,7 +85,10 @@ export function SoundNotice() {
     return (
       <span className="output-pill">
         <button className="volume-warning" onClick={pickOutput}>
-          <span aria-hidden="true">{away.kind === 'car' ? '🚗' : '🎧'}</span> Play on iPhone
+          <span aria-hidden="true">
+            <Icon name={away.kind === 'car' ? 'car' : 'headphones'} />
+          </span>{' '}
+          Play on iPhone
         </button>
         <button className="output-pill-keep" onClick={keep} aria-label={`Keep playing on ${away.name}`}>
           ✕
@@ -94,7 +98,10 @@ export function SoundNotice() {
   if (!text) return null;
   return (
     <button className="volume-warning" onClick={turnOn}>
-      <span aria-hidden="true">🔇</span> {text}
+      <span aria-hidden="true">
+        <Icon name="mute" />
+      </span>{' '}
+      {text}
     </button>
   );
 }

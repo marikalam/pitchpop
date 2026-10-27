@@ -74,7 +74,7 @@ export async function scheduleReminders(players = []) {
         id,
         title: 'PitchPop',
         body:
-          `Time for ${listNames(players.map((p) => p.name))}'s pitch practice 🎵` +
+          `Time for ${listNames(players.map((p) => p.name))}'s pitch practice` +
           (streak > 1 ? ` ${best.name} is on a ${streak}-day streak!` : ''),
         schedule: { at, allowWhileIdle: true },
       });
@@ -89,7 +89,7 @@ export async function scheduleReminders(players = []) {
       notifications.push({
         id: WEEKLY_ID,
         title: 'PitchPop · This week',
-        body: `${lines.join(' · ')} 🌈`,
+        body: lines.join(' · '),
         schedule: { at: sunday, allowWhileIdle: true },
       });
     }

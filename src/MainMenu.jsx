@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { plansOn } from './plan.js';
+import Icon from './Icon.jsx';
 
 // The ☰ menu: every part of the app besides picking a player, grouped like
 // the home page - Home first (a way back from anywhere), then the Perfect
@@ -8,35 +9,35 @@ import { plansOn } from './plan.js';
 const MENU_SECTIONS = [
   {
     id: 'home',
-    items: [{ id: 'home', icon: '🏠', label: 'Home' }, ...(plansOn() ? [{ id: 'plan', icon: '⭐', label: 'PitchPop Family' }] : [])],
+    items: [{ id: 'home', icon: 'home', label: 'Home' }, ...(plansOn() ? [{ id: 'plan', icon: 'star', label: 'PitchPop Family' }] : [])],
   },
   {
     id: 'pitch',
     title: 'Perfect Pitch',
     items: [
-      { id: 'color-test', icon: '🌈', label: 'Pitch Practice' },
-      { id: 'explore', icon: '🎵', label: 'Explore sounds' },
-      { id: 'stickers', icon: '📒', label: 'Sticker book' },
-      { id: 'progress', icon: '📈', label: 'Progress' },
-      { id: 'method', icon: '🎓', label: 'The Eguchi method' },
+      { id: 'color-test', icon: 'rainbow', label: 'Pitch Practice' },
+      { id: 'explore', icon: 'notes', label: 'Explore sounds' },
+      { id: 'stickers', icon: 'notebook', label: 'Sticker book' },
+      { id: 'progress', icon: 'chart', label: 'Progress' },
+      { id: 'method', icon: 'cap', label: 'The Eguchi method' },
     ],
   },
   {
     id: 'piano',
     title: 'Piano tools',
     items: [
-      { id: 'piano', icon: '🎹', label: 'Piano' },
-      { id: 'scales', icon: '🎶', label: 'Scales' },
-      { id: 'hanon', icon: '🏋️', label: 'Hanon' },
-      { id: 'practice', icon: '⏱️', label: 'Practice Mode' },
+      { id: 'piano', icon: 'keys', label: 'Piano' },
+      { id: 'scales', icon: 'scales', label: 'Scales' },
+      { id: 'hanon', icon: 'dumbbell', label: 'Hanon' },
+      { id: 'practice', icon: 'timer', label: 'Practice Mode' },
     ],
   },
   {
     id: 'learn',
     title: 'Learn',
     items: [
-      { id: 'notespeller', icon: '🎼', label: 'NoteSpeller' },
-      { id: 'theory', icon: '📖', label: 'Music Theory' },
+      { id: 'notespeller', icon: 'staff', label: 'NoteSpeller' },
+      { id: 'theory', icon: 'book', label: 'Music Theory' },
     ],
   },
 ];
@@ -85,7 +86,7 @@ export default function MainMenu({ onOpen }) {
                     setOpen(false);
                   }}
                 >
-                  {item.icon} <span>{item.label}</span>
+                  <Icon name={item.icon} /> <span>{item.label}</span>
                 </button>
               ))}
             </div>
