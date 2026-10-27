@@ -3,6 +3,7 @@ import * as GLYPHS from './theoryGlyphs.js';
 import { GLOSSARY, THEORY_CATEGORIES } from './theoryGlossary.js';
 import TheoryQuiz from './TheoryQuiz.jsx';
 import { prewarmVoices } from './speech.js';
+import Icon from './Icon.jsx';
 
 // Music Theory: a picture glossary of basic terms, grouped by topic, with
 // chips to show one topic at a time - and a quiz on them (TheoryQuiz.jsx).
@@ -95,8 +96,8 @@ export default function MusicTheory({ startMode = 'glossary', onComplete, sticke
   const modes = (
     <div className="ns-segmented theory-modes" role="tablist" aria-label="Glossary or quiz">
       {[
-        { id: 'glossary', label: '📖 Glossary' },
-        { id: 'quiz', label: '🎯 Quiz' },
+        { id: 'glossary', icon: 'book', label: 'Glossary' },
+        { id: 'quiz', icon: 'target', label: 'Quiz' },
       ].map((m) => (
         <button
           key={m.id}
@@ -105,7 +106,7 @@ export default function MusicTheory({ startMode = 'glossary', onComplete, sticke
           className={`ns-segment${mode === m.id ? ' ns-segment-active' : ''}`}
           onClick={() => setMode(m.id)}
         >
-          {m.label}
+          <Icon name={m.icon} /> {m.label}
         </button>
       ))}
     </div>

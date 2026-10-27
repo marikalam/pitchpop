@@ -57,7 +57,7 @@ export function todayPlan({ playerId, rounds = [], practices = [], colorNames = 
   if (tinyTots) {
     items.push({
       id: 'tots',
-      icon: '🌈',
+      icon: 'rainbow',
       title: 'Tiny Tots',
       sub: 'Tap each color and listen',
       done: !!(read(DONE_KEY)[playerId]?.day === today && read(DONE_KEY)[playerId]?.tots),
@@ -68,7 +68,7 @@ export function todayPlan({ playerId, rounds = [], practices = [], colorNames = 
     const { worst } = weekProgress(rounds, [], colorNames);
     items.push({
       id: 'color-test',
-      icon: worst ? '🎯' : '🌈',
+      icon: worst ? 'target' : 'rainbow',
       title: worst ? `Pitch Practice: ${cap(worst.name)} or ${cap(worst.partner)}?` : 'Pitch Practice',
       sub: worst
         ? `Missed ${worst.misses} ${worst.misses === 1 ? 'time' : 'times'} this week · 1 round of 20`
@@ -88,7 +88,7 @@ export function todayPlan({ playerId, rounds = [], practices = [], colorNames = 
     const missed = tricky.reduce((n, [, count]) => n + count, 0);
     items.push({
       id: 'notespeller',
-      icon: '🎼',
+      icon: 'staff',
       title: tricky.length ? `NoteSpeller: ${tricky.map(([l]) => l).join(' and ')}` : 'NoteSpeller',
       sub: tricky.length
         ? `Missed ${missed} ${missed === 1 ? 'time' : 'times'} last time · 20 notes`
@@ -102,7 +102,7 @@ export function todayPlan({ playerId, rounds = [], practices = [], colorNames = 
   if (!tinyTots) {
     items.push({
       id: 'theory',
-      icon: '📖',
+      icon: 'book',
       title: 'Theory quiz',
       sub: '20 music signs',
       done: !!(read(DONE_KEY)[playerId]?.day === today && read(DONE_KEY)[playerId]?.theory),
@@ -113,7 +113,7 @@ export function todayPlan({ playerId, rounds = [], practices = [], colorNames = 
   const yesterday = week[5]?.minutes || 0;
   items.push({
     id: 'practice',
-    icon: '⏱️',
+    icon: 'timer',
     title: 'Piano practice',
     sub: todayMinutes
       ? `${todayMinutes} min today`

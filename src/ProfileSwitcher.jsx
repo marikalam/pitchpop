@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import Avatar from './Avatar.jsx';
+import Icon from './Icon.jsx';
 
 // "Playing as": the player pill in the header, next to the account button,
 // picks which player is playing. Signed in, it also leads to the family's
@@ -61,7 +62,7 @@ export default function ProfileSwitcher({ profile, profiles, colors, onChange, o
                 setOpen(false);
               }}
             >
-              ⚙️ <span>Players &amp; colors</span>
+              <Icon name="gear" /> <span>Players &amp; colors</span>
             </button>
           </div>
         </div>

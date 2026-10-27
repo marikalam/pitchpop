@@ -7,6 +7,7 @@ import Sticker from './Sticker.jsx';
 // Made once: making a date format is slow on iPhones.
 const NARROW_WEEKDAY = new Intl.DateTimeFormat(undefined, { weekday: 'narrow' });
 import { loadReminder, remindersAvailable, setReminder } from './reminders.js';
+import Icon from './Icon.jsx';
 
 // The parent progress page: the player's last 7 days (rounds, streak,
 // first-try score, each color), a tip (the colors they mix up, or that
@@ -20,7 +21,7 @@ function ReminderCard({ reminderPlayers, onOpenStickers }) {
   if (!remindersAvailable()) {
     return (
       <div className="prog-card prog-row">
-        <span className="prog-big-emoji">🔔</span>
+        <span className="prog-big-emoji"><Icon name="bell" /></span>
         <span className="muted-text">Daily practice reminders are in the PitchPop iPhone app.</span>
       </div>
     );
@@ -34,7 +35,7 @@ function ReminderCard({ reminderPlayers, onOpenStickers }) {
     <div className="prog-card">
       <label className="ps-switch-row prog-reminder">
         <span className="ps-switch-text">
-          <b>🔔 Daily reminder</b>
+          <b><Icon name="bell" /> Daily reminder</b>
           <span>A nudge at practice time, and how the week went on Sundays</span>
         </span>
         <input
@@ -90,7 +91,7 @@ export default function Progress({ player, rounds, days, colors, signedIn, onSig
           <span>{week.roundsThisWeek === 1 ? 'round' : 'rounds'}</span>
         </div>
         <div>
-          <b>🔥 {week.streak}</b>
+          <b><Icon name="flame" /> {week.streak}</b>
           <span>days in a row</span>
         </div>
         <div>
@@ -129,7 +130,7 @@ export default function Progress({ player, rounds, days, colors, signedIn, onSig
 
       {week.worst && (
         <div className="prog-card prog-row prog-tip">
-          <span className="prog-big-emoji">🎯</span>
+          <span className="prog-big-emoji"><Icon name="target" /></span>
           <span>
             <b>
               Mixes up {cap(week.worst.name)} and {cap(week.worst.partner)}
@@ -140,7 +141,7 @@ export default function Progress({ player, rounds, days, colors, signedIn, onSig
       )}
       {week.ready && (
         <div className="prog-card prog-row">
-          <span className="prog-big-emoji">🏅</span>
+          <span className="prog-big-emoji"><Icon name="medal" /></span>
           <span>
             <b>Ready for a new color!</b>
             <span className="muted-text">90% or more on every color, two rounds in a row. Add one in Players &amp; colors.</span>
@@ -149,12 +150,12 @@ export default function Progress({ player, rounds, days, colors, signedIn, onSig
       )}
 
       <button className="prog-card prog-row prog-book-link" onClick={onOpenStickers}>
-        <span className="prog-big-emoji">📒</span>
+        <span className="prog-big-emoji"><Icon name="notebook" /></span>
         <span>
           <b>Sticker book</b>
           <span className="muted-text">
             {waiting
-              ? `🎁 ${waiting === 1 ? 'A sticker is' : `${waiting} stickers are`} waiting to be picked!`
+              ? <><Icon name="gift" /> {waiting === 1 ? 'A sticker is' : `${waiting} stickers are`} waiting to be picked!</>
               : `${book.total} ${book.total === 1 ? 'sticker' : 'stickers'}${book.page ? ` · page ${book.page + 1}: ${book.onPage.length} of ${BOOK_SIZE}` : ''}`}
           </span>
           <span className="prog-book-peek">
@@ -169,7 +170,7 @@ export default function Progress({ player, rounds, days, colors, signedIn, onSig
       </button>
 
       <div className="prog-card prog-row">
-        <span className="prog-big-emoji">🌈</span>
+        <span className="prog-big-emoji"><Icon name="rainbow" /></span>
         <span className="prog-grow">
           <b>
             Rainbow: {player.colors.length} of {colors.length} colors

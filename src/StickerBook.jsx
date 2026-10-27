@@ -3,6 +3,7 @@ import { BOOK_SIZE, STICKERS } from './stickers.js';
 import { addSticker, bookPage, pendingStickers, playerStickers } from './stickerStore.js';
 import Sticker from './Sticker.jsx';
 import { playStickerPick, playStickerStick } from './piano.js';
+import Icon from './Icon.jsx';
 
 // The sticker book: every sticker has its own spot on the page. The ones
 // collected are there in color; the rest wait as faded shadows. A new
@@ -86,7 +87,7 @@ export default function StickerBook({ player, signedIn, onSignIn, placing, onPla
           </p>
           {choosing && (
             <p className="sbook-hint">
-              🎁 {pending > 1 ? `${pending} stickers are waiting!` : 'A sticker is waiting!'} Tap the one you want.
+              <Icon name="gift" /> {pending > 1 ? `${pending} stickers are waiting!` : 'A sticker is waiting!'} Tap the one you want.
             </p>
           )}
           <div className="sbook-grid">
@@ -156,7 +157,7 @@ export default function StickerBook({ player, signedIn, onSignIn, placing, onPla
           </div>
           {phase === 'landed' && (
             <p className="sbook-done">
-              ⭐ In your sticker book! ⭐
+              <Icon name="star" /> In your sticker book! <Icon name="star" />
             </p>
           )}
           {/* Just stuck one in after an activity: what's left in today's
@@ -172,7 +173,7 @@ export default function StickerBook({ player, signedIn, onSignIn, placing, onPla
       {choosing && (
         <div className="sbook-stickbar">
           <button className="pill-btn-primary" disabled={chosen === null} onClick={stickChosen}>
-            {chosen === null ? 'Tap a sticker to pick it' : 'Stick it in! ⭐'}
+            {chosen === null ? 'Tap a sticker to pick it' : <>Stick it in! <Icon name="star" /></>}
           </button>
         </div>
       )}

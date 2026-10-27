@@ -12,13 +12,14 @@ import {
   showCustomerCenter,
   showPaywall,
 } from './plan.js';
+import Icon from './Icon.jsx';
 
 const PERKS = [
-  ['🌈', 'Every color', 'Keep adding colors after red, yellow and blue'],
-  ['🎼', 'NoteSpeller', 'Read notes on the staff, treble and bass'],
-  ['🎶', 'Scales & Hanon', 'Fingering for every scale, and Hanon 1–20'],
-  ['📈', 'Progress page', "Each child's week, colors and reminders"],
-  ['👨‍👩‍👧', 'The whole family', 'Every child gets their own player'],
+  ['rainbow', 'Every color', 'Keep adding colors after red, yellow and blue'],
+  ['staff', 'NoteSpeller', 'Read notes on the staff, treble and bass'],
+  ['scales', 'Scales & Hanon', 'Fingering for every scale, and Hanon 1–20'],
+  ['chart', 'Progress page', "Each child's week, colors and reminders"],
+  ['family', 'The whole family', 'Every child gets their own player'],
 ];
 
 const LABELS = { yearly: ['Yearly', '/year'], monthly: ['Monthly', '/month'], lifetime: ['Lifetime', ' once'] };
@@ -36,7 +37,7 @@ function ParentGate({ onPass, onCancel }) {
   return (
     <div className="gate-backdrop" role="dialog" aria-modal="true" aria-label="Ask a grown-up">
       <div className="gate-card">
-        <h3 className="gate-title">Ask a grown-up 👋</h3>
+        <h3 className="gate-title">Ask a grown-up <Icon name="wave" /></h3>
         <p className="gate-q">
           What is {q.a} × {q.b}?
         </p>
@@ -111,13 +112,13 @@ export default function Paywall({ user, reason, onSignIn, onDone }) {
   return (
     <div className="paywall">
       <div className="paywall-hero">
-        <div className="paywall-badge">⭐ PitchPop Family</div>
+        <div className="paywall-badge"><Icon name="star" /> PitchPop Family</div>
         <h2 className="paywall-title">
           {forever ? 'Everything is free for your family' : owned ? 'You have PitchPop Family!' : reason || 'Keep growing, one color at a time'}
         </h2>
         <p className="paywall-sub">
           {forever
-            ? 'Thank you for being here from the start. 💜'
+            ? <>Thank you for being here from the start. <Icon name="heart" /></>
             : owned
               ? plan.lifetime
                 ? 'Lifetime: yours for good.'
@@ -132,7 +133,7 @@ export default function Paywall({ user, reason, onSignIn, onDone }) {
         {PERKS.map(([icon, title, text]) => (
           <li key={title}>
             <span className="paywall-perk-icon" aria-hidden="true">
-              {icon}
+              <Icon name={icon} />
             </span>
             <span>
               <b>{title}</b>

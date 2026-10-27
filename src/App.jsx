@@ -52,6 +52,7 @@ import { statAppOpened, statRoundDone } from './stats.js';
 import StatsScreen from './StatsScreen.jsx';
 import { usesBlackKeys } from './blackKeys.js';
 import { loadPracticeLog } from './practiceLog.js';
+import Icon from './Icon.jsx';
 
 const COLORS = [
   { name: 'black', hex: '#232323', text: '#FFFFFF', notes: ['A', 'C', 'F'] },
@@ -95,14 +96,14 @@ const PAID_VIEWS = ['scales', 'hanon', 'progress', 'notespeller'];
 notePhone();
 
 const HOME_CARDS = [
-  { id: 'explore', icon: '🎵', title: 'Explore', from: '#f2a93b', to: '#e07b2a' },
-  { id: 'piano', icon: '🎹', title: 'Piano', from: '#9b6ef3', to: '#7a4fd6' },
-  { id: 'practice', icon: '⏱️', title: 'Practice', from: '#f7a24f', to: '#e8792f' },
-  { id: 'scales', icon: '🎶', title: 'Scales', from: '#2fb3c4', to: '#1f8fa0' },
-  { id: 'hanon', icon: '🏋️', title: 'Hanon', from: '#5b6ee8', to: '#3f4fc4' },
-  { id: 'notespeller', icon: '🎼', title: 'Notes', from: '#3fbf7f', to: '#2a9d63' },
-  { id: 'theory', icon: '📖', title: 'Theory', from: '#f06f9a', to: '#d94f7e' },
-  { id: 'method', icon: '🎓', title: 'How it works', from: '#8a94a8', to: '#6b7488' },
+  { id: 'explore', icon: 'notes', title: 'Explore', from: '#f2a93b', to: '#e07b2a' },
+  { id: 'piano', icon: 'keys', title: 'Piano', from: '#9b6ef3', to: '#7a4fd6' },
+  { id: 'practice', icon: 'timer', title: 'Practice', from: '#f7a24f', to: '#e8792f' },
+  { id: 'scales', icon: 'scales', title: 'Scales', from: '#2fb3c4', to: '#1f8fa0' },
+  { id: 'hanon', icon: 'dumbbell', title: 'Hanon', from: '#5b6ee8', to: '#3f4fc4' },
+  { id: 'notespeller', icon: 'staff', title: 'Notes', from: '#3fbf7f', to: '#2a9d63' },
+  { id: 'theory', icon: 'book', title: 'Theory', from: '#f06f9a', to: '#d94f7e' },
+  { id: 'method', icon: 'cap', title: 'How it works', from: '#8a94a8', to: '#6b7488' },
 ];
 const MELODY_SESSION_TAPS = 20;
 // The screen PitchPop was on when it last went into the background, to
@@ -351,11 +352,11 @@ function AppHeader({
 
 function StreakBadge({ streak }) {
   if (streak.current === 0) {
-    return <div className="streak-badge streak-badge-empty">🔥 Finish a round to start a streak</div>;
+    return <div className="streak-badge streak-badge-empty"><Icon name="flame" /> Finish a round to start a streak</div>;
   }
   return (
     <div className={`streak-badge${streak.doneToday ? '' : ' streak-badge-pending'}`}>
-      <span className="streak-flame" aria-hidden="true">🔥</span>
+      <span className="streak-flame" aria-hidden="true"><Icon name="flame" /></span>
       <span>
         <strong>
           {streak.current} {streak.current === 1 ? 'day' : 'days'} in a row
@@ -370,8 +371,8 @@ function StreakBadge({ streak }) {
 function KindChip({ focus, index, name }) {
   const kind = focus?.kinds?.[index];
   if (kind === 'check' && !checkPairFor(focus, index, name)) return null;
-  if (kind === 'warmup') return <span className="kind-chip kind-chip-warmup">🔁 Missed last time</span>;
-  if (kind === 'check') return <span className="kind-chip kind-chip-check">🎯 Mix-up check</span>;
+  if (kind === 'warmup') return <span className="kind-chip kind-chip-warmup"><Icon name="repeat" /> Missed last time</span>;
+  if (kind === 'check') return <span className="kind-chip kind-chip-check"><Icon name="target" /> Mix-up check</span>;
   return null;
 }
 
@@ -386,7 +387,7 @@ function FocusTag({ focus }) {
     <div className="focus-tag">
       <span className="focus-swatch" style={{ background: color.hex }} aria-hidden="true" />
       <span>
-        🎯 Today's focus: <b>{cap(focus.name)}</b>
+        <Icon name="target" /> Today's focus: <b>{cap(focus.name)}</b>
         {focus.partner ? ` (mixed up with ${cap(focus.partner)})` : ''}
         {focus.kinds && (
           <span className="focus-legend">
@@ -438,7 +439,7 @@ function RoundSummary({ playerId, playerName, correct, wrong, streak, summary, h
           <div className="stat-label">Wrong</div>
         </div>
         <div className="stat-tile">
-          <div className="stat-number">🔥 {streak.current}</div>
+          <div className="stat-number"><Icon name="flame" /> {streak.current}</div>
           <div className="stat-label">{streak.current === 1 ? 'Day' : 'Days'} in a row</div>
         </div>
       </div>
@@ -458,7 +459,7 @@ function RoundSummary({ playerId, playerName, correct, wrong, streak, summary, h
         return (
           <div className="checks-card">
             <b>
-              🎯 {cap(a)} vs {cap(b)}
+              <Icon name="target" /> {cap(a)} vs {cap(b)}
             </b>
             {before && (
               <div className="checks-row">
@@ -477,7 +478,7 @@ function RoundSummary({ playerId, playerName, correct, wrong, streak, summary, h
               </b>
             </div>
             {before && summary.checks.right / summary.checks.total > before.right / before.total && (
-              <span className="checks-better">Getting better! 💪</span>
+              <span className="checks-better">Getting better! <Icon name="muscle" /></span>
             )}
           </div>
         );
@@ -485,7 +486,7 @@ function RoundSummary({ playerId, playerName, correct, wrong, streak, summary, h
       {summary.warmup && (
         // The chords missed last round, played again at the start of this one.
         <div className="warmup-card">
-          <b>🔁 Tricky ones from last time</b>
+          <b><Icon name="repeat" /> Tricky ones from last time</b>
           <div className="warmup-chips">
             {summary.warmup.items.map((item, i) => {
               const color = COLORS.find((c) => c.name === item.name);
@@ -498,10 +499,10 @@ function RoundSummary({ playerId, playerName, correct, wrong, streak, summary, h
           </div>
           <span className="warmup-note">
             {summary.warmup.right === summary.warmup.total
-              ? 'All right this time! ⭐'
+              ? <>All right this time! <Icon name="star" /></>
               : summary.warmup.right === 0
                 ? "Still tricky. They'll come back next time to practice."
-                : `${summary.warmup.right} of ${summary.warmup.total} right this time. Getting there! 💪`}
+                : <>{summary.warmup.right} of {summary.warmup.total} right this time. Getting there! <Icon name="muscle" /></>}
           </span>
         </div>
       )}
@@ -518,7 +519,7 @@ function RoundSummary({ playerId, playerName, correct, wrong, streak, summary, h
             <span className="workon-swatch" style={{ background: color.hex }} aria-hidden="true" />
             <span>
               <span className="workon-title">
-                🎯 {cap(focus.name)}: {today.right} of {today.total} today
+                <Icon name="target" /> {cap(focus.name)}: {today.right} of {today.total} today
               </span>
               {before && (
                 <>
@@ -1403,11 +1404,11 @@ export default function App() {
     }).find((item) => !item.done && item.id !== doneId);
     return next ? (
       <button className="pill-btn-primary pill-btn-full next-up" onClick={() => openPlanItem(next.id)}>
-        {next.icon} Next: {NEXT_LABELS[next.id] || next.title} →
+        <Icon name={next.icon} /> Next: {NEXT_LABELS[next.id] || next.title} →
       </button>
     ) : (
       <button className="pill-btn-primary pill-btn-full next-up" onClick={goHome}>
-        🏠 All done today!
+        <Icon name="home" /> All done today!
       </button>
     );
   };
@@ -1870,7 +1871,7 @@ export default function App() {
           />
           {melodyDone ? (
             <div className="complete-wrap">
-              <div className="complete-emoji">🌟</div>
+              <div className="complete-emoji"><Icon name="sparkle" /></div>
               <h2 className="screen-title">Good job, {currentProfile.name}!</h2>
               <p className="screen-sub">You pressed the buttons {MELODY_SESSION_TAPS} times.</p>
               <StreakBadge streak={streak} />
@@ -1966,7 +1967,7 @@ export default function App() {
                 {!['running', 'paused'].includes(readPracticeTimer().status) && practiceElsewhere(profile) ? (
                   <button className="home-practice home-practice-away" onClick={openPracticeFromBadge}>
                     <span className="home-practice-icon" aria-hidden="true">
-                      📱
+                      <Icon name="phone" />
                     </span>
                     Practicing on another phone
                   </button>
@@ -1995,13 +1996,13 @@ export default function App() {
                 />
                 <button className="home-practice home-stickers" onClick={() => openTool('stickers')}>
                   <span className="home-practice-icon" aria-hidden="true">
-                    📒
+                    <Icon name="notebook" />
                   </span>
                   {/* Shorter during a practice, to fit beside End practice. */}
                   {['running', 'paused'].includes(readPracticeTimer().status) ? 'Stickers' : 'Sticker book'}
                   {cloudUser && pendingStickers(profile) > 0 && (
                     <span className="home-stickers-badge" aria-label={`${pendingStickers(profile)} waiting`}>
-                      🎁 {pendingStickers(profile)}
+                      <Icon name="gift" /> {pendingStickers(profile)}
                     </span>
                   )}
                 </button>
@@ -2030,11 +2031,11 @@ export default function App() {
                 >
                   {!planOK && PAID_VIEWS.includes(card.id) && (
                     <span className="home-card-lock" aria-label="PitchPop Family">
-                      ⭐
+                      <Icon name="star" />
                     </span>
                   )}
                   <span className="home-tile-icon" aria-hidden="true">
-                    {card.icon}
+                    <Icon name={card.icon} />
                   </span>
                   <span className="home-tile-title">{card.title}</span>
                 </button>
@@ -2117,7 +2118,7 @@ export default function App() {
             </button>
             <div className="tap-pill">Tap to listen</div>
             <button className="hear-colors-link" onClick={() => openTool('explore')}>
-              🎵 Hear the colors
+              <Icon name="notes" /> Hear the colors
             </button>
           </>
         )}
@@ -2169,7 +2170,7 @@ export default function App() {
             <KindChip focus={roundFocus} index={roundIndex} name={currentColor.name} />
             <h2 className={`screen-title${tries.out.length ? ' question-retry' : ''}`} key={`${tries.out.length}${tries.reveal}`}>
               {tries.reveal
-                ? `This is ${capName(currentColor.name)}! Remember it 👂`
+                ? <>This is {capName(currentColor.name)}! Remember it <Icon name="ear" /></>
                 : options.length === 2 && roundFocus?.kinds?.[roundIndex] === 'check'
                     ? `${capName(options[0].name)} or ${capName(options[1].name)}?`
                     : 'What chord did you hear?'}
@@ -2272,7 +2273,7 @@ export default function App() {
               {answerCorrect ? (
                 <>
                   <button className="pill-btn-secondary" onClick={hearAgainFromFeedback}>
-                    🔊 Hear again
+                    <Icon name="speaker" /> Hear again
                   </button>
                   <button className="pill-btn-primary" onClick={nextChord}>
                     {roundIndex + 1 >= SESSION_ROUNDS ? 'Finish' : 'Next chord'} →
@@ -2322,7 +2323,7 @@ export default function App() {
                   {nextUpButton('color-test')}
                   <div className="feedback-actions">
                     <button className="pill-btn-secondary" onClick={() => openTool('progress')}>
-                      📈 Progress
+                      <Icon name="chart" /> Progress
                     </button>
                     <button className="pill-btn-secondary" onClick={startPlay}>
                       Play again
@@ -2337,7 +2338,7 @@ export default function App() {
         {showWelcome && view !== 'settings' && view !== 'account' && (
           <div className="welcome-backdrop">
             <div className="welcome-card" role="dialog" aria-labelledby="welcome-title">
-              <div className="welcome-emoji">🌈</div>
+              <div className="welcome-emoji"><Icon name="rainbow" /></div>
               <h2 id="welcome-title">Welcome to PitchPop!</h2>
               <p>
                 A playful way to train your ear. Every chord has its own color: hear a chord, then pick the

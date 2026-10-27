@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { appHandoffFromEmail } from './appLink.js';
+import Icon from './Icon.jsx';
 
 // On the website: when an account email sent from the iPhone app was
 // opened (confirm your account, reset your password), go straight back to
@@ -20,7 +21,7 @@ export default function EmailHandoff() {
     <div className="handoff-backdrop" role="dialog" aria-modal="true" aria-labelledby="handoff-title">
       <div className="handoff-card">
         <div className="handoff-icon" aria-hidden="true">
-          {handoff.recovery ? '🔑' : '✅'}
+          <Icon name={handoff.recovery ? 'key' : 'check'} />
         </div>
         <h2 id="handoff-title" className="handoff-title">
           {handoff.recovery ? 'Set your new password in the app' : 'Your email is confirmed!'}

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { loadRoundHistory } from './roundHistory.js';
 import { loadPracticeLog } from './practiceLog.js';
 import { bonusGivenToday, giveBonusIfDone, todayPlan } from './todayPlan.js';
+import Icon from './Icon.jsx';
 
 // The home page's "Today's practice" list (todayPlan.js). Each item opens
 // its activity; a signed-in player's items check off as they're done.
@@ -32,7 +33,7 @@ export default function TodayPlan({ playerId, signedIn, colorNames, tinyTots, lo
     <section className={`today${allDone ? ' today-all-done' : ''}`} aria-labelledby="today-title">
       <div className="today-head">
         <h3 className="today-title" id="today-title">
-          <span aria-hidden="true">📋</span> Today's practice
+          <span aria-hidden="true"><Icon name="clipboard" /></span> Today's practice
         </h3>
         {signedIn && (
           <span className="today-count">
@@ -45,7 +46,7 @@ export default function TodayPlan({ playerId, signedIn, colorNames, tinyTots, lo
           <li key={item.id}>
             <button className={`today-item today-item-${item.id}${item.done ? ' today-item-done' : ''}`} onClick={() => onOpen(item.id)}>
               <span className="today-item-icon" aria-hidden="true">
-                {item.icon}
+                <Icon name={item.icon} />
               </span>
               <span className="today-item-text">
                 <span className="today-item-title">{item.title}</span>
@@ -57,7 +58,7 @@ export default function TodayPlan({ playerId, signedIn, colorNames, tinyTots, lo
                 </span>
               ) : lockedIds.includes(item.id) ? (
                 <span className="today-lock" aria-label="PitchPop Family">
-                  ⭐
+                  <Icon name="star" />
                 </span>
               ) : (
                 <span className="today-arrow" aria-hidden="true">
@@ -75,8 +76,8 @@ export default function TodayPlan({ playerId, signedIn, colorNames, tinyTots, lo
           </div>
           <p className="today-note">
             {allDone || bonusGivenToday(playerId)
-              ? '🎉 All done today! You earned a bonus sticker ⭐'
-              : `${doneCount} of ${items.length} done · finish all ${items.length} for a bonus sticker ⭐`}
+              ? <><Icon name="party" /> All done today! You earned a bonus sticker <Icon name="star" /></>
+              : <>{doneCount} of {items.length} done · finish all {items.length} for a bonus sticker <Icon name="star" /></>}
           </p>
         </>
       ) : (
@@ -84,7 +85,7 @@ export default function TodayPlan({ playerId, signedIn, colorNames, tinyTots, lo
           <button className="today-signin" onClick={onSignIn}>
             Sign in
           </button>{' '}
-          to check these off and earn a bonus sticker ⭐
+          to check these off and earn a bonus sticker <Icon name="star" />
         </p>
       )}
     </section>

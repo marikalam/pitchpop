@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { allowRotation, keepPortrait } from './orientation.js';
+import Icon from './Icon.jsx';
 
 // A playable two-octave keyboard (plus the top C), shown full screen once
 // the phone is turned sideways. Several fingers can play at once, and the
@@ -108,7 +109,7 @@ export default function Piano({ engine, onClose }) {
         </button>
         <div className="piano-rotate-body">
           <div className="piano-rotate-phone" aria-hidden="true">
-            📱
+            <Icon name="phone" />
           </div>
           <h2 className="screen-title">Turn your phone sideways</h2>
           <p className="screen-sub">The piano appears when you hold your phone the long way.</p>

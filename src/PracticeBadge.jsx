@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { readPracticeTimer } from './PracticeMode.jsx';
+import Icon from './Icon.jsx';
 
 // A small pill in the header while a practice is on, so the timer stays in
 // view on every screen (Practice Mode's other tabs too): a pulsing green
@@ -26,7 +27,7 @@ export default function PracticeBadge({ onOpen }) {
       {running ? (
         <span className="practice-live-dot" aria-hidden="true" />
       ) : (
-        <span aria-hidden="true">☕</span>
+        <span aria-hidden="true"><Icon name="cup" /></span>
       )}
       {label}
     </button>

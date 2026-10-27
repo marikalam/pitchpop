@@ -5,6 +5,7 @@ import { speakResults, speakWords, voiceReady } from './speech.js';
 import { GLOSSARY } from './theoryGlossary.js';
 import { TheoryPicture } from './MusicTheory.jsx';
 import ProgressDots from './ProgressDots.jsx';
+import Icon from './Icon.jsx';
 
 // The Music Theory quiz: 20 pictures from the glossary, one at a time
 // ("What is this?"), with four names to pick from - like Pitch Practice
@@ -148,7 +149,9 @@ export default function TheoryQuiz({ onComplete, stickerSlot }) {
   if (done) {
     return (
       <div className="complete-wrap">
-        <div className="complete-emoji">📖</div>
+        <div className="complete-emoji">
+          <Icon name="book" />
+        </div>
         <h2 className="screen-title">Theory quiz complete!</h2>
         <p className="screen-sub">
           You got {correctCount} out of {SESSION_ROUNDS} right.
@@ -173,7 +176,9 @@ export default function TheoryQuiz({ onComplete, stickerSlot }) {
   return (
     <div className="tq-screen">
       <ProgressDots current={index + 1} total={SESSION_ROUNDS} outcomes={outcomes} />
-      <h2 className="screen-title tq-title">What is this? 🎼</h2>
+      <h2 className="screen-title tq-title">
+        What is this? <Icon name="staff" />
+      </h2>
       <div
         className={`staff-card tq-card${answered ? (answered.correct ? ' ns-staff-right' : ' ns-staff-wrong') : ''}`}
         // Tap the picture to hear it again: the question and choices, or
@@ -185,14 +190,20 @@ export default function TheoryQuiz({ onComplete, stickerSlot }) {
         onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && hearAgain()}
       >
         <span className="ns-tap-hint" aria-hidden="true">
-          🔊 Tap to hear
+          <Icon name="speaker" /> Tap to hear
         </span>
         <TheoryPicture key={entry.id} picture={entry.picture} label="Music sign" />
       </div>
       {answered ? (
         <div className="tq-feedback">
           <p className={`note-feedback-text${answered.correct ? ' note-feedback-correct' : ''}`}>
-            {answered.correct ? `🎉 Yes! ${spoken(entry.term)}` : `That's ${spoken(entry.term)}`}
+            {answered.correct ? (
+              <>
+                <Icon name="party" /> Yes! {spoken(entry.term)}
+              </>
+            ) : (
+              `That's ${spoken(entry.term)}`
+            )}
           </p>
           <p className="tq-meaning">{entry.text}</p>
         </div>

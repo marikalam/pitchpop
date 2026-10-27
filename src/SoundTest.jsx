@@ -3,6 +3,7 @@ import { audioContext, newSound } from './soundBus.js';
 import { pianoSample } from './pianoSamples.js';
 import { activateNativeAudio, audioInfo } from './soundCheck.js';
 import { speakWords } from './speech.js';
+import Icon from './Icon.jsx';
 
 // Sound test (bottom of Players & colors): for a phone that plays no sound,
 // each button tries one way of making sound, and the box shows what the
@@ -122,7 +123,7 @@ export default function SoundTest() {
   if (!open) {
     return (
       <button className="back-link back-link-center sound-test-open" onClick={() => setOpen(true)}>
-        🔧 Can't hear anything? Sound test
+        <Icon name="wrench" /> Can't hear anything? Sound test
       </button>
     );
   }
@@ -135,7 +136,7 @@ export default function SoundTest() {
   }
   return (
     <section className="sound-test" aria-label="Sound test">
-      <h4 className="ps-section-title">🔧 Sound test</h4>
+      <h4 className="ps-section-title"><Icon name="wrench" /> Sound test</h4>
       <p className="ps-hint">Tap each one and listen. Then take a screenshot of this box and send it.</p>
       <div className="sound-test-buttons">
         {tests.map(([label, run]) => (

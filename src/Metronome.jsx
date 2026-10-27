@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { outputFor, playOutLoud, wakeContext } from './soundBus.js';
+import Icon from './Icon.jsx';
 
 // A basic metronome: one click per quarter note. Clicks are scheduled a
 // little ahead on the Web Audio clock (the usual "lookahead" approach), so
@@ -142,7 +143,7 @@ export default function Metronome({ engine, hidden = false }) {
 
   return (
     <section className="practice-card practice-card-metronome" aria-label="Metronome" hidden={hidden}>
-      <div className="practice-card-title">🎵 Metronome</div>
+      <div className="practice-card-title"><Icon name="notes" /> Metronome</div>
       {/* Four beat lights, the first of each bar a little bigger. */}
       <div className="metronome-beats" aria-hidden="true">
         {[0, 1, 2, 3].map((i) => (
