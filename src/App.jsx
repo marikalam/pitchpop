@@ -306,8 +306,10 @@ function AppHeader({
             aria-label={showBack ? 'PitchPop - back to home' : 'PitchPop'}
             onClick={() => {
               setLogoPlaying((n) => n + 1);
-              playLogoPop();
+              // After going home (which quiets any other sound), so the
+              // logo's sound isn't cut off.
               if (showBack) onBack();
+              playLogoPop();
             }}
           >
             <h1 className="logo">
