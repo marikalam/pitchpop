@@ -1,11 +1,15 @@
 import { useEffect, useState } from 'react';
-import { speakColorName } from './speech.js';
+import { prewarmVoices, speakColorName } from './speech.js';
 import { isCurrent, later, newSound } from './soundBus.js';
 
 // Tiny Tots: free play for the littlest players. A big button for each of
 // the player's colors: tap one and it bounces, notes and stars float up,
-// its chord plays and then its name is said. No right or wrong, no score.
+// its chord plays and then, once the chord has rung, its name is said.
+// (Never on top of each other: on an iPhone the phone's own voice can take
+// over the sound and silence a chord still playing.) No right or wrong, no score.
 // A round is TAPS taps (so it doesn't go on forever), then "All done!".
+// The name comes this long after the chord starts.
+const NAME_AFTER_MS = 1800;
 const SPARKS = ['🎵', '⭐', '🎶', '✨', '🎵', '⭐'];
 const TAPS = 20;
 
@@ -14,13 +18,18 @@ export default function TinyTots({ colors, engine, onComplete, stickerSlot }) {
   const [taps, setTaps] = useState(0);
   const [done, setDone] = useState(false);
 
+  // The voice loads ahead, so the first name isn't late.
+  useEffect(() => {
+    prewarmVoices();
+  }, []);
+
   // After the last tap: its chord and name first, then the done screen.
   useEffect(() => {
     if (taps < TAPS) return undefined;
     const id = setTimeout(() => {
       setDone(true);
       onComplete?.();
-    }, 2600);
+    }, NAME_AFTER_MS + 2000);
     return () => clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [taps]);
@@ -29,12 +38,15 @@ export default function TinyTots({ colors, engine, onComplete, stickerSlot }) {
     if (taps >= TAPS) return;
     setTaps(taps + 1);
     const soundId = newSound();
-    engine.playChord(color.notes);
+    // The name once the chord has rung (timed from when it really starts).
+    engine
+      .playChord(color.notes)
+      .catch(() => {})
+      .then(() => {
+        if (isCurrent(soundId)) later(() => isCurrent(soundId) && speakColorName(color.name), NAME_AFTER_MS);
+      });
     if (navigator.vibrate) navigator.vibrate(20);
     setPopped({ name: color.name, at: Date.now() });
-    later(() => {
-      if (isCurrent(soundId)) speakColorName(color.name);
-    }, 1100);
   }
 
   if (done) {
