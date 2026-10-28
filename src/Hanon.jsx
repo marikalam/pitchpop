@@ -294,11 +294,6 @@ export default function Hanon({ engine }) {
             {playing === 'all' ? '■ Stop' : '▶︎ Play'}
           </button>
         </div>
-        {playing === 'all' && active && (
-          <div className="hanon-now-playing" aria-live="off">
-            <BarView bar={exerciseBar(ex, active.bar)} active={active.pos} activeIndex={active.i} />
-          </div>
-        )}
         <div className="hanon-settings">
           <label className="hanon-tempo">
             <span>
@@ -315,6 +310,13 @@ export default function Hanon({ engine }) {
           </label>
           <p className="scales-note">Hanon marked these ♩ = 60 to 108: start slow and speed up as it gets even.</p>
         </div>
+        {/* What's playing, below the speed so changing the speed (which
+            stops the music and closes this) doesn't move the slider. */}
+        {playing === 'all' && active && (
+          <div className="hanon-now-playing" aria-live="off">
+            <BarView bar={exerciseBar(ex, active.bar)} active={active.pos} activeIndex={active.i} />
+          </div>
+        )}
         <div className="practice-tabs hanon-parts" role="tablist" aria-label="Part of the exercise">
           {PARTS.map((p) => (
             <button
