@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { isMuted, setMuted, soundState, wakeAudio } from './soundBus.js';
+import { isMuted, playOutLoud, setMuted, soundState, wakeAudio } from './soundBus.js';
 import { LOW_VOLUME, pickOutput, playSoundCheck, watchOutput, watchVolume } from './soundCheck.js';
 import Icon from './Icon.jsx';
 
@@ -20,7 +20,12 @@ function useSound() {
   useEffect(
     () =>
       watchVolume((v) => {
-        if (lastVolume.current !== null && v > lastVolume.current && isMuted()) setMuted(false);
+        // Volume turned up: sound back on, and awake to be heard right away.
+        if (lastVolume.current !== null && v > lastVolume.current) {
+          if (isMuted()) setMuted(false);
+          playOutLoud();
+          wakeAudio();
+        }
         lastVolume.current = v;
         setVolume(v);
       }),

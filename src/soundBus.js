@@ -1,5 +1,3 @@
-import { Capacitor } from '@capacitor/core';
-
 // One sound at a time. Every chord, note run, voice clip and answer sound
 // registers here; starting something new (newSound) quickly fades out
 // whatever is still playing and cancels anything waiting to play (e.g. the
@@ -55,11 +53,11 @@ export function outputFor(ctx) {
 
 // Tells the iPhone this is media to hear (like a video app): it plays out
 // loud even with the ringer on silent, instead of being treated as quiet
-// background sound. (WebKit's Audio Session API; iOS 17 and later.)
+// background sound. (WebKit's Audio Session API; iOS 17 and later.) In
+// the iPhone app too, like MathPop: the app's own setting (AppDelegate)
+// doesn't reach the web view's sounds, which otherwise stay silent while
+// the silent switch is on - however loud the volume.
 export function playOutLoud() {
-  // The iPhone app sets this itself (AppDelegate), and changing it from
-  // here too fought with that.
-  if (Capacitor.isNativePlatform()) return;
   try {
     if (navigator.audioSession && navigator.audioSession.type !== 'playback') navigator.audioSession.type = 'playback';
   } catch {
