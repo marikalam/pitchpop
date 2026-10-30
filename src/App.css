@@ -7194,3 +7194,43 @@ body {
   min-height: 0;
   height: 62px;
 }
+
+/* ---------- Single notes: hear one white key, tap it (SingleNotes.jsx) ---------- */
+.sn-listen {
+  flex: 1 1 auto;
+  min-height: 150px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 6px 0 4px;
+  border: 3px solid transparent;
+  border-radius: 28px;
+  background: linear-gradient(160deg, #fff, #eef2ff);
+  box-shadow: var(--shadow-sm);
+  color: var(--ink-dim);
+  font: 600 15px 'IBM Plex Sans', system-ui, sans-serif;
+  cursor: pointer;
+}
+.sn-listen:active {
+  transform: scale(0.98);
+}
+.sn-listen-right {
+  border-color: #51cf66;
+}
+.sn-listen-wrong {
+  border-color: #ff8787;
+}
+/* Eight white keys (middle C up to high C), not NoteSpeller's twelve. */
+.tn-piano.ns-piano.sn-piano {
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+}
+.sn-piano .tn-black.ns-black {
+  --white: calc((100% - 12px - 21px) / 8);
+  width: 22px;
+  left: calc(6px + var(--k) * (var(--white) + 3px) - 1.5px - 11px);
+}
+.sn-piano .tn-key-letter {
+  font-size: 24px;
+}

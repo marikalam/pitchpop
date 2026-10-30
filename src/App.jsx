@@ -21,7 +21,8 @@ import Sticker from './Sticker.jsx';
 import { STICKERS } from './stickers.js';
 import { weekProgress } from './progress.js';
 import { scheduleReminders } from './reminders.js';
-import { inTinyTots } from './tinyTots.js';
+import { inSingleNotes, inTinyTots } from './tinyTots.js';
+import SingleNotes from './SingleNotes.jsx';
 import TypeNotes from './TypeNotes.jsx';
 import ProgressDots from './ProgressDots.jsx';
 import SoundTest from './SoundTest.jsx';
@@ -1032,18 +1033,24 @@ export default function App() {
   // resumePractice), so the timer keeps going.
   // Where a player's Pitch Practice is: the color game, or Tiny Tots.
   function playViewFor(profileId) {
-    if (!inTinyTots(profileId)) return 'play-listen';
-    setPreToolView('home');
-    return 'tinytots';
+    if (inTinyTots(profileId)) {
+      setPreToolView('home');
+      return 'tinytots';
+    }
+    if (inSingleNotes(profileId)) {
+      setPreToolView('home');
+      return 'singlenotes';
+    }
+    return 'play-listen';
   }
   function inPitchPractice(v) {
-    return v.startsWith('play-') || v === 'tinytots';
+    return v.startsWith('play-') || v === 'tinytots' || v === 'singlenotes';
   }
 
   // Whatever way a Tiny Tots player reaches the color game (Back, a link,
   // the widget...), it's Tiny Tots for them.
   useEffect(() => {
-    if (view.startsWith('play-') && inTinyTots(profile)) setView(playViewFor(profile));
+    if (view.startsWith('play-') && (inTinyTots(profile) || inSingleNotes(profile))) setView(playViewFor(profile));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [view, profile]);
 
@@ -1089,6 +1096,11 @@ export default function App() {
     // Tiny Tots players get big colors to tap instead of the game.
     if (inTinyTots(profile)) {
       openTool('tinytots');
+      return;
+    }
+    // Single notes players: one white key at a time, tapped on a keyboard.
+    if (inSingleNotes(profile)) {
+      openTool('singlenotes');
       return;
     }
     newRound(profile, profileColorNames);
@@ -1275,7 +1287,7 @@ export default function App() {
   // Piano, Practice Mode and Music Theory are side trips like Explore:
   // closing one goes back to wherever the player was (a quiz in progress
   // included) instead of restarting the color game.
-  const TOOL_VIEWS = ['piano', 'practice', 'theory', 'method', 'scales', 'hanon', 'tinytots', 'progress', 'stickers', 'plan'];
+  const TOOL_VIEWS = ['piano', 'practice', 'theory', 'method', 'scales', 'hanon', 'tinytots', 'singlenotes', 'progress', 'stickers', 'plan'];
 
   // The header's practice pill, on every screen: back to the timer (in
   // Practice Mode itself, to its Timer tab).
@@ -1412,10 +1424,11 @@ export default function App() {
       practices: loadPracticeLog()[profile] || [],
       colorNames: profileColorNames,
       tinyTots: inTinyTots(profile),
+      singleNotes: inSingleNotes(profile),
     }).find((item) => !item.done && item.id !== doneId);
     return next ? (
       <button className="pill-btn-primary pill-btn-full next-up" onClick={() => openPlanItem(next.id)}>
-        <Icon name={next.icon} /> Next: {NEXT_LABELS[next.id] || next.title} →
+        <Icon name={next.icon} /> Next: {(inSingleNotes(profile) && next.id === 'color-test' && next.title) || NEXT_LABELS[next.id] || next.title} →
       </button>
     ) : (
       <button className="pill-btn-primary pill-btn-full next-up" onClick={goHome}>
@@ -1704,7 +1717,7 @@ export default function App() {
     return <Piano engine={engineRef.current} onClose={closeTool} />;
   }
 
-  if (view === 'practice' || view === 'theory' || view === 'method' || view === 'scales' || view === 'hanon' || view === 'tinytots' || view === 'progress' || view === 'stickers' || view === 'plan') {
+  if (view === 'practice' || view === 'theory' || view === 'method' || view === 'scales' || view === 'hanon' || view === 'tinytots' || view === 'singlenotes' || view === 'progress' || view === 'stickers' || view === 'plan') {
     // Practice Mode fits on one screen (its tools are tabs); the Music
     // Theory glossary and the method explanation are reading pages and
     // scroll.
@@ -1767,6 +1780,18 @@ export default function App() {
               placing={placingSticker}
               onPlaced={() => setPlacingSticker(null)}
               next={nextUpButton()}
+            />
+          ) : view === 'singlenotes' ? (
+            <SingleNotes
+              key={profile}
+              engine={engineRef.current}
+              onComplete={(correct, total) => {
+                setStreakDays(recordStreakDay(streakDays, profile));
+                earnSticker(profile);
+                markDoneToday(profile, 'color-test');
+                statRoundDone({ activity: 'single-notes', lang: speechLanguage(), correct, total });
+              }}
+              stickerSlot={stickerPicker('pitch')}
             />
           ) : view === 'tinytots' ? (
             <TinyTots
@@ -1975,6 +2000,7 @@ export default function App() {
                 signedIn={!!cloudUser}
                 colorNames={profileColorNames}
                 tinyTots={inTinyTots(profile)}
+                singleNotes={inSingleNotes(profile)}
                 lockedIds={planOK ? [] : PAID_VIEWS}
                 onOpen={openPlanItem}
                 onSignIn={openAccount}

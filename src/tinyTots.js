@@ -31,3 +31,32 @@ export function setTinyTots(profileId, on) {
     /* ignore */
   }
 }
+
+// Which players are on Single notes (also per player): the level after
+// the white-key colors, where Pitch Practice plays one white key at a time
+// and they tap it on a keyboard (SingleNotes.jsx).
+const NOTES_KEY = 'pitchpop-single-notes-v1';
+
+function loadNotes() {
+  try {
+    return JSON.parse(localStorage.getItem(NOTES_KEY)) || {};
+  } catch {
+    return {};
+  }
+}
+
+export function inSingleNotes(profileId) {
+  return !!loadNotes()[profileId];
+}
+
+export function setSingleNotes(profileId, on) {
+  touchSettingsLater(profileId);
+  const next = { ...loadNotes() };
+  if (on) next[profileId] = true;
+  else delete next[profileId];
+  try {
+    localStorage.setItem(NOTES_KEY, JSON.stringify(next));
+  } catch {
+    /* ignore */
+  }
+}

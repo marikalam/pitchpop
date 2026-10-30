@@ -1,11 +1,12 @@
 import { settingsChangedAt, touchSettings } from './settingsClock.js';
 
 // A player's settings that follow them to every phone in the family
-// account: Tiny Tots, typing the notes, and NoteSpeller's clef, staff part
+// account: Tiny Tots, Single notes, typing the notes, and NoteSpeller's clef, staff part
 // and notes. Each lives in its own per-player map on the phone; this
 // gathers them up for syncing and puts synced ones back.
 const MAPS = {
   tinyTots: 'pitchpop-tiny-tots-v1',
+  singleNotes: 'pitchpop-single-notes-v1',
   typeNotes: 'pitchpop-type-notes-v1',
   clef: 'pitchpop-notespeller-player-clef-v1',
   level: 'pitchpop-notespeller-player-level-v1',

@@ -4,7 +4,7 @@ import { deleteAccount, requestPasswordReset, signIn, signOut, signUp, updatePas
 import { firstDay, streakFor } from './streak.js';
 import { LEARNING_ORDER, READY_PCT, READY_ROUNDS } from './progress.js';
 import { setTypesNotes, typesNotes } from './typeNotes.js';
-import { inTinyTots, setTinyTots } from './tinyTots.js';
+import { inSingleNotes, inTinyTots, setSingleNotes, setTinyTots } from './tinyTots.js';
 import { setVoiceLang, voiceLang } from './voiceLang.js';
 import {
   CLEF_MODES,
@@ -146,6 +146,17 @@ export function LearningGuide() {
             </b>
             <span>Once every color is mastered, turn on Type the notes: after the color, they play its letters.</span>
           </li>
+          <li>
+            <b>
+              <Icon name="keys" /> Single notes
+            </b>
+            <span>
+              When they know all the white-key colors (Red to Brown) and their letters, set Pitch Practice to Single
+              notes in Players &amp; colors. Now one note plays at a time, from middle C up to high C, and they tap that
+              key on the keyboard: the sound of each note on its own, the start of reading any note by ear. Keep going
+              until they get {READY_PCT}% or more, {READY_ROUNDS} rounds in a row.
+            </span>
+          </li>
         </ol>
       )}
     </section>
@@ -169,7 +180,11 @@ export function PlayerSettingsCard({
     setNotesOn(on);
     setTypesNotes(profile.id, on);
   }
-  const [totsOn, setTotsOn] = useState(() => inTinyTots(profile.id));
+  // How Pitch Practice plays: the color game, Tiny Tots or Single notes.
+  const [playMode, setPlayMode] = useState(() =>
+    inTinyTots(profile.id) ? 'tots' : inSingleNotes(profile.id) ? 'notes' : 'colors',
+  );
+  const totsOn = playMode === 'tots';
   const [voice, setVoice] = useState(() => voiceLang(profile.id));
   const [readLetters, setReadLetters] = useState(() => readingLetters(profile.id));
   const [readClef, setReadClef] = useState(() => readingClef(profile.id));
@@ -245,7 +260,13 @@ export function PlayerSettingsCard({
         'rainbow',
         'Pitch Practice',
         `${profile.colors.length} ${profile.colors.length === 1 ? 'color' : 'colors'} · ${
-          totsOn ? 'Tiny Tots' : notesOn ? 'Color game · Type the notes' : 'Color game'
+          totsOn
+            ? 'Tiny Tots'
+            : playMode === 'notes'
+              ? 'Single notes'
+              : notesOn
+                ? 'Color game · Type the notes'
+                : 'Color game'
         }`,
         <>
           <div className="ps-row ps-row-top">
@@ -289,17 +310,19 @@ export function PlayerSettingsCard({
             <span className="ps-label">Plays</span>
             <div className="ns-segmented" role="radiogroup" aria-label="How Pitch Practice plays">
               {[
-                [false, 'Color game', 'rainbow'],
-                [true, 'Tiny Tots', 'teddy'],
-              ].map(([tots, label, icon]) => (
+                ['tots', 'Tiny Tots', 'teddy'],
+                ['colors', 'Colors', 'rainbow'],
+                ['notes', 'Single notes', 'keys'],
+              ].map(([mode, label, icon]) => (
                 <button
-                  key={label}
+                  key={mode}
                   role="radio"
-                  aria-checked={totsOn === tots}
-                  className={`ns-segment${totsOn === tots ? ' ns-segment-active' : ''}`}
+                  aria-checked={playMode === mode}
+                  className={`ns-segment${playMode === mode ? ' ns-segment-active' : ''}`}
                   onClick={() => {
-                    setTotsOn(tots);
-                    setTinyTots(profile.id, tots);
+                    setPlayMode(mode);
+                    setTinyTots(profile.id, mode === 'tots');
+                    setSingleNotes(profile.id, mode === 'notes');
                   }}
                 >
                   <Icon name={icon} /> {label}
@@ -310,6 +333,11 @@ export function PlayerSettingsCard({
           {totsOn ? (
             <p className="ps-hint ps-hint-indent">
               Big colors to tap: each plays its chord and says its name. No right or wrong.
+            </p>
+          ) : playMode === 'notes' ? (
+            <p className="ps-hint ps-hint-indent">
+              The next level, once all the white-key colors are mastered: one note plays, from middle C up to high C,
+              and they tap that key on a keyboard. 20 notes a round.
             </p>
           ) : (
             <label className="ps-switch-row">
