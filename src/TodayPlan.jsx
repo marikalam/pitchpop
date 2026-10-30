@@ -22,6 +22,7 @@ export default function TodayPlan({
   signedIn,
   colorNames,
   tinyTots,
+  singleNotes = false,
   lockedIds = [],
   onOpen,
   onSignIn,
@@ -41,6 +42,7 @@ export default function TodayPlan({
     practices: loadPracticeLog()[playerId] || [],
     colorNames,
     tinyTots,
+    singleNotes,
   }).map((item) => (signedIn ? item : { ...item, done: false }));
   const doneCount = items.filter((i) => i.done).length;
   const allDone = signedIn && doneCount === items.length;
@@ -74,7 +76,7 @@ export default function TodayPlan({
         </div>
         {next ? (
           <button className="today-next" onClick={() => onOpen(next.id)}>
-            <Icon name={next.icon} /> Next: {NEXT[next.id] || next.title}
+            <Icon name={next.icon} /> Next: {(singleNotes && next.id === 'color-test' && next.title) || NEXT[next.id] || next.title}
             {lockedIds.includes(next.id) && <Icon name="star" />}
           </button>
         ) : (

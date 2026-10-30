@@ -50,7 +50,15 @@ export function markDoneToday(playerId, id) {
 const cap = (n) => n.charAt(0).toUpperCase() + n.slice(1);
 
 // The list for one player: [{ id, icon, title, sub, done }].
-export function todayPlan({ playerId, rounds = [], practices = [], colorNames = [], tinyTots = false, notes = true }) {
+export function todayPlan({
+  playerId,
+  rounds = [],
+  practices = [],
+  colorNames = [],
+  tinyTots = false,
+  singleNotes = false,
+  notes = true,
+}) {
   const today = dayKey();
   const items = [];
 
@@ -61,6 +69,15 @@ export function todayPlan({ playerId, rounds = [], practices = [], colorNames = 
       title: 'Tiny Tots',
       sub: 'Tap each color and listen',
       done: !!(read(DONE_KEY)[playerId]?.day === today && read(DONE_KEY)[playerId]?.tots),
+    });
+  } else if (singleNotes) {
+    // The level after the colors: one white key at a time (SingleNotes.jsx).
+    items.push({
+      id: 'color-test',
+      icon: 'keys',
+      title: 'Single notes',
+      sub: '20 notes · middle C to high C',
+      done: !!(read(DONE_KEY)[playerId]?.day === today && read(DONE_KEY)[playerId]?.['color-test']),
     });
   } else {
     // The pair mixed up most this week gets extra chords in the round
