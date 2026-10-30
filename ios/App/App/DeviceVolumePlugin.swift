@@ -30,9 +30,12 @@ public class DeviceVolumePlugin: CAPPlugin, CAPBridgedPlugin {
 
     override public func load() {
         let session = AVAudioSession.sharedInstance()
-        // The volume is only reported (and its changes observed) while the
-        // audio session is active.
-        try? session.setActive(true)
+        // It never turns the audio session on itself (not here, not when
+        // reading the volume): doing that from the app while the web view
+        // plays its sounds could leave those sounds silent - chords,
+        // metronome and all - however loud the volume. The web view turns
+        // the session on when it plays, like in MathPop; until then the
+        // volume reported can be a little out of date.
         observation = session.observe(\.outputVolume, options: [.new]) { [weak self] _, change in
             guard let volume = change.newValue else { return }
             self?.notifyListeners("change", data: ["volume": volume])
@@ -77,13 +80,12 @@ public class DeviceVolumePlugin: CAPPlugin, CAPBridgedPlugin {
         ])
     }
 
-    // The Sound test's "Wake up iPhone sound": sets the category again and
-    // turns the audio session on.
+    // The Sound test's "Wake up iPhone sound": sets the category again (it
+    // doesn't turn the session on: see load()).
     @objc func activateAudio(_ call: CAPPluginCall) {
         let session = AVAudioSession.sharedInstance()
         do {
             try session.setCategory(.playback, options: [.mixWithOthers])
-            try session.setActive(true)
             call.resolve(["ok": true])
         } catch {
             call.resolve(["ok": false, "error": error.localizedDescription])
@@ -124,9 +126,6 @@ public class DeviceVolumePlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     @objc func getVolume(_ call: CAPPluginCall) {
-        let session = AVAudioSession.sharedInstance()
-        // The volume is only up to date while the session is active.
-        try? session.setActive(true)
-        call.resolve(["volume": session.outputVolume])
+        call.resolve(["volume": AVAudioSession.sharedInstance().outputVolume])
     }
 }
