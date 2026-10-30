@@ -7185,14 +7185,11 @@ body {
   font: 700 15px 'Fredoka', ui-rounded, system-ui, sans-serif;
   color: var(--ink-dim);
 }
-/* The tools, small: they no longer fill the rest of the screen. */
+/* The tools fill whatever height is left, so the page has no empty
+   space at the bottom on a tall phone. */
 .home-fit .home-tiles.home-more {
-  flex: none;
-  grid-template-rows: none;
-}
-.home-fit .home-more .home-tile {
-  min-height: 0;
-  height: 62px;
+  flex: 1 1 auto;
+  grid-template-rows: repeat(2, minmax(62px, 1fr));
 }
 
 /* ---------- Single notes: hear one white key, tap it (SingleNotes.jsx) ---------- */
