@@ -4,9 +4,29 @@ import { loadPracticeLog } from './practiceLog.js';
 import { bonusGivenToday, giveBonusIfDone, todayPlan } from './todayPlan.js';
 import Icon from './Icon.jsx';
 
-// The home page's "Today's practice" list (todayPlan.js). Each item opens
-// its activity; a signed-in player's items check off as they're done.
-export default function TodayPlan({ playerId, signedIn, colorNames, tinyTots, lockedIds = [], onOpen, onSignIn }) {
+// Short names for the chips, and for the big Next button.
+const SHORT = { 'color-test': 'Pitch', tots: 'Tiny Tots', notespeller: 'Notes', theory: 'Theory', practice: 'Piano' };
+const NEXT = {
+  'color-test': 'Pitch Practice',
+  tots: 'Tiny Tots',
+  notespeller: 'NoteSpeller',
+  theory: 'Theory quiz',
+  practice: 'Piano practice',
+};
+
+// The home page's "Today's practice" (todayPlan.js): a list, or with
+// `steps` little chips and a big Next button. Each item opens its
+// activity; a signed-in player's items check off as they're done.
+export default function TodayPlan({
+  playerId,
+  signedIn,
+  colorNames,
+  tinyTots,
+  lockedIds = [],
+  onOpen,
+  onSignIn,
+  steps = false,
+}) {
   const [, refresh] = useState(0);
   useEffect(() => {
     const update = () => refresh((n) => n + 1);
@@ -28,6 +48,43 @@ export default function TodayPlan({ playerId, signedIn, colorNames, tinyTots, lo
   useEffect(() => {
     if (signedIn) giveBonusIfDone(playerId, items);
   });
+
+  // On the home page's greeting: today's steps as little chips and one big
+  // button for the next thing to do.
+  if (steps) {
+    const next = items.find((i) => !i.done);
+    return (
+      <div className="today-steps-wrap">
+        <p className="today-steps-count">
+          {allDone ? 'All done today!' : `${doneCount} of ${items.length} done today`}
+        </p>
+        <div className="today-steps">
+          {items.map((item) => (
+            <button
+              key={item.id}
+              className={`today-step today-item-${item.id}${item.done ? ' today-step-done' : ''}${
+                item === next ? ' today-step-next' : ''
+              }`}
+              onClick={() => onOpen(item.id)}
+            >
+              <Icon name={item.done ? 'check' : item.icon} size="28px" />
+              <span>{SHORT[item.id] || item.title}</span>
+            </button>
+          ))}
+        </div>
+        {next ? (
+          <button className="today-next" onClick={() => onOpen(next.id)}>
+            <Icon name={next.icon} /> Next: {NEXT[next.id] || next.title}
+            {lockedIds.includes(next.id) && <Icon name="star" />}
+          </button>
+        ) : (
+          <p className="today-steps-done">
+            <Icon name="party" /> You earned a bonus sticker <Icon name="star" />
+          </p>
+        )}
+      </div>
+    );
+  }
 
   return (
     <section className={`today${allDone ? ' today-all-done' : ''}`} aria-labelledby="today-title">

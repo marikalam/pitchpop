@@ -6,6 +6,7 @@ import { prewarmVoices, setSpeechLanguage, speakColorName, speakResults, speechL
 import { voiceLang } from './voiceLang.js';
 import { isCurrent, later, newSound } from './soundBus.js';
 import Rainbow from './Rainbow.jsx';
+import NewColor, { markColorMet, newColorFor } from './NewColor.jsx';
 import LogoMark from './LogoMark.jsx';
 import ProfileSwitcher from './ProfileSwitcher.jsx';
 import MainMenu from './MainMenu.jsx';
@@ -711,6 +712,14 @@ export default function App() {
   // PitchPop always opens on the home page, which shows every part of the
   // app. (A first visit also gets the welcome card on top of it.)
   const [view, setView] = useState('home');
+  // A color this player hasn't met yet (just added in Players & colors):
+  // on the home page, it's introduced chord first (NewColor.jsx).
+  const [newColorName, setNewColorName] = useState(null);
+  const colorKey = profileColorNames.join(',');
+  useEffect(() => {
+    setNewColorName(view === 'home' && cloudUser ? newColorFor(profile, profileColorNames) : null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view, profile, colorKey, cloudUser]);
   // Swipe back / the browser's back button go to the previous screen.
   useScreenHistory(view, setView);
   const [preExploreView, setPreExploreView] = useState('home');
@@ -1958,72 +1967,85 @@ export default function App() {
               <h2 className="home-hello">
                 {cloudUser ? `Hi, ${currentProfile.name}!` : 'Every chord has a color'}
               </h2>
-              <p className="home-tagline">
-                {cloudUser
-                  ? 'What would you like to play today?'
-                  : 'Hear a chord, pick its color, and train your ear one game at a time.'}
-              </p>
-              {/* One tap to start the practice timer. (During a practice the
-                  header's timer pill takes you back to it instead.) */}
-              <div className="home-hero-actions">
-                {!['running', 'paused'].includes(readPracticeTimer().status) && practiceElsewhere(profile) ? (
-                  <button className="home-practice home-practice-away" onClick={openPracticeFromBadge}>
-                    <span className="home-practice-icon" aria-hidden="true">
-                      <Icon name="phone" />
-                    </span>
-                    Practicing on another phone
-                  </button>
-                ) : !['running', 'paused'].includes(readPracticeTimer().status) && (
-                  <button
-                    className="home-practice"
-                    onClick={() => {
-                      startPracticeNow(profile);
-                      openPracticeFromBadge();
-                    }}
-                  >
-                    <span className="home-practice-icon" aria-hidden="true">
-                      {'▶\uFE0E'}
-                    </span>
-                    Start practice
-                  </button>
-                )}
-                <EndPracticeButton
-                  onEnd={(playerId) => {
-                    if (playerId && playerId !== profile && profiles.some((p) => p.id === playerId)) {
-                      changeProfile(playerId, true);
-                    }
-                    setEndPracticeOnOpen(true);
-                    openPracticeFromBadge();
-                  }}
-                />
-                <button className="home-practice home-stickers" onClick={() => openTool('stickers')}>
-                  <span className="home-practice-icon" aria-hidden="true">
-                    <Icon name="notebook" />
-                  </span>
-                  {/* Shorter during a practice, to fit beside End practice. */}
-                  {['running', 'paused'].includes(readPracticeTimer().status) ? 'Stickers' : 'Sticker book'}
-                  {cloudUser && pendingStickers(profile) > 0 && (
-                    <span className="home-stickers-badge" aria-label={`${pendingStickers(profile)} waiting`}>
-                      <Icon name="gift" /> {pendingStickers(profile)}
-                    </span>
-                  )}
-                </button>
-              </div>
+              {/* Today's steps and the one big button for what's next. */}
+              <TodayPlan
+                key={profile}
+                steps
+                playerId={profile}
+                signedIn={!!cloudUser}
+                colorNames={profileColorNames}
+                tinyTots={inTinyTots(profile)}
+                lockedIds={planOK ? [] : PAID_VIEWS}
+                onOpen={openPlanItem}
+                onSignIn={openAccount}
+              />
             </section>
 
-            {/* A short list for today, made from this player's history. */}
-            <TodayPlan
-              key={profile}
-              playerId={profile}
-              signedIn={!!cloudUser}
-              colorNames={profileColorNames}
-              tinyTots={inTinyTots(profile)}
-              lockedIds={planOK ? [] : PAID_VIEWS}
-              onOpen={openPlanItem}
-              onSignIn={openAccount}
-            />
+            {/* One tap to start the practice timer. (During a practice the
+                header's timer pill takes you back to it instead.) */}
+            <div className="home-hero-actions home-quick">
+              {!['running', 'paused'].includes(readPracticeTimer().status) && practiceElsewhere(profile) ? (
+                <button className="home-practice home-practice-away" onClick={openPracticeFromBadge}>
+                  <span className="home-practice-icon" aria-hidden="true">
+                    <Icon name="phone" />
+                  </span>
+                  Practicing on another phone
+                </button>
+              ) : !['running', 'paused'].includes(readPracticeTimer().status) && (
+                <button
+                  className="home-practice"
+                  onClick={() => {
+                    startPracticeNow(profile);
+                    openPracticeFromBadge();
+                  }}
+                >
+                  <span className="home-practice-icon" aria-hidden="true">
+                    {'▶\uFE0E'}
+                  </span>
+                  Start practice
+                </button>
+              )}
+              <EndPracticeButton
+                onEnd={(playerId) => {
+                  if (playerId && playerId !== profile && profiles.some((p) => p.id === playerId)) {
+                    changeProfile(playerId, true);
+                  }
+                  setEndPracticeOnOpen(true);
+                  openPracticeFromBadge();
+                }}
+              />
+              <button className="home-practice home-stickers" onClick={() => openTool('stickers')}>
+                <span className="home-practice-icon" aria-hidden="true">
+                  <Icon name="notebook" />
+                </span>
+                {/* Shorter during a practice, to fit beside End practice. */}
+                {['running', 'paused'].includes(readPracticeTimer().status) ? 'Stickers' : 'Sticker book'}
+                {cloudUser && pendingStickers(profile) > 0 && (
+                  <span className="home-stickers-badge" aria-label={`${pendingStickers(profile)} waiting`}>
+                    <Icon name="gift" /> {pendingStickers(profile)}
+                  </span>
+                )}
+              </button>
+            </div>
+            {newColorName && (
+              <NewColor
+                key={`${profile}-${newColorName}`}
+                playerName={currentProfile.name}
+                color={COLORS.find((c) => c.name === newColorName)}
+                engine={engineRef.current}
+                noteLabel={noteLabel}
+                onDone={() => {
+                  newSound();
+                  markColorMet(profile, newColorName);
+                  setNewColorName(newColorFor(profile, profileColorNames));
+                }}
+              />
+            )}
 
-            <div className="home-tiles">
+
+            {/* Everything else, small: Explore, Piano, Scales... */}
+            <h3 className="home-more-title">More to play</h3>
+            <div className="home-tiles home-more">
               {HOME_CARDS.map((card) => (
                 <button
                   key={card.id}
