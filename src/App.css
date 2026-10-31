@@ -7185,11 +7185,53 @@ body {
   font: 700 15px 'Fredoka', ui-rounded, system-ui, sans-serif;
   color: var(--ink-dim);
 }
-/* The tools fill whatever height is left, so the page has no empty
-   space at the bottom on a tall phone. */
+/* The page fills the screen with the greeting card taking the extra
+   height on a tall phone (a bigger rainbow, more room around today's
+   steps), and the tools staying an even, tidy size below. */
+.home-fit .home-hero {
+  flex: 1 0 auto;
+  justify-content: space-evenly;
+  gap: clamp(6px, 1.4vh, 14px);
+  padding: clamp(10px, 2vh, 22px) 16px clamp(14px, 2.4vh, 26px);
+}
+.home-fit .home-hero-rainbow .rainbow {
+  height: clamp(56px, 14vh, 140px);
+}
+.home-fit .home-hello {
+  font-size: clamp(24px, 7.5vw, 34px);
+}
+.home-fit .today-step {
+  padding: clamp(8px, 1.4vh, 14px) 2px clamp(6px, 1.1vh, 12px);
+}
+/* Start practice and the sticker book: two even halves of the row. */
+.home-fit .home-quick {
+  margin-top: 12px;
+}
+.home-fit .home-quick .home-practice {
+  flex: 1 1 0;
+  justify-content: center;
+}
+/* The Next button and step chips widen to the card. */
+.home-fit .today-steps-wrap {
+  width: 100%;
+}
+.home-fit .today-step {
+  flex: 1 1 0;
+  max-width: 96px;
+  font-size: clamp(12px, 1.6vh, 15px);
+}
+.home-fit .today-step .pp-icon {
+  width: clamp(26px, 4vh, 38px);
+  height: clamp(26px, 4vh, 38px);
+}
+.home-fit .today-next {
+  padding: clamp(14px, 2.2vh, 22px) 18px;
+  font-size: clamp(20px, 2.8vh, 25px);
+}
 .home-fit .home-tiles.home-more {
   flex: 1 1 auto;
-  grid-template-rows: repeat(2, minmax(62px, 1fr));
+  max-height: 256px;
+  grid-template-rows: repeat(2, minmax(60px, 1fr));
 }
 
 /* ---------- Single notes: hear one white key, tap it (SingleNotes.jsx) ---------- */
