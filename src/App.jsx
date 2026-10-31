@@ -1785,6 +1785,10 @@ export default function App() {
             <SingleNotes
               key={profile}
               engine={engineRef.current}
+              // Black-key colors still come as chords; their choices are all
+              // the player's colors.
+              chordColors={totsColors.filter(usesBlackKeys)}
+              answerColors={totsColors}
               onComplete={(correct, total) => {
                 setStreakDays(recordStreakDay(streakDays, profile));
                 earnSticker(profile);
