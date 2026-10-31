@@ -51,6 +51,30 @@ export function outputFor(ctx) {
   return out;
 }
 
+// Playing as media, the iPhone shows a "Now Playing" card (lock screen,
+// Control Center, the car's screen). Without this it shows the page's
+// address ("localhost"); with it, PitchPop's name and logo.
+let named = false;
+function nameNowPlaying() {
+  if (named || !('mediaSession' in navigator) || typeof window.MediaMetadata !== 'function') return;
+  try {
+    const base = import.meta.env.BASE_URL;
+    const icon = (size) => new URL(`${base}icon-${size}.png`, window.location.href).href;
+    navigator.mediaSession.metadata = new window.MediaMetadata({
+      title: 'PitchPop',
+      artist: 'Ear training: every chord has a color',
+      album: 'PitchPop',
+      artwork: [
+        { src: icon(192), sizes: '192x192', type: 'image/png' },
+        { src: icon(512), sizes: '512x512', type: 'image/png' },
+      ],
+    });
+    named = true;
+  } catch {
+    /* ignore */
+  }
+}
+
 // Tells the iPhone this is media to hear (like a video app): it plays out
 // loud even with the ringer on silent, instead of being treated as quiet
 // background sound. (WebKit's Audio Session API; iOS 17 and later.) In
@@ -58,6 +82,7 @@ export function outputFor(ctx) {
 // doesn't reach the web view's sounds, which otherwise stay silent while
 // the silent switch is on - however loud the volume.
 export function playOutLoud() {
+  nameNowPlaying();
   try {
     if (navigator.audioSession && navigator.audioSession.type !== 'playback') navigator.audioSession.type = 'playback';
   } catch {
