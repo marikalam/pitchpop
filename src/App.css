@@ -7273,3 +7273,34 @@ body {
 .sn-piano .tn-key-letter {
   font-size: 24px;
 }
+/* Single notes: a black-key chord's color choices. */
+.sn-colors {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.sn-colors-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.sn-colors-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.sn-color {
+  min-height: 58px;
+  font-size: 16px;
+  border-radius: 16px;
+}
+.sn-color-right {
+  outline: 4px solid #2fa55a;
+  outline-offset: 2px;
+}
+.sn-color-wrong {
+  outline: 4px solid #ff6b6b;
+  outline-offset: 2px;
+}
+.sn-color-dim {
+  opacity: 0.35;
+}
+.sn-listen-chord {
+  background: linear-gradient(160deg, #fff, #f3fbe8);
+}

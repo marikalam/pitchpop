@@ -76,7 +76,9 @@ export function todayPlan({
       id: 'color-test',
       icon: 'keys',
       title: 'Single notes',
-      sub: '20 notes · middle C to high C',
+      sub: colorNames.some((n) => n === 'light green' || n === 'beige')
+        ? '20 · white-key notes and black-key chords'
+        : '20 notes · middle C to high C',
       done: !!(read(DONE_KEY)[playerId]?.day === today && read(DONE_KEY)[playerId]?.['color-test']),
     });
   } else {
