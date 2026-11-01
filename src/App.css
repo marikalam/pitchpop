@@ -7323,3 +7323,88 @@ body {
   font: 700 16px 'Fredoka', ui-rounded, system-ui, sans-serif;
   text-align: center;
 }
+
+/* ---------- Results: each color's percent right, against last time ---------- */
+.colors-card {
+  padding: 14px 16px 12px;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: var(--shadow-sm);
+}
+.colors-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+  font: 700 17px 'Fredoka', ui-rounded, system-ui, sans-serif;
+}
+.colors-card-head span {
+  font: 500 12px 'IBM Plex Sans', system-ui, sans-serif;
+  color: var(--ink-dim);
+}
+.colors-row {
+  display: grid;
+  grid-template-columns: 18px 72px minmax(0, 1fr) 50px 84px;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  border-top: 1px solid #f0f1f6;
+}
+.colors-swatch {
+  width: 18px;
+  height: 18px;
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+.colors-name {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.colors-track {
+  height: 10px;
+  border-radius: 5px;
+  background: #eef0f6;
+  overflow: hidden;
+}
+.colors-track span {
+  display: block;
+  height: 100%;
+  border-radius: 5px;
+  background: #4dabf7;
+}
+.colors-track .colors-fill-good {
+  background: #40c057;
+}
+.colors-track .colors-fill-low {
+  background: #ff8787;
+}
+.colors-pct {
+  text-align: right;
+  font: 700 16px 'Fredoka', ui-rounded, system-ui, sans-serif;
+  line-height: 1.05;
+}
+.colors-pct small {
+  display: block;
+  font: 500 11px 'IBM Plex Sans', system-ui, sans-serif;
+  color: var(--ink-dim);
+}
+.colors-change {
+  text-align: right;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-dim);
+  white-space: nowrap;
+}
+.colors-up {
+  color: #2b8a3e;
+}
+.colors-down {
+  color: #e03131;
+}
+.colors-note {
+  margin: 8px 0 0;
+  color: var(--ink-dim);
+  font-size: 14px;
+}
