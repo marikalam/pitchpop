@@ -60,3 +60,28 @@ export function setSingleNotes(profileId, on) {
     /* ignore */
   }
 }
+
+// How a Single notes round goes, per player: 'parts' (Part 1, the usual
+// round of chords, then Part 2, 10 single notes) or 'black' (one round:
+// the white keys as single notes, only the black-key colors as chords).
+const STYLE_KEY = 'pitchpop-single-notes-style-v1';
+
+export function singleNotesStyle(profileId) {
+  try {
+    return (JSON.parse(localStorage.getItem(STYLE_KEY)) || {})[profileId] === 'black' ? 'black' : 'parts';
+  } catch {
+    return 'parts';
+  }
+}
+
+export function setSingleNotesStyle(profileId, style) {
+  touchSettingsLater(profileId);
+  try {
+    const all = JSON.parse(localStorage.getItem(STYLE_KEY)) || {};
+    if (style === 'black') all[profileId] = 'black';
+    else delete all[profileId];
+    localStorage.setItem(STYLE_KEY, JSON.stringify(all));
+  } catch {
+    /* ignore */
+  }
+}

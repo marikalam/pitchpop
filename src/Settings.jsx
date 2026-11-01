@@ -4,7 +4,14 @@ import { deleteAccount, requestPasswordReset, signIn, signOut, signUp, updatePas
 import { firstDay, streakFor } from './streak.js';
 import { LEARNING_ORDER, READY_PCT, READY_ROUNDS } from './progress.js';
 import { setTypesNotes, typesNotes } from './typeNotes.js';
-import { inSingleNotes, inTinyTots, setSingleNotes, setTinyTots } from './tinyTots.js';
+import {
+  inSingleNotes,
+  inTinyTots,
+  setSingleNotes,
+  setSingleNotesStyle,
+  setTinyTots,
+  singleNotesStyle,
+} from './tinyTots.js';
 import { setVoiceLang, voiceLang } from './voiceLang.js';
 import {
   CLEF_MODES,
@@ -157,6 +164,9 @@ export function LearningGuide() {
               2 is 10 single notes: one note plays, from middle C up to high C, and they tap that key on the keyboard,
               the start of knowing any note by ear. Keep going until they get {READY_PCT}% or more, {READY_ROUNDS}{' '}
               rounds in a row.
+              <br />
+              Prefer the white keys only as single notes? Under Chords, pick Black keys only: one round where the white
+              keys are single notes and only the black-key colors are still chords.
             </span>
           </li>
         </ol>
@@ -187,6 +197,8 @@ export function PlayerSettingsCard({
     inTinyTots(profile.id) ? 'tots' : inSingleNotes(profile.id) ? 'notes' : 'colors',
   );
   const totsOn = playMode === 'tots';
+  // Single notes: two parts, or one round with only the black keys as chords.
+  const [notesStyle, setNotesStyle] = useState(() => singleNotesStyle(profile.id));
   const [voice, setVoice] = useState(() => voiceLang(profile.id));
   const [readLetters, setReadLetters] = useState(() => readingLetters(profile.id));
   const [readClef, setReadClef] = useState(() => readingClef(profile.id));
@@ -265,7 +277,9 @@ export function PlayerSettingsCard({
           totsOn
             ? 'Tiny Tots'
             : playMode === 'notes'
-              ? 'Single notes'
+              ? notesStyle === 'black'
+                ? 'Single notes · black-key chords'
+                : 'Single notes'
               : notesOn
                 ? 'Color game · Type the notes'
                 : 'Color game'
@@ -337,11 +351,35 @@ export function PlayerSettingsCard({
               Big colors to tap: each plays its chord and says its name. No right or wrong.
             </p>
           ) : playMode === 'notes' ? (
-            <p className="ps-hint ps-hint-indent">
-              The next level, once all the white-key colors are mastered. Part 1 is the usual round of chords and colors
-              (black-key colors included); Part 2 is 10 single notes: one white key plays, from middle C up to high C,
-              and they tap that key on a keyboard.
-            </p>
+            <>
+              <div className="ps-row">
+                <span className="ps-label">Chords</span>
+                <div className="ns-segmented" role="radiogroup" aria-label="How Single notes goes">
+                  {[
+                    ['parts', 'All, then notes'],
+                    ['black', 'Black keys only'],
+                  ].map(([style, label]) => (
+                    <button
+                      key={style}
+                      role="radio"
+                      aria-checked={notesStyle === style}
+                      className={`ns-segment${notesStyle === style ? ' ns-segment-active' : ''}`}
+                      onClick={() => {
+                        setNotesStyle(style);
+                        setSingleNotesStyle(profile.id, style);
+                      }}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <p className="ps-hint ps-hint-indent">
+                {notesStyle === 'black'
+                  ? 'One round of 20: the white keys come as single notes (middle C up to high C, tap the key), and only the black-key colors you added above (Light Green, Beige) still come as chords.'
+                  : 'Part 1 is the usual round of chords and colors, every color you added above; Part 2 is 10 single notes: one white key plays, from middle C up to high C, and they tap that key.'}
+              </p>
+            </>
           ) : (
             <label className="ps-switch-row">
               <span className="ps-switch-text">

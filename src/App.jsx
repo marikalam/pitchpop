@@ -21,7 +21,7 @@ import Sticker from './Sticker.jsx';
 import { STICKERS } from './stickers.js';
 import { weekProgress } from './progress.js';
 import { scheduleReminders } from './reminders.js';
-import { inSingleNotes, inTinyTots } from './tinyTots.js';
+import { inSingleNotes, inTinyTots, singleNotesStyle } from './tinyTots.js';
 import SingleNotes from './SingleNotes.jsx';
 import TypeNotes from './TypeNotes.jsx';
 import ProgressDots from './ProgressDots.jsx';
@@ -666,6 +666,9 @@ export default function App() {
   // Single notes players: Part 2's score ({ correct, total }), shown with
   // the round's results.
   const [part2, setPart2] = useState(null);
+  // Whether the Single notes screen is Part 2 (after the chords) or a whole
+  // round of its own (black-key chords only).
+  const [notesPart, setNotesPart] = useState(true);
   // A color this player hasn't met yet (just added in Players & colors):
   // on the home page, it's introduced chord first (NewColor.jsx).
   const [newColorName, setNewColorName] = useState(null);
@@ -1047,6 +1050,14 @@ export default function App() {
       openTool('tinytots');
       return;
     }
+    // Single notes, black-key chords only: one round of white-key notes
+    // with the black-key colors as chords.
+    if (inSingleNotes(profile) && singleNotesStyle(profile) === 'black') {
+      setPart2(null);
+      setNotesPart(false);
+      openTool('singlenotes');
+      return;
+    }
     newRound(profile, profileColorNames);
     setPart2(null);
     setRoundIndex(0);
@@ -1185,6 +1196,7 @@ export default function App() {
       // Single notes players go on to Part 2: 10 notes on the keyboard.
       if (inSingleNotes(profile)) {
         setPart2(null);
+        setNotesPart(true);
         setPreToolView('home');
         setView('singlenotes');
         return;
@@ -1376,7 +1388,7 @@ export default function App() {
       practices: loadPracticeLog()[profile] || [],
       colorNames: profileColorNames,
       tinyTots: inTinyTots(profile),
-      singleNotes: inSingleNotes(profile),
+      singleNotes: inSingleNotes(profile) && singleNotesStyle(profile),
     }).find((item) => !item.done && item.id !== doneId);
     return next ? (
       <button className="pill-btn-primary pill-btn-full next-up" onClick={() => openPlanItem(next.id)}>
@@ -1733,6 +1745,22 @@ export default function App() {
               onPlaced={() => setPlacingSticker(null)}
               next={nextUpButton()}
             />
+          ) : view === 'singlenotes' && !notesPart ? (
+            // A whole round: white keys as notes, black-key colors as chords.
+            <SingleNotes
+              key={`${profile}-round`}
+              engine={engineRef.current}
+              rainbowColors={COLORS}
+              chordColors={totsColors.filter(usesBlackKeys)}
+              answerColors={totsColors}
+              onComplete={(correct, total) => {
+                setStreakDays(recordStreakDay(streakDays, profile));
+                earnSticker(profile);
+                markDoneToday(profile, 'color-test');
+                statRoundDone({ activity: 'single-notes', lang: speechLanguage(), correct, total });
+              }}
+              stickerSlot={stickerPicker('pitch')}
+            />
           ) : view === 'singlenotes' ? (
             <SingleNotes
               key={profile}
@@ -1955,7 +1983,7 @@ export default function App() {
                 signedIn={!!cloudUser}
                 colorNames={profileColorNames}
                 tinyTots={inTinyTots(profile)}
-                singleNotes={inSingleNotes(profile)}
+                singleNotes={inSingleNotes(profile) && singleNotesStyle(profile)}
                 lockedIds={planOK ? [] : PAID_VIEWS}
                 onOpen={openPlanItem}
                 onSignIn={openAccount}
