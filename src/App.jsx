@@ -409,7 +409,7 @@ function FocusTag({ focus }) {
   );
 }
 
-function RoundSummary({ playerId, playerName, correct, wrong, streak, summary, history, focus, signedIn, onStick, onSignIn, then }) {
+function RoundSummary({ playerId, playerName, colorNames = [], correct, wrong, streak, summary, history, focus, signedIn, onStick, onSignIn, then }) {
   const tier = scoreTier(correct, summary.total);
   const text = TIER_TEXT[tier];
   const workOn = colorToWorkOn(summary);
@@ -447,121 +447,71 @@ function RoundSummary({ playerId, playerName, correct, wrong, streak, summary, h
           <div className="stat-label">{streak.current === 1 ? 'Day' : 'Days'} in a row</div>
         </div>
       </div>
-      {summary.checks && (() => {
-        // The mix-up checks: this round against the last one with the
-        // same two colors.
-        const [a, b] = summary.checks.pair;
-        const before = history
-          .slice(0, -1)
-          .reverse()
-          .find((r) => r.checks && r.checks.pair.includes(a) && r.checks.pair.includes(b))?.checks;
-        const bar = (c) => (
-          <span className="checks-track">
-            <span style={{ width: `${(100 * c.right) / c.total}%` }} />
-          </span>
-        );
+      {(() => {
+        // Each of the player's colors: its percent right this round,
+        // against the last round it was in. Lowest first, so what to
+        // practice is on top; a color not in this round goes last.
+        const before = (name) =>
+          history
+            .slice(0, -1)
+            .reverse()
+            .find((r) => r.colors?.[name]?.total)?.colors[name];
+        const pct = (c) => Math.round((100 * c.right) / c.total);
+        const names = [...new Set([...colorNames, ...Object.keys(summary.colors)])];
+        const rows = names
+          .map((name) => {
+            const c = summary.colors[name];
+            const was = before(name);
+            return { name, c, now: c ? pct(c) : null, last: was ? pct(was) : null };
+          })
+          .sort(
+            (x, y) =>
+              (x.now ?? 101) - (y.now ?? 101) || LEARNING_ORDER.indexOf(x.name) - LEARNING_ORDER.indexOf(y.name),
+          );
         return (
-          <div className="checks-card">
-            <b>
-              <Icon name="target" /> {cap(a)} vs {cap(b)}
-            </b>
-            {before && (
-              <div className="checks-row">
-                <span>Last time</span>
-                {bar(before)}
-                <b>
-                  {before.right}/{before.total}
-                </b>
-              </div>
-            )}
-            <div className="checks-row checks-row-now">
-              <span>Today</span>
-              {bar(summary.checks)}
-              <b>
-                {summary.checks.right}/{summary.checks.total}
-              </b>
+          <div className="colors-card" aria-label="Each color">
+            <div className="colors-card-head">
+              <b>Each color</b>
+              <span>this round · last time</span>
             </div>
-            {before && summary.checks.right / summary.checks.total > before.right / before.total && (
-              <span className="checks-better">Getting better! <Icon name="muscle" /></span>
-            )}
-          </div>
-        );
-      })()}
-      {summary.warmup && (
-        // The chords missed last round, played again at the start of this one.
-        <div className="warmup-card">
-          <b><Icon name="repeat" /> Tricky ones from last time</b>
-          <div className="warmup-chips">
-            {summary.warmup.items.map((item, i) => {
-              const color = COLORS.find((c) => c.name === item.name);
+            {rows.map(({ name, c, now, last }) => {
+              const color = COLORS.find((x) => x.name === name);
+              const change = last == null || now == null ? null : now - last;
               return (
-                <span key={i} className="warmup-chip" style={{ background: color?.hex, color: color?.text }}>
-                  {cap(item.name)} {item.right ? '✓' : '✗'}
-                </span>
+                <div key={name} className="colors-row">
+                  <span className="colors-swatch" style={{ background: color?.hex }} aria-hidden="true" />
+                  <span className="colors-name">{cap(name)}</span>
+                  <span className="colors-track" aria-hidden="true">
+                    <span
+                      className={now >= 90 ? 'colors-fill-good' : now < 60 ? 'colors-fill-low' : ''}
+                      style={{ width: `${now == null ? 0 : Math.max(4, now)}%` }}
+                    />
+                  </span>
+                  <span className="colors-pct">
+                    {now == null ? (
+                      <small>not this round</small>
+                    ) : (
+                      <>
+                        {now}%<small>{c.right}/{c.total}</small>
+                      </>
+                    )}
+                  </span>
+                  <span
+                    className={`colors-change${change > 0 ? ' colors-up' : change < 0 ? ' colors-down' : ''}`}
+                  >
+                    {last == null ? (now == null ? '' : 'first time') : `${change > 0 ? '↑ ' : change < 0 ? '↓ ' : ''}was ${last}%`}
+                  </span>
+                </div>
               );
             })}
-          </div>
-          <span className="warmup-note">
-            {summary.warmup.right === summary.warmup.total
-              ? <>All right this time! <Icon name="star" /></>
-              : summary.warmup.right === 0
-                ? "Still tricky. They'll come back next time to practice."
-                : <>{summary.warmup.right} of {summary.warmup.total} right this time. Getting there! <Icon name="muscle" /></>}
-          </span>
-        </div>
-      )}
-      {focus && summary.colors[focus.name] && (() => {
-        // This round's focus color, against the last round it was in.
-        const today = summary.colors[focus.name];
-        const before = history
-          .slice(0, -1)
-          .reverse()
-          .find((r) => r.colors?.[focus.name]?.total)?.colors[focus.name];
-        const color = COLORS.find((c) => c.name === focus.name);
-        return (
-          <div className="focus-result">
-            <span className="workon-swatch" style={{ background: color.hex }} aria-hidden="true" />
-            <span>
-              <span className="workon-title">
-                <Icon name="target" /> {cap(focus.name)}: {today.right} of {today.total} today
-              </span>
-              {before && (
-                <>
-                  <br />
-                  <span className="workon-text">
-                    Last time {before.right} of {before.total}
-                    {today.right / today.total > before.right / before.total ? ' — getting better!' : ''}
-                  </span>
-                </>
-              )}
-            </span>
+            <p className="colors-note">
+              {color
+                ? `Practice ${cap(color.name)} next${workOn.mixedWith ? ` (mixed up with ${cap(workOn.mixedWith)})` : ''}: try it in Explore.`
+                : 'Every color right! 90% or more on another day too? Time to add a new color.'}
+            </p>
           </div>
         );
       })()}
-      <div className="workon-card">
-        {color ? (
-          <>
-            <span className="workon-swatch" style={{ background: color.hex }} aria-hidden="true" />
-            <span>
-              <span className="workon-title">Work on {cap(color.name)} next</span>
-              <br />
-              <span className="workon-text">
-                {workOn.right} of {workOn.total} right
-                {workOn.mixedWith ? `, mixed up with ${cap(workOn.mixedWith)}` : ''}. Try it in Explore.
-              </span>
-            </span>
-          </>
-        ) : (
-          <>
-            <span className="workon-swatch" style={{ background: 'conic-gradient(#e5473c, #f4c430, #3bb273, #3b6fef, #7a4fd6, #e5473c)' }} aria-hidden="true" />
-            <span>
-              <span className="workon-title">Every color right!</span>
-              <br />
-              <span className="workon-text">90% or more on another day too? Time to add a new color.</span>
-            </span>
-          </>
-        )}
-      </div>
       {recent.length > 1 && (
         <div className="rounds-card" aria-label="Recent rounds">
           <div className="rounds-head">
@@ -2367,6 +2317,7 @@ export default function App() {
             )}
             <RoundSummary
               playerName={currentProfile.name}
+              colorNames={profileColorNames}
               correct={roundCorrect}
               wrong={roundWrong}
               streak={streak}
