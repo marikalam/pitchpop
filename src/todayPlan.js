@@ -76,7 +76,10 @@ export function todayPlan({
       id: 'color-test',
       icon: 'rainbow',
       title: 'Pitch Practice',
-      sub: 'Part 1: 20 chords · Part 2: 10 single notes',
+      sub:
+        singleNotes === 'black'
+          ? '20 · white keys as notes, black keys as chords'
+          : 'Part 1: 20 chords · Part 2: 10 single notes',
       done:
         rounds.some((r) => r.day === today) ||
         !!(read(DONE_KEY)[playerId]?.day === today && read(DONE_KEY)[playerId]?.['color-test']),

@@ -7,6 +7,7 @@ import { settingsChangedAt, touchSettings } from './settingsClock.js';
 const MAPS = {
   tinyTots: 'pitchpop-tiny-tots-v1',
   singleNotes: 'pitchpop-single-notes-v1',
+  singleNotesStyle: 'pitchpop-single-notes-style-v1',
   typeNotes: 'pitchpop-type-notes-v1',
   clef: 'pitchpop-notespeller-player-clef-v1',
   level: 'pitchpop-notespeller-player-level-v1',
