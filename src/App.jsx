@@ -713,6 +713,9 @@ export default function App() {
   // PitchPop always opens on the home page, which shows every part of the
   // app. (A first visit also gets the welcome card on top of it.)
   const [view, setView] = useState('home');
+  // Single notes players: Part 2's score ({ correct, total }), shown with
+  // the round's results.
+  const [part2, setPart2] = useState(null);
   // A color this player hasn't met yet (just added in Players & colors):
   // on the home page, it's introduced chord first (NewColor.jsx).
   const [newColorName, setNewColorName] = useState(null);
@@ -1037,10 +1040,6 @@ export default function App() {
       setPreToolView('home');
       return 'tinytots';
     }
-    if (inSingleNotes(profileId)) {
-      setPreToolView('home');
-      return 'singlenotes';
-    }
     return 'play-listen';
   }
   function inPitchPractice(v) {
@@ -1050,7 +1049,7 @@ export default function App() {
   // Whatever way a Tiny Tots player reaches the color game (Back, a link,
   // the widget...), it's Tiny Tots for them.
   useEffect(() => {
-    if (view.startsWith('play-') && (inTinyTots(profile) || inSingleNotes(profile))) setView(playViewFor(profile));
+    if (view.startsWith('play-') && inTinyTots(profile)) setView(playViewFor(profile));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [view, profile]);
 
@@ -1098,12 +1097,8 @@ export default function App() {
       openTool('tinytots');
       return;
     }
-    // Single notes players: one white key at a time, tapped on a keyboard.
-    if (inSingleNotes(profile)) {
-      openTool('singlenotes');
-      return;
-    }
     newRound(profile, profileColorNames);
+    setPart2(null);
     setRoundIndex(0);
     setTries(NO_TRIES);
     setRoundResults({});
@@ -1237,6 +1232,13 @@ export default function App() {
         correct: Object.values(roundOutcomes).filter(Boolean).length,
         total: SESSION_ROUNDS,
       });
+      // Single notes players go on to Part 2: 10 notes on the keyboard.
+      if (inSingleNotes(profile)) {
+        setPart2(null);
+        setPreToolView('home');
+        setView('singlenotes');
+        return;
+      }
       setView('play-complete');
       return;
     }
@@ -1785,17 +1787,16 @@ export default function App() {
             <SingleNotes
               key={profile}
               engine={engineRef.current}
-              // Black-key colors still come as chords; their choices are all
-              // the player's colors.
-              chordColors={totsColors.filter(usesBlackKeys)}
-              answerColors={totsColors}
+              rounds={10}
+              part="Part 2 · Single notes"
+              rainbowColors={COLORS}
               onComplete={(correct, total) => {
-                setStreakDays(recordStreakDay(streakDays, profile));
-                earnSticker(profile);
                 markDoneToday(profile, 'color-test');
                 statRoundDone({ activity: 'single-notes', lang: speechLanguage(), correct, total });
+                setPart2({ correct, total });
+                // Then the round's results and sticker, with Part 2's score.
+                setView('play-complete');
               }}
-              stickerSlot={stickerPicker('pitch')}
             />
           ) : view === 'tinytots' ? (
             <TinyTots
@@ -2359,6 +2360,11 @@ export default function App() {
               showBack
               onBack={goHome}
             />
+            {part2 && (
+              <p className="part2-result">
+                <Icon name="keys" /> Part 2 · Single notes: {part2.correct} of {part2.total} right
+              </p>
+            )}
             <RoundSummary
               playerName={currentProfile.name}
               correct={roundCorrect}
