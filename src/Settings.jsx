@@ -152,10 +152,10 @@ export function LearningGuide() {
             </b>
             <span>
               When they know all the white-key colors (Red to Brown) and their letters, set Pitch Practice to Single
-              notes in Players &amp; colors. Now one note plays at a time, from middle C up to high C, and they tap that
-              key on the keyboard: the sound of each note on its own, the start of reading any note by ear. The
-              black-key colors keep going as chords in the same round: add Light Green, then Beige, the same way as
-              before (one at a time, once they're ready). Keep going until they get {READY_PCT}% or more, {READY_ROUNDS}{' '}
+              notes in Players &amp; colors. Pitch Practice then comes in two parts. Part 1 is the usual round of chords
+              and colors, so the black-key colors keep going: add Light Green, then Beige, one at a time as before. Part
+              2 is 10 single notes: one note plays, from middle C up to high C, and they tap that key on the keyboard,
+              the start of knowing any note by ear. Keep going until they get {READY_PCT}% or more, {READY_ROUNDS}{' '}
               rounds in a row.
             </span>
           </li>
@@ -338,9 +338,9 @@ export function PlayerSettingsCard({
             </p>
           ) : playMode === 'notes' ? (
             <p className="ps-hint ps-hint-indent">
-              The next level, once all the white-key colors are mastered: one white key plays, from middle C up to high
-              C, and they tap that key on a keyboard. Black-key colors you've added above (Light Green, Beige) still
-              come as chords in the same round, so they keep learning those too.
+              The next level, once all the white-key colors are mastered. Part 1 is the usual round of chords and colors
+              (black-key colors included); Part 2 is 10 single notes: one white key plays, from middle C up to high C,
+              and they tap that key on a keyboard.
             </p>
           ) : (
             <label className="ps-switch-row">

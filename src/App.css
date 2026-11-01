@@ -7304,3 +7304,22 @@ body {
 .sn-listen-chord {
   background: linear-gradient(160deg, #fff, #f3fbe8);
 }
+/* Single notes as Pitch Practice's Part 2: its label, and its score on
+   the round's results. */
+.sn-part {
+  align-self: center;
+  padding: 3px 12px;
+  border-radius: 999px;
+  background: #fff4e6;
+  color: #d9480f;
+  font: 700 13px 'Fredoka', ui-rounded, system-ui, sans-serif;
+}
+.part2-result {
+  margin: 4px auto 0;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: var(--shadow-sm);
+  font: 700 16px 'Fredoka', ui-rounded, system-ui, sans-serif;
+  text-align: center;
+}

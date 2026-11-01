@@ -71,15 +71,15 @@ export function todayPlan({
       done: !!(read(DONE_KEY)[playerId]?.day === today && read(DONE_KEY)[playerId]?.tots),
     });
   } else if (singleNotes) {
-    // The level after the colors: one white key at a time (SingleNotes.jsx).
+    // Part 1, the usual round of chords; Part 2, 10 single notes.
     items.push({
       id: 'color-test',
-      icon: 'keys',
-      title: 'Single notes',
-      sub: colorNames.some((n) => n === 'light green' || n === 'beige')
-        ? '20 · white-key notes and black-key chords'
-        : '20 notes · middle C to high C',
-      done: !!(read(DONE_KEY)[playerId]?.day === today && read(DONE_KEY)[playerId]?.['color-test']),
+      icon: 'rainbow',
+      title: 'Pitch Practice',
+      sub: 'Part 1: 20 chords · Part 2: 10 single notes',
+      done:
+        rounds.some((r) => r.day === today) ||
+        !!(read(DONE_KEY)[playerId]?.day === today && read(DONE_KEY)[playerId]?.['color-test']),
     });
   } else {
     // The pair mixed up most this week gets extra chords in the round

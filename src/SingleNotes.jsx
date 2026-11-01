@@ -4,9 +4,13 @@ import { speakColorName, speakNoteName, speakResults } from './speech.js';
 import { isCurrent, later, newSound } from './soundBus.js';
 import ProgressDots from './ProgressDots.jsx';
 import Icon from './Icon.jsx';
+import Rainbow from './Rainbow.jsx';
+import { SpeakerIcon } from './icons.jsx';
 
 // Single notes: the level after the white-key chord colors (set per player
-// in Players & colors). One white key plays - middle C up to the C above -
+// in Players & colors), as Part 2 of Pitch Practice: after the usual round
+// of chords and colors, `rounds` notes (10). One white key plays - middle C
+// up to the C above -
 // and the player taps that key on the keyboard. Like the colors, it's
 // the sound first: no picture of the note, just the note to hear. Every
 // answer, right or wrong, then says the note's name and plays it again, so
@@ -42,28 +46,39 @@ const shuffle = (list) => {
 // 20 questions: single white keys (never the same twice in a row), and
 // with black-key colors to practice, some of their chords mixed in (6 for
 // one color, 8 for more).
-function buildQueue(chordColors) {
-  const chords = chordColors.length ? (chordColors.length === 1 ? 6 : 8) : 0;
+function buildQueue(chordColors, total = SESSION_ROUNDS) {
+  const chords = chordColors.length ? Math.min(chordColors.length === 1 ? 6 : 8, Math.floor(total / 2)) : 0;
   const chordItems = Array.from({ length: chords }, (_, i) => ({
     type: 'chord',
     color: chordColors[i % chordColors.length],
   }));
   const notes = [];
-  while (notes.length < SESSION_ROUNDS - chords) {
+  while (notes.length < total - chords) {
     const k = Math.floor(Math.random() * KEYS.length);
     if (k !== notes[notes.length - 1]?.k) notes.push({ type: 'note', k });
   }
   // Chords go in at random places among the notes.
-  const slots = new Set(shuffle([...Array(SESSION_ROUNDS).keys()]).slice(0, chords));
+  const slots = new Set(shuffle([...Array(total).keys()]).slice(0, chords));
   const chordQueue = shuffle(chordItems);
   let n = 0;
-  return Array.from({ length: SESSION_ROUNDS }, (_, i) => (slots.has(i) ? chordQueue.pop() : notes[n++]));
+  return Array.from({ length: total }, (_, i) => (slots.has(i) ? chordQueue.pop() : notes[n++]));
 }
 
 // chordColors: the player's black-key colors (played as chords);
 // answerColors: all their colors, the choices for a chord.
-export default function SingleNotes({ engine, chordColors = [], answerColors = [], onComplete, stickerSlot }) {
-  const [queue, setQueue] = useState(() => buildQueue(chordColors));
+// rounds: how many questions (Part 2 of Pitch Practice: 10); part: the
+// label over the question ("Part 2"); rainbowColors: the rainbow to tap.
+export default function SingleNotes({
+  engine,
+  chordColors = [],
+  answerColors = [],
+  rounds = SESSION_ROUNDS,
+  part = null,
+  rainbowColors = [],
+  onComplete,
+  stickerSlot,
+}) {
+  const [queue, setQueue] = useState(() => buildQueue(chordColors, rounds));
   const [roundIndex, setRoundIndex] = useState(0);
   const [answered, setAnswered] = useState(null); // { key or color, correct }
   const [correctCount, setCorrectCount] = useState(0);
@@ -134,10 +149,10 @@ export default function SingleNotes({ engine, chordColors = [], answerColors = [
 
   function next() {
     newSound();
-    if (roundIndex + 1 >= SESSION_ROUNDS) {
+    if (roundIndex + 1 >= rounds) {
       setDone(true);
-      speakResults(correctCount, SESSION_ROUNDS);
-      onComplete?.(correctCount, SESSION_ROUNDS);
+      speakResults(correctCount, rounds);
+      onComplete?.(correctCount, rounds);
       return;
     }
     setRoundIndex((i) => i + 1);
@@ -145,7 +160,7 @@ export default function SingleNotes({ engine, chordColors = [], answerColors = [
   }
 
   function restart() {
-    setQueue(buildQueue(chordColors));
+    setQueue(buildQueue(chordColors, rounds));
     setRoundIndex(0);
     setAnswered(null);
     setCorrectCount(0);
@@ -161,7 +176,7 @@ export default function SingleNotes({ engine, chordColors = [], answerColors = [
         </div>
         <h2 className="screen-title">Single notes complete!</h2>
         <p className="screen-sub">
-          You got {correctCount} out of {SESSION_ROUNDS} right.
+          You got {correctCount} out of {rounds} right.
         </p>
         {/* Play again only once the sticker is in. */}
         {(stickerSlot || ((then) => then))(
@@ -180,17 +195,21 @@ export default function SingleNotes({ engine, chordColors = [], answerColors = [
 
   return (
     <div className="ns-screen sn-screen">
-      <ProgressDots current={roundIndex + 1} total={SESSION_ROUNDS} outcomes={outcomes} />
-      <h2 className="screen-title ns-title">{isChord ? 'Which color is this chord?' : 'Which note is this?'}</h2>
+      <ProgressDots current={roundIndex + 1} total={rounds} outcomes={outcomes} />
+      {part && <span className="sn-part">{part}</span>}
+      <h2 className="screen-title ns-title">{isChord ? 'Which color is this chord?' : 'What note did you hear?'}</h2>
+      {/* Like Pitch Practice: tap the rainbow to hear it again. */}
       <button
-        className={`sn-listen${isChord ? ' sn-listen-chord' : ''}${
+        className={`rainbow-play-wrap rainbow-play-wrap-compact sn-rainbow${
           answered ? (answered.correct ? ' sn-listen-right' : ' sn-listen-wrong') : ''
         }`}
         onClick={hear}
         aria-label={isChord ? 'Hear the chord again' : 'Hear the note again'}
       >
-        <Icon name="speaker" size="72px" />
-        <span>Tap to hear again</span>
+        <Rainbow colors={rainbowColors} activeName={null} visible pretty />
+        <span className="rainbow-center-btn">
+          <SpeakerIcon />
+        </span>
       </button>
 
       <div className="ns-answer">
