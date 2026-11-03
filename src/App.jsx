@@ -1988,6 +1988,21 @@ export default function App() {
                     className={`home-pitch${pitch.done ? ' home-pitch-done' : ''}`}
                     onClick={() => openPlanItem(pitch.id)}
                   >
+                    {/* The player's newest stickers (or a few to start with)
+                        float around the rainbow. */}
+                    {(() => {
+                      const mine = cloudUser ? playerStickers(profile).slice(-6).map((st) => st.index) : [];
+                      const pick = (name) => STICKERS.findIndex(([n]) => n === name);
+                      const shown =
+                        mine.length >= 4
+                          ? mine
+                          : [pick('Star'), pick('Music notes'), pick('Heart'), pick('Balloon'), pick('Butterfly'), pick('Sunshine')];
+                      return shown.slice(0, 6).map((index, i) => (
+                        <span key={`${index}-${i}`} className={`home-pitch-sticker home-pitch-sticker-${i}`} aria-hidden="true">
+                          <Sticker index={index} size={i < 2 ? 46 : 36} />
+                        </span>
+                      ));
+                    })()}
                     <span className="home-pitch-hello">Hi, {currentProfile.name}!</span>
                     <span className="home-pitch-rainbow">
                       <Rainbow colors={COLORS} activeName={null} visible pretty />
