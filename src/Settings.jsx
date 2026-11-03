@@ -25,6 +25,8 @@ import {
   setReadingLevel,
 } from './noteReading.js';
 import Icon from './Icon.jsx';
+import { THEORY_LEVELS } from './theoryGlossary.js';
+import { setTheoryLevel, theoryLevel } from './theoryLevel.js';
 
 // The ways Pitch Practice can play, youngest first.
 const LEVEL_OPTIONS = [
@@ -225,6 +227,7 @@ export function PlayerSettingsCard({
         : 'colors',
   );
   const totsOn = level === 'tots';
+  const [theory, setTheory] = useState(() => theoryLevel(profile.id));
   function chooseLevel(next) {
     setLevel(next);
     setTinyTots(profile.id, next === 'tots');
@@ -456,6 +459,36 @@ export function PlayerSettingsCard({
               ? 'All notes. Tap a letter to leave it out.'
               : `Only ${readLetters.join(', ')}`}
           </p>
+        </>,
+      )}
+
+      {/* Music Theory: how basic the quiz's terms are. */}
+      {section(
+        'theory',
+        'book',
+        'Music Theory quiz',
+        `Level ${theory} · ${THEORY_LEVELS.find((l) => l.id === theory).label}`,
+        <>
+          <div className="ps-row">
+            <span className="ps-label">Level</span>
+            <div className="ns-segmented" role="radiogroup" aria-label="Theory quiz level">
+              {THEORY_LEVELS.map((l) => (
+                <button
+                  key={l.id}
+                  role="radio"
+                  aria-checked={theory === l.id}
+                  className={`ns-segment${theory === l.id ? ' ns-segment-active' : ''}`}
+                  onClick={() => {
+                    setTheory(l.id);
+                    setTheoryLevel(profile.id, l.id);
+                  }}
+                >
+                  {l.id} · {l.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <p className="ps-hint ps-hint-indent">{THEORY_LEVELS.find((l) => l.id === theory).hint}</p>
         </>,
       )}
       {canRemove && (

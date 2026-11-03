@@ -47,6 +47,26 @@ export function markDoneToday(playerId, id) {
   write(DONE_KEY, { ...all, [playerId]: { ...(all[playerId]?.day === dayKey() ? all[playerId] : { day: dayKey() }), [id]: true } });
 }
 
+// One more done today (a Pitch Practice round played some other way than
+// the color game, which keeps its own history): Tiny Tots, Single notes.
+export function countToday(playerId, id) {
+  if (!keepsRecords()) return;
+  const all = read(DONE_KEY);
+  const mine = all[playerId]?.day === dayKey() ? all[playerId] : { day: dayKey() };
+  write(DONE_KEY, { ...all, [playerId]: { ...mine, [id]: timesToday(mine, id) + 1 } });
+}
+
+// How many times today (markDoneToday's `true` counts as once).
+function timesToday(entry, id) {
+  if (!entry || entry.day !== dayKey()) return 0;
+  const v = entry[id];
+  return v === true ? 1 : Number(v) || 0;
+}
+
+// Pitch Practice is played several times a day; it's done for the day at
+// this many rounds.
+export const PITCH_ROUNDS_A_DAY = 4;
+
 const cap = (n) => n.charAt(0).toUpperCase() + n.slice(1);
 
 // The list for one player: [{ id, icon, title, sub, done }].
@@ -61,6 +81,11 @@ export function todayPlan({
 }) {
   const today = dayKey();
   const items = [];
+  // Pitch Practice rounds today, however they were played.
+  const doneToday = read(DONE_KEY)[playerId];
+  const pitchCount =
+    rounds.filter((r) => r.day === today).length + timesToday(doneToday, 'tots') + timesToday(doneToday, 'color-test');
+  const pitch = { count: pitchCount, target: PITCH_ROUNDS_A_DAY, done: pitchCount >= PITCH_ROUNDS_A_DAY };
 
   if (tinyTots) {
     items.push({
@@ -68,7 +93,7 @@ export function todayPlan({
       icon: 'rainbow',
       title: 'Tiny Tots',
       sub: 'Tap each color and listen',
-      done: !!(read(DONE_KEY)[playerId]?.day === today && read(DONE_KEY)[playerId]?.tots),
+      ...pitch,
     });
   } else if (singleNotes) {
     // Part 1, the usual round of chords; Part 2, 10 single notes.
@@ -80,9 +105,7 @@ export function todayPlan({
         singleNotes === 'black'
           ? '20 · white keys as notes, black keys as chords'
           : 'Part 1: 20 chords · Part 2: 10 single notes',
-      done:
-        rounds.some((r) => r.day === today) ||
-        !!(read(DONE_KEY)[playerId]?.day === today && read(DONE_KEY)[playerId]?.['color-test']),
+      ...pitch,
     });
   } else {
     // The pair mixed up most this week gets extra chords in the round
@@ -95,7 +118,7 @@ export function todayPlan({
       sub: worst
         ? `Missed ${worst.misses} ${worst.misses === 1 ? 'time' : 'times'} this week · 1 round of 20`
         : `1 round of 20 · ${colorNames.map(cap).join(', ')}`,
-      done: rounds.some((r) => r.day === today),
+      ...pitch,
     });
   }
 

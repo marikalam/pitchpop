@@ -56,6 +56,94 @@ export const GLOSSARY = [
       focus: { glyphs: [0] }, width: 4, staff: true, glyphs: [{ g: 'F_CLEF', x: 0.8, pos: 6 }] },
   },
   {
+    id: 'line-note',
+    category: 'staff',
+    term: 'Line note',
+    text: 'A note with a staff line going right through its middle.',
+    picture: { focus: { glyphs: [0] }, width: 5, staff: true, glyphs: [{ g: 'WHOLE_NOTE', x: 1.6, pos: 4 }] },
+  },
+  {
+    id: 'space-note',
+    category: 'staff',
+    term: 'Space note',
+    text: 'A note sitting in a space, between two staff lines.',
+    picture: { focus: { glyphs: [0] }, width: 5, staff: true, glyphs: [{ g: 'WHOLE_NOTE', x: 1.6, pos: 5 }] },
+  },
+  {
+    id: 'middle-c',
+    category: 'staff',
+    term: 'Middle C',
+    text: 'The C in the middle of the piano. In the treble clef it sits on a short line just below the staff.',
+    picture: {
+      focus: { glyphs: [1], ledgers: true },
+      width: 6.5,
+      staff: true,
+      glyphs: [
+        { g: 'G_CLEF', x: 1, pos: 2 },
+        { g: 'WHOLE_NOTE', x: 4, pos: -2 },
+      ],
+      ledgers: [{ x: 4 + WHOLE_HEAD / 2, pos: -2, width: WHOLE_HEAD + 0.9 }],
+    },
+  },
+  {
+    id: 'going-up',
+    category: 'staff',
+    term: 'Notes going up',
+    text: 'Each note is higher on the staff than the one before, so the music sounds higher and higher.',
+    picture: {
+      width: 6,
+      staff: true,
+      glyphs: [
+        { g: 'QUARTER_NOTE_UP', x: 0.9, pos: 1 },
+        { g: 'QUARTER_NOTE_UP', x: 2.5, pos: 3 },
+        { g: 'QUARTER_NOTE_UP', x: 4.1, pos: 5 },
+      ],
+    },
+  },
+  {
+    id: 'going-down',
+    category: 'staff',
+    term: 'Notes going down',
+    text: 'Each note is lower on the staff than the one before, so the music sounds lower and lower.',
+    picture: {
+      width: 6,
+      staff: true,
+      glyphs: [
+        { g: 'QUARTER_NOTE_UP', x: 0.9, pos: 5 },
+        { g: 'QUARTER_NOTE_UP', x: 2.5, pos: 3 },
+        { g: 'QUARTER_NOTE_UP', x: 4.1, pos: 1 },
+      ],
+    },
+  },
+  {
+    id: 'step',
+    category: 'staff',
+    term: 'Step',
+    text: 'From a line to the very next space (or a space to the next line): the next key on the piano.',
+    picture: {
+      width: 5,
+      staff: true,
+      glyphs: [
+        { g: 'WHOLE_NOTE', x: 0.9, pos: 2 },
+        { g: 'WHOLE_NOTE', x: 3.1, pos: 3 },
+      ],
+    },
+  },
+  {
+    id: 'skip',
+    category: 'staff',
+    term: 'Skip',
+    text: 'From a line to the next line (or a space to the next space): it skips one key on the piano.',
+    picture: {
+      width: 5,
+      staff: true,
+      glyphs: [
+        { g: 'WHOLE_NOTE', x: 0.9, pos: 2 },
+        { g: 'WHOLE_NOTE', x: 3.1, pos: 4 },
+      ],
+    },
+  },
+  {
     id: 'ledger-lines',
     category: 'staff',
     term: 'Ledger lines',
@@ -419,4 +507,22 @@ export const GLOSSARY = [
       ],
     },
   },
+];
+
+// How basic each term is, for the Theory quiz's level (set per player in
+// Players & colors): 1 the basics, 2 a bit more, 3 everything.
+const LEVEL_OF = {
+  staff: 1, 'treble-clef': 1, 'bass-clef': 1, 'line-note': 1, 'space-note': 1, 'middle-c': 1, 'going-up': 1,
+  'going-down': 1, 'bar-line': 1, 'whole-note': 1, 'half-note': 1, 'quarter-note': 1, 'quarter-rest': 1,
+  sharp: 1, flat: 1, piano: 1, forte: 1, repeat: 1,
+  'ledger-lines': 2, step: 2, skip: 2, 'final-bar-line': 2, 'time-signature': 2, 'eighth-note': 2,
+  'dotted-note': 2, 'whole-rest': 2, 'half-rest': 2, natural: 2, 'mezzo-forte': 2, crescendo: 2,
+  diminuendo: 2, staccato: 2, tie: 2, fermata: 2,
+};
+export const termLevel = (entry) => LEVEL_OF[entry.id] || 3;
+
+export const THEORY_LEVELS = [
+  { id: 1, label: 'Basics', hint: 'Staff, clefs, line and space notes, Middle C, whole/half/quarter notes, loud and soft, sharp and flat' },
+  { id: 2, label: 'More', hint: 'Adds ledger lines, steps and skips, time signatures, eighth notes, rests, crescendo and more' },
+  { id: 3, label: 'All', hint: 'Every term, including accents, slurs, pedal marks and sixteenth notes' },
 ];

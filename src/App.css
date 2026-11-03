@@ -7464,3 +7464,161 @@ body {
   color: var(--ink-dim);
   line-height: 1.35;
 }
+
+/* ---------- Home: Pitch Practice big, piano and NoteSpeller once a day, the rest small ---------- */
+.home-pitch {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(4px, 1vh, 10px);
+  width: 100%;
+  padding: clamp(12px, 2.2vh, 24px) 16px clamp(14px, 2.4vh, 26px);
+  border: none;
+  border-radius: 28px;
+  background: radial-gradient(120% 90% at 50% 0%, #fff7e8 0%, #fdeff7 45%, #eef3ff 100%);
+  box-shadow: var(--shadow);
+  color: var(--ink);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.home-fit .home-pitch {
+  flex: 1 0 auto;
+  justify-content: center;
+  gap: clamp(4px, 1.6vh, 18px);
+}
+.home-pitch:active {
+  transform: scale(0.98);
+}
+.home-pitch-hello {
+  font: 700 clamp(18px, 2.6vh, 24px) 'Fredoka', ui-rounded, system-ui, sans-serif;
+  color: var(--ink-dim);
+}
+.home-pitch-rainbow {
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding-bottom: 26px;
+}
+.home-pitch-rainbow .rainbow {
+  width: auto;
+  height: clamp(90px, 20vh, 190px);
+}
+.home-pitch-rainbow .rainbow-band {
+  opacity: 1;
+}
+.home-pitch-rainbow .rainbow-center-btn {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+}
+.home-pitch-title {
+  font: 700 clamp(28px, 4.2vh, 40px) 'Fredoka', ui-rounded, system-ui, sans-serif;
+  line-height: 1.05;
+}
+.home-pitch-rounds {
+  display: flex;
+  gap: 10px;
+}
+.home-pitch-rounds span {
+  width: clamp(18px, 2.6vh, 26px);
+  height: clamp(18px, 2.6vh, 26px);
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: inset 0 0 0 3px #ffd8a8;
+}
+.home-pitch-rounds .home-pitch-round-on {
+  background: linear-gradient(135deg, #ffa94d, #f76707);
+  box-shadow: none;
+}
+.home-pitch-count {
+  font-weight: 700;
+  color: #d9480f;
+}
+.home-pitch-done .home-pitch-count {
+  color: #2b8a3e;
+}
+
+.home-daily {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 12px;
+}
+.home-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 12px 8px;
+  border: none;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: var(--shadow-sm);
+  color: var(--ink);
+  text-align: center;
+  cursor: pointer;
+}
+.home-day b {
+  font: 700 17px 'Fredoka', ui-rounded, system-ui, sans-serif;
+}
+.home-day span {
+  font-size: 13px;
+  color: var(--ink-dim);
+}
+.home-day-done {
+  background: #ebfbee;
+}
+.home-day-running .home-practice {
+  margin-top: 4px;
+  padding: 6px 12px;
+  font-size: 14px;
+}
+
+.home-smalls {
+  display: flex;
+  gap: 8px;
+  margin: 10px 0;
+}
+.home-small {
+  position: relative;
+  flex: 1 1 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 8px;
+  border: none;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: var(--shadow-sm);
+  color: var(--ink);
+  font: 600 14.5px 'IBM Plex Sans', system-ui, sans-serif;
+  cursor: pointer;
+}
+.home-small-done {
+  background: #ebfbee;
+  color: #2b8a3e;
+}
+.home-small-badge {
+  min-width: 20px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: #f76707;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+}
+/* The other tools: one small row. */
+.home-fit .home-tiles.home-more {
+  flex: none;
+  max-height: none;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-rows: none;
+}
+.home-fit .home-more .home-tile {
+  min-height: 0;
+  height: clamp(64px, 9vh, 84px);
+}
