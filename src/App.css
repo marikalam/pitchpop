@@ -7853,3 +7853,11 @@ body {
     padding: 8px;
   }
 }
+
+/* NoteSpeller and Single notes: Next, once a note is answered (it also
+   moves on by itself). */
+.ns-next {
+  align-self: center;
+  margin-top: 12px;
+  min-width: 160px;
+}

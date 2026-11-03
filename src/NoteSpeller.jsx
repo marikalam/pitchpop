@@ -47,6 +47,7 @@ export default function NoteSpeller({ engine, playerId, onComplete, stickerSlot 
   }, [queue, engine]);
 
   function restart() {
+    finishedRef.current = false;
     setQueue(buildNoteQueue(clefMode, SESSION_ROUNDS, level, myLetters));
     setRoundIndex(0);
     setAnswered(null);
@@ -87,13 +88,16 @@ export default function NoteSpeller({ engine, playerId, onComplete, stickerSlot 
     // (a wrong answer stays up a little longer, to see the right one).
     // It moves on even if the sound never finishes (the phone's sound
     // paused, or the voice slow to load), so the screen can't get stuck.
+    // Tapping to hear it again (a new sound) doesn't stop it moving on:
+    // it's tied to this question, not to the sound. Next does it at once.
+    const at = roundIndex;
     let moved = false;
     const moveOn = () => {
-      if (moved || !isCurrent(soundId)) return;
+      if (moved || finishedRef.current || roundRef.current !== at || answeredAtRef.current !== at) return;
       moved = true;
       nextRef.current();
     };
-    later(moveOn, correct ? 4000 : 5000);
+    setTimeout(moveOn, correct ? 4000 : 5000);
     later(async () => {
       await sayAndPlay(target, soundId);
       if (isCurrent(soundId)) later(moveOn, correct ? 900 : 1800);
@@ -104,10 +108,19 @@ export default function NoteSpeller({ engine, playerId, onComplete, stickerSlot 
   // the timer that moves on by itself.
   const nextRef = useRef(null);
   nextRef.current = next;
+  // The question on screen, and the one answered (for moving on by itself).
+  const roundRef = useRef(roundIndex);
+  roundRef.current = roundIndex;
+  const answeredAtRef = useRef(null);
+  answeredAtRef.current = answered ? roundIndex : null;
+  // Set once the last question is done, so it finishes only once.
+  const finishedRef = useRef(false);
 
   function next() {
+    if (finishedRef.current) return;
     newSound();
     if (roundIndex + 1 >= SESSION_ROUNDS) {
+      finishedRef.current = true;
       setDone(true);
       speakResults(correctCount, SESSION_ROUNDS);
       recordNoteRound(playerId, misses.current);
@@ -213,6 +226,11 @@ export default function NoteSpeller({ engine, playerId, onComplete, stickerSlot 
             ) : null,
           )}
         </div>
+        {answered && (
+          <button className="pill-btn-primary ns-next" onClick={next}>
+            Next →
+          </button>
+        )}
       </div>
     </div>
   );
