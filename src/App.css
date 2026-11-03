@@ -7745,3 +7745,111 @@ body {
     animation: none;
   }
 }
+
+/* ---------- Home, polished ---------- */
+.home-pitch-hello {
+  color: var(--ink);
+  font-size: clamp(22px, 3.2vh, 30px);
+}
+.home-pitch-count {
+  font-size: 14px;
+}
+/* The card's call to action (the whole card is the button). */
+.home-pitch-go {
+  margin-top: 2px;
+  padding: 12px 26px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ff922b, #f76707);
+  color: #fff;
+  font: 700 clamp(18px, 2.4vh, 22px) 'Fredoka', ui-rounded, system-ui, sans-serif;
+  box-shadow: 0 10px 20px -10px #f76707;
+}
+.home-pitch-done .home-pitch-go {
+  background: linear-gradient(135deg, #69db7c, #37b24d);
+  box-shadow: 0 10px 20px -10px #37b24d;
+}
+/* Once-a-day cards: icon beside the words. */
+.home-day {
+  flex-direction: row;
+  justify-content: flex-start;
+  gap: 10px;
+  padding: 14px 12px;
+  text-align: left;
+}
+.home-day-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.home-day-text b {
+  font-size: clamp(14px, 4.1vw, 16px);
+  line-height: 1.15;
+  white-space: nowrap;
+}
+.home-day > .pp-icon {
+  width: clamp(28px, 8vw, 34px) !important;
+  height: clamp(28px, 8vw, 34px) !important;
+}
+/* Small buttons: white, with color in the icon. */
+.home-small,
+.home-small:nth-child(1),
+.home-small:nth-child(2) {
+  background: #fff;
+  color: var(--ink);
+}
+.home-small .pp-icon {
+  background: none;
+  padding: 0;
+}
+.home-small-done:nth-child(1) {
+  background: #ebfbee;
+  color: #2b8a3e;
+}
+.home-small-badge {
+  background: #f76707;
+  color: #fff;
+}
+/* The other tools: calm white tiles, the color in the icon. */
+.home-more .home-tile {
+  background: #fff;
+  color: var(--ink);
+  box-shadow: var(--shadow-sm);
+}
+.home-more .home-tile-icon .pp-icon {
+  background: #f1f3f9;
+  box-shadow: none;
+  padding: 0.22em;
+}
+.home-more .home-tile-title {
+  color: var(--ink);
+}
+
+/* A short phone: the same, a little tighter, so it all fits. */
+@media (max-height: 720px) {
+  .home-pitch-count {
+    display: none;
+  }
+  .home-pitch-rainbow .rainbow {
+    height: clamp(72px, 14vh, 110px);
+  }
+  .home-pitch-go {
+    padding: 9px 22px;
+  }
+  .home-pitch-sticker-2,
+  .home-pitch-sticker-3,
+  .home-pitch-rainbow .rainbow-center-btn {
+    display: none;
+  }
+  .home-pitch-rainbow {
+    padding-bottom: 0;
+  }
+  .home-day {
+    padding: 10px;
+  }
+  .home-smalls {
+    margin: 8px 0;
+  }
+  .home-small {
+    padding: 8px;
+  }
+}
