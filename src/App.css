@@ -7861,3 +7861,23 @@ body {
   margin-top: 12px;
   min-width: 160px;
 }
+
+/* Home (the greeting, today's list, the tools): the greeting keeps its
+   own size, and the tools take what's left. */
+.home-fit .home-hero {
+  flex: none;
+  justify-content: center;
+}
+/* The tools always show (two rows, at least 56px each); on a short phone
+   the home page scrolls a little to reach them. */
+.home-fit .home-tiles {
+  flex: 1 0 auto;
+  grid-template-rows: repeat(2, minmax(56px, 1fr));
+}
+.page-fit.page-home {
+  overflow-y: auto;
+}
+.page-home .app-fit {
+  min-height: 100%;
+  height: auto;
+}

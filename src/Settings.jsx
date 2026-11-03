@@ -40,8 +40,8 @@ const LEVEL_OPTIONS = [
   {
     id: 'parts',
     icon: 'keys',
-    title: 'Chord colors, then notes',
-    text: '20 chords to name by color, then 10 single notes to tap on a keyboard (middle C to high C).',
+    title: 'Chord colors + Step 2 notes',
+    text: "Step 1: chords to name by color. Step 2, its own item in Today's practice: 10 single notes to tap on a keyboard (middle C to high C).",
   },
   {
     id: 'black',
@@ -184,11 +184,12 @@ export function LearningGuide() {
             </b>
             <span>
               When they know all the white-key colors (Red to Brown) and their letters, choose{' '}
-              <b>Chord colors, then notes</b> in Players &amp; colors (How it plays): 20 chords as before, so the
-              black-key colors keep going (add Light Green, then Beige, one at a time), then 10 single notes: one note
-              plays, from middle C up to high C, and they tap that key. Once the white-key notes are easy, choose{' '}
-              <b>Notes + black-key colors</b>: the white keys only as single notes, and just Light Green and Beige still
-              as chords. Move on when they get {READY_PCT}% or more, {READY_ROUNDS} rounds in a row.
+              <b>Chord colors + Step 2 notes</b> in Players &amp; colors (How it plays). Pitch Practice (Step 1) stays
+              the usual chords, so the black-key colors keep going (add Light Green, then Beige, one at a time), and
+              Today's practice gets a <b>Step 2 · Single notes</b>: 10 notes from middle C up to high C, tapped on a
+              keyboard. Once the white-key notes are easy, choose <b>Notes + black-key colors</b>: the white keys only
+              as single notes, and just Light Green and Beige still as chords. Move on when they get {READY_PCT}% or
+              more, {READY_ROUNDS} rounds in a row.
             </span>
           </li>
         </ol>
