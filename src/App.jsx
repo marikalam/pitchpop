@@ -2021,6 +2021,9 @@ export default function App() {
                         ? `All ${pitch.target} done today!`
                         : `${pitch.count} of ${pitch.target} today`}
                     </span>
+                    <span className="home-pitch-go">
+                      {'▶\uFE0E'} {pitch.done ? 'Play again' : `Play round ${pitch.count + 1}`}
+                    </span>
                   </button>
 
                   {/* Once a day: piano practice, and NoteSpeller. */}
@@ -2028,8 +2031,10 @@ export default function App() {
                     {practiceElsewhere(profile) && !running ? (
                       <button className="home-day home-day-piano" onClick={openPracticeFromBadge}>
                         <Icon name="phone" size="34px" />
-                        <b>Piano practice</b>
-                        <span>On another phone</span>
+                        <span className="home-day-text">
+                          <b>Piano practice</b>
+                          <span>On another phone</span>
+                        </span>
                       </button>
                     ) : running ? (
                       <div className="home-day home-day-piano home-day-running">
@@ -2054,8 +2059,10 @@ export default function App() {
                         }}
                       >
                         <Icon name={piano.done ? 'check' : 'keys'} size="34px" />
-                        <b>Piano practice</b>
-                        <span>{piano.done ? piano.sub : 'Start the timer'}</span>
+                        <span className="home-day-text">
+                          <b>Piano practice</b>
+                          <span>{piano.done ? piano.sub : 'Start the timer'}</span>
+                        </span>
                       </button>
                     )}
                     {notes && (
@@ -2064,8 +2071,10 @@ export default function App() {
                         onClick={() => openPlanItem('notespeller')}
                       >
                         <Icon name={notes.done ? 'check' : 'staff'} size="34px" />
-                        <b>NoteSpeller</b>
-                        <span>{notes.done ? 'Done today' : 'Once a day'}</span>
+                        <span className="home-day-text">
+                          <b>NoteSpeller</b>
+                          <span>{notes.done ? 'Done today' : 'Once a day'}</span>
+                        </span>
                       </button>
                     )}
                   </div>
