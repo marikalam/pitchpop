@@ -95,15 +95,6 @@ export function todayPlan({
       sub: `${pitchCount} of ${PITCH_ROUNDS_A_DAY} today · tap each color and listen`,
       ...pitch,
     });
-  } else if (singleNotes === 'black') {
-    // One round: white keys as single notes, black-key colors as chords.
-    items.push({
-      id: 'color-test',
-      icon: 'rainbow',
-      title: 'Pitch Practice',
-      sub: `${pitchCount} of ${PITCH_ROUNDS_A_DAY} today · white keys as notes, black keys as chords`,
-      ...pitch,
-    });
   } else {
     // The pair mixed up most this week gets extra chords in the round
     // (smartRound.js).
@@ -111,7 +102,11 @@ export function todayPlan({
     items.push({
       id: 'color-test',
       icon: worst ? 'target' : 'rainbow',
-      title: `${singleNotes ? 'Step 1 · ' : ''}${worst ? `Pitch Practice: ${cap(worst.name)} or ${cap(worst.partner)}?` : 'Pitch Practice'}`,
+      title: worst
+        ? `${singleNotes ? 'Chord Colors' : 'Pitch Practice'}: ${cap(worst.name)} or ${cap(worst.partner)}?`
+        : singleNotes
+          ? 'Chord Colors'
+          : 'Pitch Practice',
       sub: `${pitchCount} of ${PITCH_ROUNDS_A_DAY} today · ${
         worst
           ? `missed ${worst.misses} ${worst.misses === 1 ? 'time' : 'times'} this week`
@@ -119,14 +114,17 @@ export function todayPlan({
       }`,
       ...pitch,
     });
-    // Step 2, after the chords: the single-notes test, once a day.
+    // Note Hunt, right after the chords: 20 single notes, as often.
     if (singleNotes) {
+      const notesToday = timesToday(doneToday, 'single-notes');
       items.push({
         id: 'single-notes',
         icon: 'keys',
-        title: 'Step 2 · Single notes',
-        sub: '10 notes · middle C to high C, tap the key',
-        done: timesToday(doneToday, 'single-notes') > 0,
+        title: 'Note Hunt',
+        sub: `${notesToday} of ${PITCH_ROUNDS_A_DAY} today · 20 single notes, middle C to high C`,
+        count: notesToday,
+        target: PITCH_ROUNDS_A_DAY,
+        done: notesToday >= PITCH_ROUNDS_A_DAY,
       });
     }
   }
