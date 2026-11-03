@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { playCorrectChime, playWrongBuzz } from './piano.js';
 import { isCurrent, later, newSound } from './soundBus.js';
 import { speakResults, speakWords, voiceReady } from './speech.js';
-import { GLOSSARY } from './theoryGlossary.js';
+import { GLOSSARY, termLevel } from './theoryGlossary.js';
 import { TheoryPicture } from './MusicTheory.jsx';
 import ProgressDots from './ProgressDots.jsx';
 import Icon from './Icon.jsx';
@@ -46,19 +46,23 @@ const spoken = (term) =>
 const sayAtMost = (text, ms) => Promise.race([speakWords(text), new Promise((resolve) => setTimeout(resolve, ms))]);
 const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-function buildQuiz() {
-  return shuffle(GLOSSARY)
+// Up to 20 questions from the terms at the player's level (and the
+// levels below it); the wrong choices come from the same terms.
+function buildQuiz(level = 3) {
+  const pool = GLOSSARY.filter((e) => termLevel(e) <= level);
+  return shuffle(pool)
     .slice(0, SESSION_ROUNDS)
     .map((entry) => {
-      const mates = shuffle(GLOSSARY.filter((e) => e.id !== entry.id && e.category === entry.category));
-      const others = shuffle(GLOSSARY.filter((e) => e.category !== entry.category));
+      const mates = shuffle(pool.filter((e) => e.id !== entry.id && e.category === entry.category));
+      const others = shuffle(pool.filter((e) => e.category !== entry.category));
       const wrong = [...mates, ...others].slice(0, CHOICES - 1);
       return { entry, choices: shuffle([entry, ...wrong]) };
     });
 }
 
-export default function TheoryQuiz({ onComplete, stickerSlot }) {
-  const [quiz, setQuiz] = useState(buildQuiz);
+export default function TheoryQuiz({ level = 3, onComplete, stickerSlot }) {
+  const [quiz, setQuiz] = useState(() => buildQuiz(level));
+  const total = quiz.length;
   const [index, setIndex] = useState(0);
   const [answered, setAnswered] = useState(null);
   const [correctCount, setCorrectCount] = useState(0);
@@ -127,10 +131,10 @@ export default function TheoryQuiz({ onComplete, stickerSlot }) {
 
   function next() {
     newSound();
-    if (index + 1 >= SESSION_ROUNDS) {
+    if (index + 1 >= total) {
       setDone(true);
-      speakResults(correctCount, SESSION_ROUNDS);
-      onComplete?.(correctCount, SESSION_ROUNDS);
+      speakResults(correctCount, total);
+      onComplete?.(correctCount, total);
       return;
     }
     setIndex((i) => i + 1);
@@ -138,7 +142,7 @@ export default function TheoryQuiz({ onComplete, stickerSlot }) {
   }
 
   function restart() {
-    setQuiz(buildQuiz());
+    setQuiz(buildQuiz(level));
     setIndex(0);
     setAnswered(null);
     setCorrectCount(0);
@@ -154,7 +158,7 @@ export default function TheoryQuiz({ onComplete, stickerSlot }) {
         </div>
         <h2 className="screen-title">Theory quiz complete!</h2>
         <p className="screen-sub">
-          You got {correctCount} out of {SESSION_ROUNDS} right.
+          You got {correctCount} out of {total} right.
         </p>
         {/* Play again only once the sticker is in. */}
         {(stickerSlot || ((then) => then))(
@@ -175,7 +179,7 @@ export default function TheoryQuiz({ onComplete, stickerSlot }) {
 
   return (
     <div className="tq-screen">
-      <ProgressDots current={index + 1} total={SESSION_ROUNDS} outcomes={outcomes} />
+      <ProgressDots current={index + 1} total={total} outcomes={outcomes} />
       <h2 className="screen-title tq-title">
         What is this? <Icon name="staff" />
       </h2>
@@ -225,7 +229,7 @@ export default function TheoryQuiz({ onComplete, stickerSlot }) {
       </div>
       {answered && (
         <button className="pill-btn-primary tq-next" onClick={next}>
-          {index + 1 >= SESSION_ROUNDS ? 'Finish' : 'Next'} →
+          {index + 1 >= total ? 'Finish' : 'Next'} →
         </button>
       )}
     </div>

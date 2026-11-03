@@ -86,7 +86,7 @@ export function TheoryPicture({ picture, label }) {
   );
 }
 
-export default function MusicTheory({ startMode = 'glossary', onComplete, stickerSlot }) {
+export default function MusicTheory({ startMode = 'glossary', level = 3, onComplete, stickerSlot }) {
   const [category, setCategory] = useState('all');
   const [mode, setMode] = useState(startMode);
   // The quiz talks: get the voice loading as soon as Music Theory opens.
@@ -116,7 +116,7 @@ export default function MusicTheory({ startMode = 'glossary', onComplete, sticke
     return (
       <>
         {modes}
-        <TheoryQuiz onComplete={onComplete} stickerSlot={stickerSlot} />
+        <TheoryQuiz level={level} onComplete={onComplete} stickerSlot={stickerSlot} />
       </>
     );
   }

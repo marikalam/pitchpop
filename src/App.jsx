@@ -22,6 +22,7 @@ import { STICKERS } from './stickers.js';
 import { weekProgress } from './progress.js';
 import { scheduleReminders } from './reminders.js';
 import { inSingleNotes, inTinyTots, singleNotesStyle } from './tinyTots.js';
+import { theoryLevel } from './theoryLevel.js';
 import SingleNotes from './SingleNotes.jsx';
 import TypeNotes from './TypeNotes.jsx';
 import ProgressDots from './ProgressDots.jsx';
@@ -49,7 +50,7 @@ import { practiceElsewhere, startLivePractice } from './livePractice.js';
 import { FREE_COLORS, hasPlan, notePhone, plansOn, startPlans } from './plan.js';
 import Paywall from './Paywall.jsx';
 import TodayPlan from './TodayPlan.jsx';
-import { markDoneToday, todayPlan } from './todayPlan.js';
+import { countToday, giveBonusIfDone, markDoneToday, PITCH_ROUNDS_A_DAY, todayPlan } from './todayPlan.js';
 import { statAppOpened, statRoundDone } from './stats.js';
 import StatsScreen from './StatsScreen.jsx';
 import { usesBlackKeys } from './blackKeys.js';
@@ -1381,6 +1382,21 @@ export default function App() {
     theory: 'Theory quiz',
     practice: 'Piano practice',
   };
+  // Today's list for the player on screen (todayPlan.js).
+  const homePlan = () =>
+    todayPlan({
+      playerId: profile,
+      rounds: loadRoundHistory()[profile] || [],
+      practices: loadPracticeLog()[profile] || [],
+      colorNames: profileColorNames,
+      tinyTots: inTinyTots(profile),
+      singleNotes: inSingleNotes(profile) && singleNotesStyle(profile),
+    });
+  // Everything on today's list done: the day's bonus sticker.
+  useEffect(() => {
+    if (view === 'home' && cloudUser) giveBonusIfDone(profile, homePlan());
+  });
+
   const nextUpButton = (doneId) => {
     const next = todayPlan({
       playerId: profile,
@@ -1756,7 +1772,7 @@ export default function App() {
               onComplete={(correct, total) => {
                 setStreakDays(recordStreakDay(streakDays, profile));
                 earnSticker(profile);
-                markDoneToday(profile, 'color-test');
+                countToday(profile, 'color-test');
                 statRoundDone({ activity: 'single-notes', lang: speechLanguage(), correct, total });
               }}
               stickerSlot={stickerPicker('pitch')}
@@ -1769,7 +1785,7 @@ export default function App() {
               part="Part 2 · Single notes"
               rainbowColors={COLORS}
               onComplete={(correct, total) => {
-                markDoneToday(profile, 'color-test');
+                // (Part 1's round already counts for today.)
                 statRoundDone({ activity: 'single-notes', lang: speechLanguage(), correct, total });
                 setPart2({ correct, total });
                 // Then the round's results and sticker, with Part 2's score.
@@ -1784,7 +1800,7 @@ export default function App() {
               onComplete={() => {
                 setStreakDays(recordStreakDay(streakDays, profile));
                 earnSticker(profile);
-                markDoneToday(profile, 'tots');
+                countToday(profile, 'tots');
                 statRoundDone({ activity: 'tots', lang: speechLanguage() });
               }}
               stickerSlot={stickerPicker('tots')}
@@ -1793,6 +1809,7 @@ export default function App() {
             <MusicTheory
               key={`${profile}-${theoryMode}`}
               startMode={theoryMode}
+              level={theoryLevel(profile)}
               onComplete={(correct, total) => {
                 setStreakDays(recordStreakDay(streakDays, profile));
                 markDoneToday(profile, 'theory');
@@ -1956,86 +1973,110 @@ export default function App() {
               onOpenTool={openTool}
               onOpenPractice={openPracticeFromBadge}
             />
-            <section className="home-hero">
-              {/* The player's newest stickers (or a few to start with)
-                  decorate the greeting. */}
-              {(() => {
-                const mine = cloudUser ? playerStickers(profile).slice(-4).map((s) => s.index) : [];
-                const pick = (name) => STICKERS.findIndex(([n]) => n === name);
-                const shown = mine.length >= 2 ? mine : [pick('Star'), pick('Music notes'), pick('Heart'), pick('Balloon')];
-                return shown.slice(0, 4).map((index, i) => (
-                  <span key={`${index}-${i}`} className={`home-hero-sticker home-hero-sticker-${i}`} aria-hidden="true">
-                    <Sticker index={index} size={44} />
-                  </span>
-                ));
-              })()}
-              <div className="home-hero-rainbow">
-                <Rainbow colors={COLORS} activeName={null} visible pretty />
-              </div>
-              <h2 className="home-hello">
-                {cloudUser ? `Hi, ${currentProfile.name}!` : 'Every chord has a color'}
-              </h2>
-              {/* Today's steps and the one big button for what's next. */}
-              <TodayPlan
-                key={profile}
-                steps
-                playerId={profile}
-                signedIn={!!cloudUser}
-                colorNames={profileColorNames}
-                tinyTots={inTinyTots(profile)}
-                singleNotes={inSingleNotes(profile) && singleNotesStyle(profile)}
-                lockedIds={planOK ? [] : PAID_VIEWS}
-                onOpen={openPlanItem}
-                onSignIn={openAccount}
-              />
-            </section>
+            {(() => {
+              const plan = homePlan();
+              const pitch = plan.find((i) => i.id === 'color-test' || i.id === 'tots');
+              const notes = plan.find((i) => i.id === 'notespeller');
+              const theory = plan.find((i) => i.id === 'theory');
+              const piano = plan.find((i) => i.id === 'practice');
+              const running = ['running', 'paused'].includes(readPracticeTimer().status);
+              const waiting = cloudUser ? pendingStickers(profile) : 0;
+              return (
+                <>
+                  {/* Pitch Practice, the big one: played several times a day. */}
+                  <button
+                    className={`home-pitch${pitch.done ? ' home-pitch-done' : ''}`}
+                    onClick={() => openPlanItem(pitch.id)}
+                  >
+                    <span className="home-pitch-hello">Hi, {currentProfile.name}!</span>
+                    <span className="home-pitch-rainbow">
+                      <Rainbow colors={COLORS} activeName={null} visible pretty />
+                      <span className="rainbow-center-btn">
+                        <PlayTriangleIcon />
+                      </span>
+                    </span>
+                    <span className="home-pitch-title">{pitch.id === 'tots' ? 'Tiny Tots' : 'Pitch Practice'}</span>
+                    <span className="home-pitch-rounds" aria-label={`${pitch.count} of ${pitch.target} rounds today`}>
+                      {Array.from({ length: pitch.target }, (_, i) => (
+                        <span key={i} className={i < pitch.count ? 'home-pitch-round-on' : ''} />
+                      ))}
+                    </span>
+                    <span className="home-pitch-count">
+                      {pitch.done
+                        ? `All ${pitch.target} done today!`
+                        : `${pitch.count} of ${pitch.target} today`}
+                    </span>
+                  </button>
 
-            {/* One tap to start the practice timer. (During a practice the
-                header's timer pill takes you back to it instead.) */}
-            <div className="home-hero-actions home-quick">
-              {!['running', 'paused'].includes(readPracticeTimer().status) && practiceElsewhere(profile) ? (
-                <button className="home-practice home-practice-away" onClick={openPracticeFromBadge}>
-                  <span className="home-practice-icon" aria-hidden="true">
-                    <Icon name="phone" />
-                  </span>
-                  Practicing on another phone
-                </button>
-              ) : !['running', 'paused'].includes(readPracticeTimer().status) && (
-                <button
-                  className="home-practice"
-                  onClick={() => {
-                    startPracticeNow(profile);
-                    openPracticeFromBadge();
-                  }}
-                >
-                  <span className="home-practice-icon" aria-hidden="true">
-                    {'▶\uFE0E'}
-                  </span>
-                  Start practice
-                </button>
-              )}
-              <EndPracticeButton
-                onEnd={(playerId) => {
-                  if (playerId && playerId !== profile && profiles.some((p) => p.id === playerId)) {
-                    changeProfile(playerId, true);
-                  }
-                  setEndPracticeOnOpen(true);
-                  openPracticeFromBadge();
-                }}
-              />
-              <button className="home-practice home-stickers" onClick={() => openTool('stickers')}>
-                <span className="home-practice-icon" aria-hidden="true">
-                  <Icon name="notebook" />
-                </span>
-                {/* Shorter during a practice, to fit beside End practice. */}
-                {['running', 'paused'].includes(readPracticeTimer().status) ? 'Stickers' : 'Sticker book'}
-                {cloudUser && pendingStickers(profile) > 0 && (
-                  <span className="home-stickers-badge" aria-label={`${pendingStickers(profile)} waiting`}>
-                    <Icon name="gift" /> {pendingStickers(profile)}
-                  </span>
-                )}
-              </button>
-            </div>
+                  {/* Once a day: piano practice, and NoteSpeller. */}
+                  <div className="home-daily">
+                    {practiceElsewhere(profile) && !running ? (
+                      <button className="home-day home-day-piano" onClick={openPracticeFromBadge}>
+                        <Icon name="phone" size="34px" />
+                        <b>Piano practice</b>
+                        <span>On another phone</span>
+                      </button>
+                    ) : running ? (
+                      <div className="home-day home-day-piano home-day-running">
+                        <Icon name="timer" size="34px" />
+                        <b>Practicing</b>
+                        <EndPracticeButton
+                          onEnd={(playerId) => {
+                            if (playerId && playerId !== profile && profiles.some((p) => p.id === playerId)) {
+                              changeProfile(playerId, true);
+                            }
+                            setEndPracticeOnOpen(true);
+                            openPracticeFromBadge();
+                          }}
+                        />
+                      </div>
+                    ) : (
+                      <button
+                        className={`home-day home-day-piano${piano.done ? ' home-day-done' : ''}`}
+                        onClick={() => {
+                          startPracticeNow(profile);
+                          openPracticeFromBadge();
+                        }}
+                      >
+                        <Icon name={piano.done ? 'check' : 'keys'} size="34px" />
+                        <b>Piano practice</b>
+                        <span>{piano.done ? piano.sub : 'Start the timer'}</span>
+                      </button>
+                    )}
+                    {notes && (
+                      <button
+                        className={`home-day home-day-notes${notes.done ? ' home-day-done' : ''}`}
+                        onClick={() => openPlanItem('notespeller')}
+                      >
+                        <Icon name={notes.done ? 'check' : 'staff'} size="34px" />
+                        <b>NoteSpeller</b>
+                        <span>{notes.done ? 'Done today' : 'Once a day'}</span>
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Small: the Theory quiz and the sticker book. */}
+                  <div className="home-smalls">
+                    {theory && (
+                      <button
+                        className={`home-small${theory.done ? ' home-small-done' : ''}`}
+                        onClick={() => openPlanItem('theory')}
+                      >
+                        <Icon name={theory.done ? 'check' : 'book'} /> Theory quiz
+                      </button>
+                    )}
+                    <button className="home-small" onClick={() => openTool('stickers')}>
+                      <Icon name="notebook" /> Sticker book
+                      {waiting > 0 && (
+                        <span className="home-small-badge" aria-label={`${waiting} waiting`}>
+                          {waiting}
+                        </span>
+                      )}
+                    </button>
+                  </div>
+                </>
+              );
+            })()}
             {newColorName && (
               <NewColor
                 key={`${profile}-${newColorName}`}
@@ -2051,11 +2092,9 @@ export default function App() {
               />
             )}
 
-
             {/* Everything else, small: Explore, Piano, Scales... */}
-            <h3 className="home-more-title">More to play</h3>
             <div className="home-tiles home-more">
-              {HOME_CARDS.map((card) => (
+              {HOME_CARDS.filter((card) => !['notespeller', 'theory', 'practice'].includes(card.id)).map((card) => (
                 <button
                   key={card.id}
                   className="home-tile"
