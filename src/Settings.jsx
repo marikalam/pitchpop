@@ -26,6 +26,29 @@ import {
 } from './noteReading.js';
 import Icon from './Icon.jsx';
 
+// The ways Pitch Practice can play, youngest first.
+const LEVEL_OPTIONS = [
+  {
+    id: 'tots',
+    icon: 'teddy',
+    title: 'Tiny Tots',
+    text: 'Tap big colors to hear each chord and its name. No right or wrong.',
+  },
+  { id: 'colors', icon: 'rainbow', title: 'Chord colors', text: 'Hear a chord, pick its color.' },
+  {
+    id: 'parts',
+    icon: 'keys',
+    title: 'Chord colors, then notes',
+    text: '20 chords to name by color, then 10 single notes to tap on a keyboard (middle C to high C).',
+  },
+  {
+    id: 'black',
+    icon: 'keys',
+    title: 'Notes + black-key colors',
+    text: 'White keys as single notes on the keyboard. Only Light Green and Beige still come as chords.',
+  },
+];
+
 // A password input with an eye button that shows or hides what's typed.
 function PasswordField({ label, value, onChange, autoComplete, placeholder }) {
   const [visible, setVisible] = useState(false);
@@ -158,15 +181,12 @@ export function LearningGuide() {
               <Icon name="keys" /> Single notes
             </b>
             <span>
-              When they know all the white-key colors (Red to Brown) and their letters, set Pitch Practice to Single
-              notes in Players &amp; colors. Pitch Practice then comes in two parts. Part 1 is the usual round of chords
-              and colors, so the black-key colors keep going: add Light Green, then Beige, one at a time as before. Part
-              2 is 10 single notes: one note plays, from middle C up to high C, and they tap that key on the keyboard,
-              the start of knowing any note by ear. Keep going until they get {READY_PCT}% or more, {READY_ROUNDS}{' '}
-              rounds in a row.
-              <br />
-              Prefer the white keys only as single notes? Under Chords, pick Black keys only: one round where the white
-              keys are single notes and only the black-key colors are still chords.
+              When they know all the white-key colors (Red to Brown) and their letters, choose{' '}
+              <b>Chord colors, then notes</b> in Players &amp; colors (How it plays): 20 chords as before, so the
+              black-key colors keep going (add Light Green, then Beige, one at a time), then 10 single notes: one note
+              plays, from middle C up to high C, and they tap that key. Once the white-key notes are easy, choose{' '}
+              <b>Notes + black-key colors</b>: the white keys only as single notes, and just Light Green and Beige still
+              as chords. Move on when they get {READY_PCT}% or more, {READY_ROUNDS} rounds in a row.
             </span>
           </li>
         </ol>
@@ -192,13 +212,25 @@ export function PlayerSettingsCard({
     setNotesOn(on);
     setTypesNotes(profile.id, on);
   }
-  // How Pitch Practice plays: the color game, Tiny Tots or Single notes.
-  const [playMode, setPlayMode] = useState(() =>
-    inTinyTots(profile.id) ? 'tots' : inSingleNotes(profile.id) ? 'notes' : 'colors',
+  // How Pitch Practice plays (LEVEL_OPTIONS): Tiny Tots, chord colors, or
+  // single notes - after a round of chords, or with only the black-key
+  // colors as chords.
+  const [level, setLevel] = useState(() =>
+    inTinyTots(profile.id)
+      ? 'tots'
+      : inSingleNotes(profile.id)
+        ? singleNotesStyle(profile.id) === 'black'
+          ? 'black'
+          : 'parts'
+        : 'colors',
   );
-  const totsOn = playMode === 'tots';
-  // Single notes: two parts, or one round with only the black keys as chords.
-  const [notesStyle, setNotesStyle] = useState(() => singleNotesStyle(profile.id));
+  const totsOn = level === 'tots';
+  function chooseLevel(next) {
+    setLevel(next);
+    setTinyTots(profile.id, next === 'tots');
+    setSingleNotes(profile.id, next === 'parts' || next === 'black');
+    setSingleNotesStyle(profile.id, next === 'black' ? 'black' : 'parts');
+  }
   const [voice, setVoice] = useState(() => voiceLang(profile.id));
   const [readLetters, setReadLetters] = useState(() => readingLetters(profile.id));
   const [readClef, setReadClef] = useState(() => readingClef(profile.id));
@@ -274,15 +306,9 @@ export function PlayerSettingsCard({
         'rainbow',
         'Pitch Practice',
         `${profile.colors.length} ${profile.colors.length === 1 ? 'color' : 'colors'} · ${
-          totsOn
-            ? 'Tiny Tots'
-            : playMode === 'notes'
-              ? notesStyle === 'black'
-                ? 'Single notes · black-key chords'
-                : 'Single notes'
-              : notesOn
-                ? 'Color game · Type the notes'
-                : 'Color game'
+          notesOn && level === 'colors'
+            ? 'Chord colors · Type the notes'
+            : LEVEL_OPTIONS.find((o) => o.id === level).title
         }`,
         <>
           <div className="ps-row ps-row-top">
@@ -322,65 +348,28 @@ export function PlayerSettingsCard({
               </p>
             </div>
           </div>
-          <div className="ps-row">
-            <span className="ps-label">Plays</span>
-            <div className="ns-segmented" role="radiogroup" aria-label="How Pitch Practice plays">
-              {[
-                ['tots', 'Tiny Tots', 'teddy'],
-                ['colors', 'Colors', 'rainbow'],
-                ['notes', 'Single notes', 'keys'],
-              ].map(([mode, label, icon]) => (
-                <button
-                  key={mode}
-                  role="radio"
-                  aria-checked={playMode === mode}
-                  className={`ns-segment${playMode === mode ? ' ns-segment-active' : ''}`}
-                  onClick={() => {
-                    setPlayMode(mode);
-                    setTinyTots(profile.id, mode === 'tots');
-                    setSingleNotes(profile.id, mode === 'notes');
-                  }}
-                >
-                  <Icon name={icon} /> {label}
-                </button>
-              ))}
-            </div>
+          {/* How Pitch Practice plays: one list, from the youngest to the
+              most advanced, each with what it does. */}
+          <div className="ps-levels" role="radiogroup" aria-label="How Pitch Practice plays">
+            <span className="ps-levels-title">How it plays</span>
+            {LEVEL_OPTIONS.map((opt) => (
+              <button
+                key={opt.id}
+                role="radio"
+                aria-checked={level === opt.id}
+                className={`ps-level${level === opt.id ? ' ps-level-on' : ''}`}
+                onClick={() => chooseLevel(opt.id)}
+              >
+                <span className="ps-level-dot" aria-hidden="true" />
+                <Icon name={opt.icon} size="28px" />
+                <span className="ps-level-text">
+                  <b>{opt.title}</b>
+                  <span>{opt.text}</span>
+                </span>
+              </button>
+            ))}
           </div>
-          {totsOn ? (
-            <p className="ps-hint ps-hint-indent">
-              Big colors to tap: each plays its chord and says its name. No right or wrong.
-            </p>
-          ) : playMode === 'notes' ? (
-            <>
-              <div className="ps-row">
-                <span className="ps-label">Chords</span>
-                <div className="ns-segmented" role="radiogroup" aria-label="How Single notes goes">
-                  {[
-                    ['parts', 'All, then notes'],
-                    ['black', 'Black keys only'],
-                  ].map(([style, label]) => (
-                    <button
-                      key={style}
-                      role="radio"
-                      aria-checked={notesStyle === style}
-                      className={`ns-segment${notesStyle === style ? ' ns-segment-active' : ''}`}
-                      onClick={() => {
-                        setNotesStyle(style);
-                        setSingleNotesStyle(profile.id, style);
-                      }}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <p className="ps-hint ps-hint-indent">
-                {notesStyle === 'black'
-                  ? 'One round of 20: the white keys come as single notes (middle C up to high C, tap the key), and only the black-key colors you added above (Light Green, Beige) still come as chords.'
-                  : 'Part 1 is the usual round of chords and colors, every color you added above; Part 2 is 10 single notes: one white key plays, from middle C up to high C, and they tap that key.'}
-              </p>
-            </>
-          ) : (
+          {level === 'colors' && (
             <label className="ps-switch-row">
               <span className="ps-switch-text">
                 <b>
