@@ -246,7 +246,11 @@ export default function SingleNotes({
         </p>
         {isChord ? (
           // A black-key chord: pick its color, like Pitch Practice.
-          <div className={`sn-colors sn-colors-${Math.min(answerColors.length, 4)}`}>
+          <div
+            className={`sn-colors sn-colors-${Math.min(answerColors.length, 4)}`}
+            // The buttons share the rest of the screen, like Pitch Practice.
+            style={{ '--sn-rows': Math.ceil(answerColors.length / Math.min(answerColors.length, 4) || 1) }}
+          >
             {answerColors.map((c) => {
               const right = answered && c.name === item.color.name;
               const wrong = answered && !answered.correct && c.name === answered.key;
