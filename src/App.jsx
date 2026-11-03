@@ -1007,6 +1007,30 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [view, profile]);
 
+  // Swiping the home page sideways moves to the next (or previous) player.
+  // Only a clear sideways swipe counts, not a scroll or a tap.
+  const swipeFrom = useRef(null);
+  const [swipeHint, setSwipeHint] = useState(null);
+  function swipeStart(e) {
+    const t = e.touches[0];
+    // Not from the very edge (that's the phone's own back gesture).
+    swipeFrom.current = t.clientX > 24 && t.clientX < window.innerWidth - 24 ? { x: t.clientX, y: t.clientY } : null;
+  }
+  function swipeEnd(e) {
+    const from = swipeFrom.current;
+    swipeFrom.current = null;
+    if (!from || profiles.length < 2) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - from.x;
+    const dy = t.clientY - from.y;
+    if (Math.abs(dx) < 70 || Math.abs(dx) < Math.abs(dy) * 1.8) return;
+    const i = profiles.findIndex((p) => p.id === profile);
+    const next = profiles[(i + (dx < 0 ? 1 : -1) + profiles.length) % profiles.length];
+    changeProfile(next.id);
+    setSwipeHint({ name: next.name, at: Date.now() });
+    setTimeout(() => setSwipeHint(null), 1100);
+  }
+
   function changeProfile(next, keepPractice = false) {
     if (profile !== 'melody') setLastActiveProfile(profile);
     if (next !== profile) {
@@ -1945,7 +1969,17 @@ export default function App() {
           ? ' question-fit'
           : '';
   return (
-    <div className={fitClass ? `page page-fit${view === 'home' ? ' page-home' : ''}` : 'page'}>
+    <div
+      className={fitClass ? `page page-fit${view === 'home' ? ' page-home' : ''}` : 'page'}
+      // On the home page, swipe left or right for the next or previous player.
+      onTouchStart={view === 'home' ? swipeStart : undefined}
+      onTouchEnd={view === 'home' ? swipeEnd : undefined}
+    >
+      {swipeHint && (
+        <div className="swipe-hint" key={swipeHint.at} aria-live="polite">
+          {swipeHint.name}
+        </div>
+      )}
       <div className={`app${fitClass ? ' app-fit' : ''}${fitClass}`}>
         {view === 'home' && (
           <>
