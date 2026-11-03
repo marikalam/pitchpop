@@ -4,13 +4,7 @@ import { deleteAccount, requestPasswordReset, signIn, signOut, signUp, updatePas
 import { firstDay, streakFor } from './streak.js';
 import { LEARNING_ORDER, READY_PCT, READY_ROUNDS } from './progress.js';
 import { setTypesNotes, typesNotes } from './typeNotes.js';
-import {
-  inSingleNotes,
-  inTinyTots,
-  setSingleNotes,
-  setSingleNotesStyle,
-  setTinyTots,
-} from './tinyTots.js';
+import { inSingleNotes, inTinyTots, setSingleNotes, setSingleNotesStyle, setTinyTots } from './tinyTots.js';
 import { setVoiceLang, voiceLang } from './voiceLang.js';
 import {
   CLEF_MODES,
@@ -39,8 +33,8 @@ const LEVEL_OPTIONS = [
   {
     id: 'parts',
     icon: 'keys',
-    title: 'Chord Colors + Note Hunt',
-    text: "Chord Colors: 20 chords to name by color (black keys too). Note Hunt, right below it in Today's practice: 20 single notes to tap on a keyboard (middle C to high C).",
+    title: 'Color Chords + Single Notes',
+    text: "Color Chords: 20 chords to name by color (black keys too). Single Notes, right below it in Today's practice: 20 single notes to tap on a keyboard (middle C to high C).",
   },
 ];
 
@@ -177,9 +171,9 @@ export function LearningGuide() {
             </b>
             <span>
               When they know all the white-key colors (Red to Brown) and their letters, choose{' '}
-              <b>Chord Colors + Note Hunt</b> in Players &amp; colors (How it plays). Chord Colors stays the usual 20
+              <b>Color Chords + Single Notes</b> in Players &amp; colors (How it plays). Color Chords stays the usual 20
               chords, so the black-key colors keep going (add Light Green, then Beige, one at a time), and right below
-              it in Today's practice comes <b>Note Hunt</b>: 20 single notes from middle C up to high C, tapped on a
+              it in Today's practice comes <b>Single Notes</b>: 20 single notes from middle C up to high C, tapped on a
               keyboard. Do one after the other, up to 4 times a day. Move on when they get {READY_PCT}% or more,{' '}
               {READY_ROUNDS} rounds in a row.
             </span>

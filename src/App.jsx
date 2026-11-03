@@ -1372,7 +1372,7 @@ export default function App() {
   // The sticker picker shown when an activity is finished.
   // Today's practice item to open.
   const openPlanItem = (id) => {
-    // Note Hunt: the single notes, on their own.
+    // Single Notes: the single notes, on their own.
     if (id === 'single-notes') {
       prewarmVoices();
       openTool('singlenotes');
@@ -1390,7 +1390,7 @@ export default function App() {
     'color-test': 'Pitch Practice',
     tots: 'Tiny Tots',
     notespeller: 'NoteSpeller',
-    'single-notes': 'Note Hunt',
+    'single-notes': 'Single Notes',
     theory: 'Theory quiz',
     practice: 'Piano practice',
   };
@@ -1403,8 +1403,8 @@ export default function App() {
       tinyTots: inTinyTots(profile),
       singleNotes: inSingleNotes(profile),
     });
-    // Chord Colors and Note Hunt go one after the other: once a chord
-    // round is in, Note Hunt is next.
+    // Color Chords and Single Notes go one after the other: once a chord
+    // round is in, Single Notes is next.
     const chords = plan.find((i) => i.id === 'color-test');
     const notes = plan.find((i) => i.id === 'single-notes');
     const next =
@@ -1767,12 +1767,12 @@ export default function App() {
               next={nextUpButton()}
             />
           ) : view === 'singlenotes' ? (
-            // Note Hunt: 20 single notes, after the chords.
+            // Single Notes: 20 single notes, after the chords.
             <SingleNotes
               key={`${profile}-notehunt`}
               engine={engineRef.current}
               rounds={20}
-              part="Note Hunt"
+              part="Single Notes"
               rainbowColors={COLORS}
               onComplete={(correct, total) => {
                 setStreakDays(recordStreakDay(streakDays, profile));

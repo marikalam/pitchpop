@@ -103,9 +103,9 @@ export function todayPlan({
       id: 'color-test',
       icon: worst ? 'target' : 'rainbow',
       title: worst
-        ? `${singleNotes ? 'Chord Colors' : 'Pitch Practice'}: ${cap(worst.name)} or ${cap(worst.partner)}?`
+        ? `${singleNotes ? 'Color Chords' : 'Pitch Practice'}: ${cap(worst.name)} or ${cap(worst.partner)}?`
         : singleNotes
-          ? 'Chord Colors'
+          ? 'Color Chords'
           : 'Pitch Practice',
       sub: `${pitchCount} of ${PITCH_ROUNDS_A_DAY} today · ${
         worst
@@ -114,13 +114,13 @@ export function todayPlan({
       }`,
       ...pitch,
     });
-    // Note Hunt, right after the chords: 20 single notes, as often.
+    // Single Notes, right after the chords: 20 single notes, as often.
     if (singleNotes) {
       const notesToday = timesToday(doneToday, 'single-notes');
       items.push({
         id: 'single-notes',
         icon: 'keys',
-        title: 'Note Hunt',
+        title: 'Single Notes',
         sub: `${notesToday} of ${PITCH_ROUNDS_A_DAY} today · 20 single notes, middle C to high C`,
         count: notesToday,
         target: PITCH_ROUNDS_A_DAY,

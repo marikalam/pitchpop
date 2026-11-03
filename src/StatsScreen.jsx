@@ -11,7 +11,7 @@ const LANG_NAMES = { en: 'English', ja: '日本語' };
 const ACTIVITY_NAMES = {
   'color-test': 'Pitch Practice',
   tots: 'Tiny Tots',
-  'single-notes': 'Note Hunt',
+  'single-notes': 'Single Notes',
   notespeller: 'NoteSpeller',
   theory: 'Theory quiz',
   practice: 'Piano practice',
