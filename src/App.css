@@ -7912,3 +7912,16 @@ body {
     transform: translate(-50%, -50%) scale(1);
   }
 }
+/* Single notes: the answer fills the rest of the screen, like Pitch
+   Practice (header, dots, question and rainbow take about 500px). */
+.sn-colors {
+  grid-auto-rows: clamp(64px, calc((100dvh - 500px) / var(--sn-rows, 3)), 150px);
+}
+.sn-color {
+  min-height: 0;
+  height: 100%;
+  font-size: 18px;
+}
+.tn-piano.ns-piano.sn-piano {
+  height: clamp(150px, calc(100dvh - 500px), 320px);
+}
