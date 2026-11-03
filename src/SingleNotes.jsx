@@ -187,7 +187,7 @@ export default function SingleNotes({
         <div className="complete-emoji">
           <Icon name="keys" />
         </div>
-        <h2 className="screen-title">Single notes complete!</h2>
+        <h2 className="screen-title">{part || 'Single notes'} complete!</h2>
         <p className="screen-sub">
           You got {correctCount} out of {rounds} right.
         </p>

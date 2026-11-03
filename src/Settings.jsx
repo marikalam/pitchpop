@@ -10,7 +10,6 @@ import {
   setSingleNotes,
   setSingleNotesStyle,
   setTinyTots,
-  singleNotesStyle,
 } from './tinyTots.js';
 import { setVoiceLang, voiceLang } from './voiceLang.js';
 import {
@@ -40,14 +39,8 @@ const LEVEL_OPTIONS = [
   {
     id: 'parts',
     icon: 'keys',
-    title: 'Chord colors + Step 2 notes',
-    text: "Step 1: chords to name by color. Step 2, its own item in Today's practice: 10 single notes to tap on a keyboard (middle C to high C).",
-  },
-  {
-    id: 'black',
-    icon: 'keys',
-    title: 'Notes + black-key colors',
-    text: 'White keys as single notes on the keyboard. Only Light Green and Beige still come as chords.',
+    title: 'Chord Colors + Note Hunt',
+    text: "Chord Colors: 20 chords to name by color (black keys too). Note Hunt, right below it in Today's practice: 20 single notes to tap on a keyboard (middle C to high C).",
   },
 ];
 
@@ -184,12 +177,11 @@ export function LearningGuide() {
             </b>
             <span>
               When they know all the white-key colors (Red to Brown) and their letters, choose{' '}
-              <b>Chord colors + Step 2 notes</b> in Players &amp; colors (How it plays). Pitch Practice (Step 1) stays
-              the usual chords, so the black-key colors keep going (add Light Green, then Beige, one at a time), and
-              Today's practice gets a <b>Step 2 · Single notes</b>: 10 notes from middle C up to high C, tapped on a
-              keyboard. Once the white-key notes are easy, choose <b>Notes + black-key colors</b>: the white keys only
-              as single notes, and just Light Green and Beige still as chords. Move on when they get {READY_PCT}% or
-              more, {READY_ROUNDS} rounds in a row.
+              <b>Chord Colors + Note Hunt</b> in Players &amp; colors (How it plays). Chord Colors stays the usual 20
+              chords, so the black-key colors keep going (add Light Green, then Beige, one at a time), and right below
+              it in Today's practice comes <b>Note Hunt</b>: 20 single notes from middle C up to high C, tapped on a
+              keyboard. Do one after the other, up to 4 times a day. Move on when they get {READY_PCT}% or more,{' '}
+              {READY_ROUNDS} rounds in a row.
             </span>
           </li>
         </ol>
@@ -219,21 +211,15 @@ export function PlayerSettingsCard({
   // single notes - after a round of chords, or with only the black-key
   // colors as chords.
   const [level, setLevel] = useState(() =>
-    inTinyTots(profile.id)
-      ? 'tots'
-      : inSingleNotes(profile.id)
-        ? singleNotesStyle(profile.id) === 'black'
-          ? 'black'
-          : 'parts'
-        : 'colors',
+    inTinyTots(profile.id) ? 'tots' : inSingleNotes(profile.id) ? 'parts' : 'colors',
   );
   const totsOn = level === 'tots';
   const [theory, setTheory] = useState(() => theoryLevel(profile.id));
   function chooseLevel(next) {
     setLevel(next);
     setTinyTots(profile.id, next === 'tots');
-    setSingleNotes(profile.id, next === 'parts' || next === 'black');
-    setSingleNotesStyle(profile.id, next === 'black' ? 'black' : 'parts');
+    setSingleNotes(profile.id, next === 'parts');
+    setSingleNotesStyle(profile.id, 'parts');
   }
   const [voice, setVoice] = useState(() => voiceLang(profile.id));
   const [readLetters, setReadLetters] = useState(() => readingLetters(profile.id));
