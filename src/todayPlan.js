@@ -92,19 +92,16 @@ export function todayPlan({
       id: 'tots',
       icon: 'rainbow',
       title: 'Tiny Tots',
-      sub: 'Tap each color and listen',
+      sub: `${pitchCount} of ${PITCH_ROUNDS_A_DAY} today · tap each color and listen`,
       ...pitch,
     });
-  } else if (singleNotes) {
-    // Part 1, the usual round of chords; Part 2, 10 single notes.
+  } else if (singleNotes === 'black') {
+    // One round: white keys as single notes, black-key colors as chords.
     items.push({
       id: 'color-test',
       icon: 'rainbow',
       title: 'Pitch Practice',
-      sub:
-        singleNotes === 'black'
-          ? '20 · white keys as notes, black keys as chords'
-          : 'Part 1: 20 chords · Part 2: 10 single notes',
+      sub: `${pitchCount} of ${PITCH_ROUNDS_A_DAY} today · white keys as notes, black keys as chords`,
       ...pitch,
     });
   } else {
@@ -114,12 +111,24 @@ export function todayPlan({
     items.push({
       id: 'color-test',
       icon: worst ? 'target' : 'rainbow',
-      title: worst ? `Pitch Practice: ${cap(worst.name)} or ${cap(worst.partner)}?` : 'Pitch Practice',
-      sub: worst
-        ? `Missed ${worst.misses} ${worst.misses === 1 ? 'time' : 'times'} this week · 1 round of 20`
-        : `1 round of 20 · ${colorNames.map(cap).join(', ')}`,
+      title: `${singleNotes ? 'Step 1 · ' : ''}${worst ? `Pitch Practice: ${cap(worst.name)} or ${cap(worst.partner)}?` : 'Pitch Practice'}`,
+      sub: `${pitchCount} of ${PITCH_ROUNDS_A_DAY} today · ${
+        worst
+          ? `missed ${worst.misses} ${worst.misses === 1 ? 'time' : 'times'} this week`
+          : colorNames.map(cap).join(', ')
+      }`,
       ...pitch,
     });
+    // Step 2, after the chords: the single-notes test, once a day.
+    if (singleNotes) {
+      items.push({
+        id: 'single-notes',
+        icon: 'keys',
+        title: 'Step 2 · Single notes',
+        sub: '10 notes · middle C to high C, tap the key',
+        done: timesToday(doneToday, 'single-notes') > 0,
+      });
+    }
   }
 
   if (notes && !tinyTots) {
