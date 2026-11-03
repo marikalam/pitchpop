@@ -129,13 +129,16 @@ export default function SingleNotes({
     // Its name, then the sound again; then on to the next by itself (a
     // wrong answer stays a little longer, to see the right one). It moves
     // on even if the sound never finishes, so it can't get stuck.
+    // Tapping to hear it again (a new sound) doesn't stop it moving on:
+    // it's tied to this question, not to the sound. Next does it at once.
+    const at = roundIndex;
     let moved = false;
     const moveOn = () => {
-      if (moved || !isCurrent(soundId)) return;
+      if (moved || finishedRef.current || roundRef.current !== at || answeredAtRef.current !== at) return;
       moved = true;
       nextRef.current();
     };
-    later(moveOn, correct ? 4500 : 6000);
+    setTimeout(moveOn, correct ? 4500 : 6000);
     later(async () => {
       await (isChord ? speakColorName(item.color.name) : speakNoteName(note.letter));
       if (!isCurrent(soundId)) return;
@@ -146,10 +149,19 @@ export default function SingleNotes({
 
   const nextRef = useRef(null);
   nextRef.current = next;
+  // The question on screen, and the one answered (for moving on by itself).
+  const roundRef = useRef(roundIndex);
+  roundRef.current = roundIndex;
+  const answeredAtRef = useRef(null);
+  answeredAtRef.current = answered ? roundIndex : null;
+  // Set once the last question is done, so it finishes only once.
+  const finishedRef = useRef(false);
 
   function next() {
+    if (finishedRef.current) return;
     newSound();
     if (roundIndex + 1 >= rounds) {
+      finishedRef.current = true;
       setDone(true);
       speakResults(correctCount, rounds);
       onComplete?.(correctCount, rounds);
@@ -160,6 +172,7 @@ export default function SingleNotes({
   }
 
   function restart() {
+    finishedRef.current = false;
     setQueue(buildQueue(chordColors, rounds));
     setRoundIndex(0);
     setAnswered(null);
@@ -275,6 +288,11 @@ export default function SingleNotes({
               ) : null,
             )}
           </div>
+        )}
+        {answered && (
+          <button className="pill-btn-primary ns-next" onClick={next}>
+            Next →
+          </button>
         )}
       </div>
     </div>
