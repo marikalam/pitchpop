@@ -3,7 +3,7 @@ import { App as CapacitorApp } from '@capacitor/app';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { PianoEngine, noteLabel, playCorrectChime, playLogoPop, playWrongBuzz } from './piano.js';
 import { prewarmVoices, setSpeechLanguage, speakColorName, speakResults, speechLanguage, unlockAudio } from './speech.js';
-import { voiceLang } from './voiceLang.js';
+import { setVoiceLang, voiceLang } from './voiceLang.js';
 import { isCurrent, later, newSound } from './soundBus.js';
 import Rainbow from './Rainbow.jsx';
 import NewColor, { markColorMet, newColorFor } from './NewColor.jsx';
@@ -335,6 +335,7 @@ function AppHeader({
               onOpenSettings={onOpenSettings}
             />
           )}
+          {!hideProfile && <LangButton profile={profile} />}
           <AccountButton user={user} onClick={onOpenAccount} />
         </div>
       </div>
@@ -356,6 +357,27 @@ function AppHeader({
         </div>
       )}
     </>
+  );
+}
+
+// The voice's language for the player on screen, on every page: a small
+// EN / 日本語 button in the header (also in Players & colors).
+function LangButton({ profile }) {
+  const [lang, setLang] = useState(() => voiceLang(profile));
+  useEffect(() => setLang(voiceLang(profile)), [profile]);
+  return (
+    <button
+      className="lang-btn"
+      aria-label={lang === 'ja' ? 'Voice: Japanese. Switch to English' : 'Voice: English. Switch to Japanese'}
+      onClick={() => {
+        const next = lang === 'ja' ? 'en' : 'ja';
+        setVoiceLang(profile, next);
+        setSpeechLanguage(next);
+        setLang(next);
+      }}
+    >
+      {lang === 'ja' ? '日本語' : 'EN'}
+    </button>
   );
 }
 
