@@ -1,3 +1,5 @@
+import { DeviceVolume } from './nativeAudio.js';
+
 // One sound at a time. Every chord, note run, voice clip and answer sound
 // registers here; starting something new (newSound) quickly fades out
 // whatever is still playing and cancels anything waiting to play (e.g. the
@@ -11,6 +13,8 @@ let timers = new Set();
 
 export function newSound() {
   generation += 1;
+  // Has other music started or stopped? (iPhone app; see playOutLoud.)
+  if (DeviceVolume) checkOthers();
   // SoundNotices.jsx shows a one-time tip on the iPhone website.
   window.dispatchEvent(new Event('pitchpop-sound-start'));
   playing.forEach((stop) => stop());
@@ -81,15 +85,44 @@ function nameNowPlaying() {
 // the iPhone app too, like MathPop: the app's own setting (AppDelegate)
 // doesn't reach the web view's sounds, which otherwise stay silent while
 // the silent switch is on - however loud the volume.
+//
+// But "playback" takes over as the phone's media player, which stops other
+// apps' music (Spotify over CarPlay, say). So in the iPhone app, when
+// something else is already playing, PitchPop plays alongside it instead
+// ("ambient", mixed in) and doesn't take over the car's Now Playing. It
+// checks when it opens, comes back to the front, and before each sound.
+let othersPlaying = DeviceVolume ? null : false; // null: not known yet
+function checkOthers() {
+  if (!DeviceVolume) return Promise.resolve(false);
+  return DeviceVolume.audioInfo()
+    .then((info) => !!info?.otherAudio)
+    .catch(() => false)
+    .then((others) => {
+      othersPlaying = others;
+      playOutLoud();
+      return others;
+    });
+}
+
 export function playOutLoud() {
-  nameNowPlaying();
+  // Not known yet: leave the phone's audio as it is until it is.
+  if (othersPlaying === null) return;
+  const type = othersPlaying ? 'ambient' : 'playback';
+  if (type === 'playback') nameNowPlaying();
   try {
-    if (navigator.audioSession && navigator.audioSession.type !== 'playback') navigator.audioSession.type = 'playback';
+    if (navigator.audioSession && navigator.audioSession.type !== type) navigator.audioSession.type = type;
   } catch {
     /* ignore */
   }
 }
-playOutLoud();
+if (DeviceVolume) {
+  checkOthers();
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') checkOthers();
+  });
+} else {
+  playOutLoud();
+}
 
 // Like setTimeout, but cancelled by the next newSound().
 export function later(fn, ms) {
