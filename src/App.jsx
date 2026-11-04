@@ -27,6 +27,7 @@ import SingleNotes from './SingleNotes.jsx';
 import TypeNotes from './TypeNotes.jsx';
 import ProgressDots from './ProgressDots.jsx';
 import SoundTest from './SoundTest.jsx';
+import VoiceTry from './VoiceTry.jsx';
 import { typesNotes } from './typeNotes.js';
 import { buildSmartRound, checkPairFor, comebackQueue } from './smartRound.js';
 import Piano from './Piano.jsx';
@@ -1873,6 +1874,7 @@ export default function App() {
           {/* Less used: the step-by-step guide and the sound test. */}
           <LearningGuide />
           <SoundTest />
+          <VoiceTry />
         </div>
       </div>
     );
