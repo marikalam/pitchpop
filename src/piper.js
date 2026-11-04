@@ -4,9 +4,10 @@ import { TtsSession } from '@mintplex-labs/piper-tts-web';
 // A fast, genuinely natural-sounding local voice. "medium" quality is the
 // same download size as "low" for this voice, so there's no reason to use
 // the lower tier. Inference is sub-second once the session is warm.
-// Kristin: trained on public-domain LibriVox recordings, so it's fine in a
-// paid app (the earlier hfc_female voice was non-commercial only).
-const VOICE_ID = 'en_US-kristin-medium';
+// hfc_female: the voice the family knows. Its training data is licensed
+// CC BY-NC-SA (non-commercial), so PitchPop stays free while it's used
+// (PAID_SINCE in plan.js). Kristin was tried and sounded wrong.
+const VOICE_ID = 'en_US-hfc_female-medium';
 
 // onnxruntime-web's own WASM runtime, pinned to the exact version this app
 // installed so the JS glue and the WASM binary never drift apart. The
