@@ -94,7 +94,10 @@ const OLD_SAMPLE_PROFILE_IDS = new Set(['maddie', 'marcus', 'melody']);
 const SESSION_ROUNDS = 20;
 // The home page's tiles under Today's practice.
 // What PitchPop Family adds (plan.js); everything else is free.
-const PAID_VIEWS = ['scales', 'hanon', 'progress', 'notespeller'];
+// Part of PitchPop Family (when payments are on): these, every color after
+// the first FREE_COLORS, more than one player, and Theory quiz levels 2-3.
+// ('single-notes' is Today's practice's name for the singlenotes view.)
+const PAID_VIEWS = ['scales', 'hanon', 'progress', 'notespeller', 'singlenotes', 'single-notes'];
 // This phone's PitchPop-before-the-plan check happens on first run.
 notePhone();
 
@@ -1799,7 +1802,7 @@ export default function App() {
             <MusicTheory
               key={`${profile}-${theoryMode}`}
               startMode={theoryMode}
-              level={theoryLevel(profile)}
+              level={planOK ? theoryLevel(profile) : 1}
               onComplete={(correct, total) => {
                 setStreakDays(recordStreakDay(streakDays, profile));
                 markDoneToday(profile, 'theory');

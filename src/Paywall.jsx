@@ -16,7 +16,9 @@ import Icon from './Icon.jsx';
 
 const PERKS = [
   ['rainbow', 'Every color', 'Keep adding colors after red, yellow and blue'],
+  ['keys', 'Single Notes', 'Hear one note, tap it on the keyboard'],
   ['staff', 'NoteSpeller', 'Read notes on the staff, treble and bass'],
+  ['book', 'Every Theory level', 'More and All, after the Basics'],
   ['scales', 'Scales & Hanon', 'Fingering for every scale, and Hanon 1–20'],
   ['chart', 'Progress page', "Each child's week, colors and reminders"],
   ['family', 'The whole family', 'Every child gets their own player'],
