@@ -206,6 +206,15 @@ if (detail) {
   if (!copied) console.log('App Review notes: none to copy - add them in App Store Connect');
 }
 
+// SUBMIT=no: ready, but not sent. The first in-app purchases can only go
+// to review with a version from the App Store Connect website: on the
+// version page, In-App Purchases and Subscriptions -> pick them, then
+// Add for Review -> Submit for Review.
+if (process.env.SUBMIT === 'no') {
+  console.log(`Version ${VERSION} is ready with build ${build.attributes.version} - not sent (SUBMIT=no).`);
+  process.exit(0);
+}
+
 // Submit: reuse a submission that hasn't been sent yet, or start one.
 let submission = (
   await api('GET', `/v1/reviewSubmissions?filter[app]=${app.id}&filter[platform]=IOS&filter[state]=READY_FOR_REVIEW`)
