@@ -49,8 +49,13 @@ Mode (timer, metronome, repetition counter and practice tokens), then, signed
 in, the NoteSpeller note-reading game on treble and bass clefs, the Music
 Theory glossary, player settings, and account creation, sign-in, sign-out and
 in-app account deletion. PitchPop has no
-user-generated content shared with other users and no paid content or
-in-app purchases.
+user-generated content shared with other users.
+
+PitchPop Family (in-app purchases): a monthly or yearly subscription (each
+with a free week) or a one-time Lifetime purchase, through Apple. Menu (top
+left) → PitchPop Family → See plans, after a grown-up check. Families who
+used PitchPop before purchases were added keep everything free; the plans
+are still offered there to anyone who wants to support PitchPop.
 
 **2. Purpose and audience**
 PitchPop is an ear-training and music-reading game for children, played
@@ -106,8 +111,10 @@ tap "Pitch Practice" to start playing.
   family's player names, color settings and practice history (dates and
   minutes of saved practices, and the days a round was finished), used only
   when the user chooses to create an account.
-No other services are used. There are no ads, analytics, tracking, payments
-or AI services. Sound and speech are generated on the device: the piano is
+- Apple, through RevenueCat (revenuecat.com): the PitchPop Family
+  purchases.
+No other services are used. There are no ads, analytics, tracking or AI
+services. Sound and speech are generated on the device: the piano is
 synthesized in the app, and the voice is the iPhone's built-in Samantha
 voice, so the games work fully offline.
 
