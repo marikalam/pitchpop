@@ -6,6 +6,11 @@ name: App Store products
 
 on:
   workflow_dispatch:
+    inputs:
+      submit:
+        description: yes = send the products that are ready to Apple for review
+        required: false
+        default: 'no'
 
 jobs:
   products:
@@ -41,6 +46,7 @@ jobs:
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
           ASC_KEY_PATH: ${{ runner.temp }}/keys/AuthKey.p8
+          SUBMIT: ${{ inputs.submit }}
         # The output also goes in a notice, readable from the check run.
         run: |
           set -o pipefail
