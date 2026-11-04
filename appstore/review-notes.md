@@ -20,9 +20,8 @@ Replace everything in `[brackets]` before sending.
      Information → **Sign-in required: on**, User name / Password.
      Only there: this repository is public, so never write the password in
      this file or anywhere else in the repo.
-2. **Voice license (done).** The voice is Piper's "kristin", trained on
-   public-domain LibriVox recordings, so it's fine in the paid app. (The
-   earlier hfc_female voice was CC BY-NC-SA, non-commercial only.)
+2. **Voice (done).** The voice is the iPhone's built-in Samantha
+   (speechSynthesis), so there's no third-party voice license.
 3. **Check account deletion works.** The database function from
    `supabase/delete_my_account.sql` is installed (run on 2026-09-28). Create a *throwaway*
    account in the app, go to Account → **Delete account**, and confirm it
@@ -109,8 +108,8 @@ tap "Pitch Practice" to start playing.
   when the user chooses to create an account.
 No other services are used. There are no ads, analytics, tracking, payments
 or AI services. Sound and speech are generated on the device: the piano is
-synthesized in the app, and the voice is an open-source Piper text-to-speech
-model bundled inside the app, so the games work fully offline.
+synthesized in the app, and the voice is the iPhone's built-in Samantha
+voice, so the games work fully offline.
 
 **5. Regions**
 The app works the same in all regions. Its interface is in English only, and
@@ -119,10 +118,8 @@ no features or content differ by region.
 **6. Regulated industry / third-party material**
 PitchPop does not operate in a regulated industry and contains no protected
 third-party material. Bundled open-source components are used under their
-licenses: the Piper text-to-speech engine and ONNX Runtime (MIT); the Piper voice
-"en_US-kristin-medium", trained on public-domain LibriVox recordings, with
-credit in the Credits section of our privacy policy
-(https://marikalam.github.io/apps/pitchpop/privacy.html); the Fredoka and
+licenses (credited in our privacy policy,
+https://marikalam.github.io/apps/pitchpop/privacy.html): the Fredoka and
 IBM Plex fonts and the Bravura music font's clef and note shapes (SIL Open
 Font License 1.1). The piano sounds are synthesized by the app itself.
 

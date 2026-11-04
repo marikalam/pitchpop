@@ -1,4 +1,4 @@
-import { audioContext, currentSound, isCurrent, isMuted, playBuffer } from './soundBus.js';
+import { audioContext, currentSound, isCurrent, isMuted } from './soundBus.js';
 
 const ensureAudio = audioContext;
 
@@ -29,8 +29,7 @@ function loadVoices() {
 // only expose whatever voices the OS ships, for free. Edge's
 // "Online (Natural)" voices are real cloud neural voices (Azure) and
 // sound best by far; macOS Enhanced/Premium voices are next; flat
-// compact/default voices are last. This is only the fallback path now —
-// speak() below tries a real local neural voice (Piper) first.
+// compact/default voices are last. (Used where there's no Samantha.)
 const PREFERRED_NAME_HINTS = [
   'siri',
   'samantha',
@@ -74,10 +73,13 @@ function scoreVoice(voice) {
   return score;
 }
 
+// Samantha: the iPhone's own US English voice (on every iPhone, and fine
+// in a paid app). Elsewhere (no Samantha), the best English voice there is.
 async function pickVoice() {
   const voices = await loadVoices();
   if (voices.length === 0) return null;
-  return [...voices].sort((a, b) => scoreVoice(b) - scoreVoice(a))[0];
+  const samantha = voices.find((v) => /samantha/i.test(v.name) && v.lang.toLowerCase().startsWith('en'));
+  return samantha || [...voices].sort((a, b) => scoreVoice(b) - scoreVoice(a))[0];
 }
 
 async function speakWithWebSpeechAPI(text) {
@@ -92,70 +94,35 @@ async function speakWithWebSpeechAPI(text) {
   await new Promise((resolve) => {
     utterance.onend = resolve;
     utterance.onerror = resolve;
+    // Never wait forever if the voice doesn't answer.
+    setTimeout(resolve, 4000);
     window.speechSynthesis.speak(utterance);
   });
 }
 
-// piper-tts-web pulls in onnxruntime-web (a sizeable WASM runtime), so it's
-// dynamically imported rather than bundled into the main chunk — nobody
-// pays for it until speech is actually requested. The voice model itself
-// (~60MB) downloads once and is cached by the browser after that.
-let piperModulePromise = null;
-function getPiperModule() {
-  if (!piperModulePromise) piperModulePromise = import('./piper.js');
-  return piperModulePromise;
-}
-
-// Mobile browsers only let audio start playing when it's tied to a real
-// user gesture, and speech goes through an async pipeline (model load +
-// inference) before it has anything to play — by the time it's ready, the
-// original tap no longer counts. Resuming the shared AudioContext
-// synchronously on the very first tap anywhere "spends" that gesture; once
-// resumed, the same context keeps working from async code and timers for
-// the rest of the page session. This also matters on iOS specifically:
-// speech plays through this AudioContext rather than an <audio> element,
-// which is the playback path iOS is willing to mix with other apps' audio
-// (e.g. Spotify over CarPlay) instead of muting it — speechSynthesis, by
-// contrast, always takes exclusive control there.
+// Mobile browsers only let sound start when it's tied to a real tap.
+// Resuming the shared AudioContext on the very first tap anywhere "spends"
+// that tap, so chords and notes can play from timers after it.
 export function unlockAudio() {
   ensureAudio();
 }
 
 export function prewarmVoices() {
   loadVoices();
-  getPiperModule()
-    .then((m) => m.loadPiper())
-    .catch(() => {
-      /* Piper couldn't load (unsupported browser, offline on first-ever use, etc.) — speak() falls back to the OS voice */
-    });
 }
 
-// Resolves once playback actually finishes (or is cut off by a newer
-// sound), so callers can chain something after the spoken words end (e.g.
-// playing the real notes right after the color name, so "Blue" is followed
-// by the actual B-D-G pitches instead of spoken letters with no real
-// connection to the chord's pitch). Speech is made on the fly and can take
-// a moment; if something newer started meanwhile (soundBus), it isn't
-// played at all. `fallbackText`, when given, is what the built-in voice
-// says instead: the two voices need different spellings for some words
-// (see speakNoteName).
+// Resolves once the words have been said (or cut off by a newer sound), so
+// callers can chain something after them (e.g. playing the real notes
+// right after the color name). If something newer started meanwhile
+// (soundBus), they aren't said at all. `fallbackText` is kept for callers
+// that spell some words out for the built-in voice (see speakNoteName).
 async function speak(text, fallbackText = text) {
   // Muted with the speaker button: no voice either.
   if (isMuted()) return;
   const soundId = currentSound();
-  try {
-    const { synthesizeSpeech } = await getPiperModule();
-    const blob = await synthesizeSpeech(text);
-    const arrayBuffer = await blob.arrayBuffer();
-    const ctx = ensureAudio();
-    const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
-    if (!isCurrent(soundId)) return;
-    await playBuffer(ctx, audioBuffer);
-  } catch (err) {
-    if (!isCurrent(soundId)) return;
-    console.warn('Piper TTS unavailable, falling back to the built-in voice', err);
-    await speakWithWebSpeechAPI(fallbackText);
-  }
+  await loadVoices();
+  if (!isCurrent(soundId)) return;
+  await speakWithWebSpeechAPI(fallbackText);
 }
 
 // The language PitchPop speaks in for whoever is playing: 'en', or 'ja'
@@ -216,10 +183,7 @@ export async function speakColorName(name) {
   await speak(name.charAt(0).toUpperCase() + name.slice(1));
 }
 
-// Piper reads a capital letter on its own as the letter name ("A." is
-// /eɪ/), but reads spellings like "Ay" as the word "aye" - which sounds
-// like "I" - and "Eff" as "E-F-F". So Piper gets the plain letter. The
-// built-in voice can read a lone "A" as the word "a", so it gets these
+// The built-in voice can read a lone "A" as the word "a", so it gets these
 // spelled-out names instead.
 const LETTER_SOUNDS = { A: 'Ay', B: 'Bee', C: 'See', D: 'Dee', E: 'Ee', F: 'Eff', G: 'Gee' };
 
@@ -233,13 +197,9 @@ export function speakWords(text) {
   return speak(text);
 }
 
-// Resolves once the voice is ready to talk (the first time it's used it
-// takes a few seconds to load), or after `ms` at most.
+// Resolves once the voice is ready to talk, or after `ms` at most.
 export function voiceReady(ms = 6000) {
-  const loaded = getPiperModule()
-    .then((m) => m.loadPiper())
-    .catch(() => {});
-  return Promise.race([loaded, new Promise((resolve) => setTimeout(resolve, ms))]);
+  return Promise.race([loadVoices(), new Promise((resolve) => setTimeout(resolve, ms))]);
 }
 
 export async function speakResults(correct, total) {

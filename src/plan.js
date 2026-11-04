@@ -28,7 +28,6 @@ import { Capacitor } from '@capacitor/core';
 //    paywall shows.
 export const REVENUECAT_IOS_KEY = 'appl_KHWfQWLfxPNyoCQgFffKQrZXCZK';
 export const REVENUECAT_TEST_KEY = 'test_pULWpDLJNNYYTQuLJYChWdXNWnt';
-// Off while the voice is the non-commercial hfc_female (piper.js).
 export const PAID_SINCE = null; // 'YYYY-MM-DD'
 export const FIRST_PAID_BUILD = null; // e.g. 110 (set with PAID_SINCE)
 export const ENTITLEMENT = 'pitchpop_pro';
