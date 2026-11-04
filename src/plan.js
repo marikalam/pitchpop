@@ -28,8 +28,8 @@ import { Capacitor } from '@capacitor/core';
 //    paywall shows.
 export const REVENUECAT_IOS_KEY = 'appl_KHWfQWLfxPNyoCQgFffKQrZXCZK';
 export const REVENUECAT_TEST_KEY = 'test_pULWpDLJNNYYTQuLJYChWdXNWnt';
-export const PAID_SINCE = null; // 'YYYY-MM-DD'
-export const FIRST_PAID_BUILD = null; // e.g. 110
+export const PAID_SINCE = '2026-11-04'; // 'YYYY-MM-DD'
+export const FIRST_PAID_BUILD = 205; // e.g. 110
 export const ENTITLEMENT = 'pitchpop_pro';
 export const FREE_COLORS = 3;
 export const TERMS_URL = 'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/';
