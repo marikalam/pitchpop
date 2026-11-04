@@ -48,7 +48,7 @@ import { dayKey, loadStreakDays, recordStreakDay, streakFor } from './streak.js'
 import { setKeepRecords } from './records.js';
 import { startHistorySync } from './historySync.js';
 import { practiceElsewhere, startLivePractice } from './livePractice.js';
-import { FREE_COLORS, hasPlan, notePhone, plansOn, startPlans } from './plan.js';
+import { FREE_COLORS, hasPlan, notePhone, plansOn, setTryingPayments, startPlans, tryingPayments } from './plan.js';
 import Paywall from './Paywall.jsx';
 import TodayPlan from './TodayPlan.jsx';
 import { countToday, markDoneToday, todayPlan } from './todayPlan.js';
@@ -1655,6 +1655,20 @@ export default function App() {
           />
           <h2 className="screen-title">PitchPop stats</h2>
           <StatsScreen />
+          {Capacitor.isNativePlatform() && (
+            // Only the owner sees this page: try the paywall on this iPhone.
+            <div className="try-pay">
+              <strong>Try payments on this iPhone</strong>
+              <p>
+                {tryingPayments()
+                  ? 'On: this iPhone acts like a new family, so the PitchPop Family paywall shows. In TestFlight, buying is free (Apple test purchase).'
+                  : 'Shows the PitchPop Family paywall here as a new family would see it. Only this iPhone changes. In TestFlight, buying is free.'}
+              </p>
+              <button className="pill-btn-primary" onClick={() => setTryingPayments(!tryingPayments())}>
+                {tryingPayments() ? 'Turn off' : 'Turn on'}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     );

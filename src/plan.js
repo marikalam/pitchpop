@@ -41,7 +41,31 @@ const apiKey = () => (TEST_STORE ? REVENUECAT_TEST_KEY : REVENUECAT_IOS_KEY);
 const GRANDFATHER_KEY = 'pitchpop-grandfathered-v1';
 const PLAN_KEY = 'pitchpop-plan-v1';
 
-export const plansOn = () => Capacitor.isNativePlatform() && !!apiKey() && (TEST_STORE || !!PAID_SINCE);
+// The owner's "Try payments" switch (on the PitchPop stats page, which
+// only the owner sees): on this iPhone, payments are on even before
+// PAID_SINCE, and the "already had PitchPop" rule is skipped, so the
+// paywall shows. In TestFlight, purchases are Apple's free test ones.
+const TRY_KEY = 'pitchpop-try-payments-v1';
+export function tryingPayments() {
+  try {
+    return localStorage.getItem(TRY_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+export function setTryingPayments(on) {
+  try {
+    if (on) localStorage.setItem(TRY_KEY, '1');
+    else localStorage.removeItem(TRY_KEY);
+  } catch {
+    /* ignore */
+  }
+  // Start again, so RevenueCat connects (or not) from scratch.
+  window.location.reload();
+}
+
+export const plansOn = () =>
+  Capacitor.isNativePlatform() && !!apiKey() && (TEST_STORE || !!PAID_SINCE || tryingPayments());
 
 const today = () => new Date().toISOString().slice(0, 10);
 
@@ -84,7 +108,7 @@ export function savedPlan() {
 
 // Has PitchPop Family because they had PitchPop before it was paid.
 export function freeForever(user) {
-  if (!plansOn() || TEST_STORE) return false;
+  if (!plansOn() || TEST_STORE || tryingPayments()) return false;
   return phoneGrandfathered() || accountGrandfathered(user);
 }
 
@@ -93,7 +117,7 @@ export function hasPlan(user) {
   if (freeForever(user)) return true;
   const plan = savedPlan();
   if (plan.active) return true;
-  if (!TEST_STORE && FIRST_PAID_BUILD && plan.original && Number(plan.original) < FIRST_PAID_BUILD) return true;
+  if (!TEST_STORE && !tryingPayments() && FIRST_PAID_BUILD && plan.original && Number(plan.original) < FIRST_PAID_BUILD) return true;
   return false;
 }
 
