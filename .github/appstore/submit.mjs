@@ -165,6 +165,47 @@ if (SCREENSHOTS === 'yes') {
   await new Promise((r) => setTimeout(r, 30000));
 }
 
+// App Review notes: how to find PitchPop Family (the in-app purchases).
+// Added to the notes already there (once), and old lines saying there are
+// no purchases are corrected. The demo account stays as it is.
+const PURCHASES_NOTE = `PitchPop Family (in-app purchases): a monthly or yearly subscription (each with a free week) or a one-time Lifetime purchase, through Apple. To see them: open the menu (top left) -> PitchPop Family -> See plans; a grown-up check (a simple question) comes first. Families who used PitchPop before purchases were added keep everything free, so with an older account (like the demo account) that screen says everything is free, and the plans are still there under "See plans" for anyone who wants to support PitchPop. With a new account, opening NoteSpeller or adding a 4th color also shows the plans.`;
+function withPurchasesNote(notes = '') {
+  let text = notes
+    .replace(/PitchPop has no\s+user-generated content shared with other users and no paid content or\s+in-app purchases\./, 'PitchPop has no user-generated content shared with other users.')
+    .replace(/There are no ads, analytics, tracking, payments\s+or AI services\./, 'There are no ads, analytics, tracking or AI services; purchases go through Apple.');
+  if (!text.includes('PitchPop Family')) text = `${text.trim()}\n\n${PURCHASES_NOTE}`.trim();
+  return text.slice(0, 4000);
+}
+const detail = (await api('GET', `/v1/appStoreVersions/${version.id}/appStoreReviewDetail`).catch(() => ({}))).data;
+if (detail) {
+  const notes = withPurchasesNote(detail.attributes.notes || '');
+  if (notes !== detail.attributes.notes) {
+    await api('PATCH', `/v1/appStoreReviewDetails/${detail.id}`, { type: 'appStoreReviewDetails', id: detail.id, attributes: { notes } });
+    console.log('App Review notes: PitchPop Family added');
+  } else console.log('App Review notes: already mention PitchPop Family');
+} else {
+  // A new version: the review details (contact, demo account, notes) of
+  // the last version, copied over (never printed).
+  const others = (await api('GET', `/v1/apps/${app.id}/appStoreVersions?filter[platform]=IOS&limit=10`)).data.filter((v) => v.id !== version.id);
+  let copied = false;
+  for (const other of others) {
+    const prev = (await api('GET', `/v1/appStoreVersions/${other.id}/appStoreReviewDetail`).catch(() => ({}))).data;
+    if (!prev) continue;
+    const keep = ['contactFirstName', 'contactLastName', 'contactPhone', 'contactEmail', 'demoAccountName', 'demoAccountPassword', 'demoAccountRequired'];
+    const attributes = Object.fromEntries(keep.filter((k) => prev.attributes[k] != null).map((k) => [k, prev.attributes[k]]));
+    attributes.notes = withPurchasesNote(prev.attributes.notes || '');
+    await api('POST', '/v1/appStoreReviewDetails', {
+      type: 'appStoreReviewDetails',
+      attributes,
+      relationships: { appStoreVersion: { data: { type: 'appStoreVersions', id: version.id } } },
+    });
+    console.log(`App Review details copied from version ${other.attributes.versionString}, with PitchPop Family in the notes`);
+    copied = true;
+    break;
+  }
+  if (!copied) console.log('App Review notes: none to copy - add them in App Store Connect');
+}
+
 // Submit: reuse a submission that hasn't been sent yet, or start one.
 let submission = (
   await api('GET', `/v1/reviewSubmissions?filter[app]=${app.id}&filter[platform]=IOS&filter[state]=READY_FOR_REVIEW`)
