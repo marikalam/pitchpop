@@ -8,7 +8,7 @@ import { dirname, join } from 'node:path';
 
 const DIST = 'dist/speech';
 const CACHE = '.ios-assets-cache';
-const VOICE_PATH = 'en/en_US/kristin/medium/en_US-kristin-medium.onnx';
+const VOICE_PATH = 'en/en_US/hfc_female/medium/en_US-hfc_female-medium.onnx';
 const HF_BASE = 'https://huggingface.co/diffusionstudio/piper-voices/resolve/main';
 
 const LOCAL_FILES = [
