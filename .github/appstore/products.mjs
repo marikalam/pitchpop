@@ -285,4 +285,34 @@ if (!schedule?.included?.length) {
 const iapShot = await api('GET', `/v2/inAppPurchases/${iap.id}/appStoreReviewScreenshot`).catch(() => ({}));
 await uploadScreenshot('inAppPurchaseAppStoreReviewScreenshots', 'inAppPurchaseV2', 'inAppPurchases', iap.id, iapShot.data);
 
+// Where each one stands with Apple, and (SUBMIT=yes) sending the ones that
+// are ready for review: they're reviewed together with the next app
+// version sent for review (submit.mjs).
+const groupSubs = (await api('GET', `/v1/subscriptionGroups/${group.id}/subscriptions?limit=50`)).data;
+const iapNow = (await api('GET', `/v2/inAppPurchases/${iap.id}`)).data;
+const items = [
+  ...groupSubs.map((sub) => ({ kind: 'subscription', id: sub.id, productId: sub.attributes.productId, state: sub.attributes.state })),
+  { kind: 'inAppPurchase', id: iapNow.id, productId: iapNow.attributes.productId, state: iapNow.attributes.state },
+];
+for (const item of items) {
+  console.log(`${item.productId}: ${item.state}`);
+  if (process.env.SUBMIT !== 'yes' || item.state !== 'READY_TO_SUBMIT') continue;
+  try {
+    if (item.kind === 'subscription') {
+      await api('POST', '/v1/subscriptionSubmissions', {
+        type: 'subscriptionSubmissions',
+        relationships: { subscription: rel('subscriptions', item.id) },
+      });
+    } else {
+      await api('POST', '/v1/inAppPurchaseSubmissions', {
+        type: 'inAppPurchaseSubmissions',
+        relationships: { inAppPurchaseV2: rel('inAppPurchases', item.id) },
+      });
+    }
+    console.log(`  sent for review (with the next app version)`);
+  } catch (e) {
+    console.log(`  not sent: ${e.message.split('\n').slice(0, 2).join(' ')}`);
+  }
+}
+
 console.log('Done.');
