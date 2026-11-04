@@ -311,7 +311,7 @@ for (const item of items) {
     }
     console.log(`  sent for review (with the next app version)`);
   } catch (e) {
-    console.log(`  not sent: ${e.message.split('\n').slice(0, 2).join(' ')}`);
+    console.log(`  not sent: ${e.message.replace(/\s+/g, ' ').slice(0, 600)}`);
   }
 }
 
