@@ -1,4 +1,5 @@
-import { Capacitor, registerPlugin } from '@capacitor/core';
+import { Capacitor } from '@capacitor/core';
+import { DeviceVolume } from './nativeAudio.js';
 import { playCorrectChime } from './piano.js';
 import { newSound } from './soundBus.js';
 import { unlockAudio } from './speech.js';
@@ -19,8 +20,6 @@ export const isIPhoneWebsite =
 // At or below this the phone is silent or nearly (one press of the volume
 // button is 1/16).
 export const LOW_VOLUME = 0.07;
-
-const DeviceVolume = canReadVolume ? registerPlugin('DeviceVolume') : null;
 
 // Calls onVolume(volume) now and whenever it changes (also after the app
 // comes back to the front). Returns a function that stops watching.
