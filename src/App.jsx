@@ -982,8 +982,17 @@ export default function App() {
     return () => clearTimeout(id);
   }, [celebrate]);
 
+  // The results are only for a round that was played to the end. Coming
+  // back to them some other way (e.g. Back from a tool after switching
+  // players, which starts a fresh round) goes home instead of showing (and
+  // saying) "0 correct and 20 wrong".
+  const roundFinished = Object.keys(roundOutcomes).length >= SESSION_ROUNDS;
   useEffect(() => {
     if (view !== 'play-complete') return;
+    if (!roundFinished) {
+      setView('home');
+      return;
+    }
     const correct = Object.values(roundOutcomes).filter(Boolean).length;
     newSound();
     speakResults(correct, SESSION_ROUNDS);
@@ -2384,7 +2393,7 @@ export default function App() {
           </>
         )}
 
-        {view === 'play-complete' && (
+        {view === 'play-complete' && roundFinished && (
           <>
             <AppHeader
               profile={profile}
