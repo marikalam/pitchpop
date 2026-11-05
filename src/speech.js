@@ -183,9 +183,10 @@ export async function speakColorName(name) {
   await speak(name.charAt(0).toUpperCase() + name.slice(1));
 }
 
-// The built-in voice can read a lone "A" as the word "a", so it gets these
-// spelled-out names instead.
-const LETTER_SOUNDS = { A: 'Ay', B: 'Bee', C: 'See', D: 'Dee', E: 'Ee', F: 'Eff', G: 'Gee' };
+// Spelled-out names, so the built-in voice says the letter, not a word.
+// Except A: "Ay" came out as "aye" (it sounded like "I"); the capital
+// letter on its own, ending the sentence ("A."), is read as the letter.
+const LETTER_SOUNDS = { A: 'A', B: 'Bee', C: 'See', D: 'Dee', E: 'Ee', F: 'Eff', G: 'Gee' };
 
 export async function speakNoteName(letter) {
   if (lang === 'ja') return speakJapanese(JA_NOTES[letter] || letter);
