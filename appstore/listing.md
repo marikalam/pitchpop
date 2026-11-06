@@ -7,10 +7,10 @@ Character limits are Apple's.
 PitchPop
 
 ## Subtitle (30)
-Hear chords, learn by color
+Ear Training & Note Reading
 
 ## Promotional text (170, can change anytime without review)
-Every chord has its own color. Tap the rainbow, listen, and pick the matching color: a playful way to learn to recognize chords by ear.
+Every chord has its own color: tap the rainbow, listen, pick the color. Plus note reading, scales and music theory. Start free with red, yellow and blue.
 
 ## Description (4000)
 PitchPop is a playful ear-training game for families and beginners of any age, based on the Eguchi chord-color method. Every chord has its own color: red, yellow, blue and more. Listen to a chord, then pick the color that matches. Over time you learn to recognize chords by ear.
@@ -27,11 +27,21 @@ MADE FOR FAMILIES
 • Explore mode: tap any color to hear its chord, anytime
 • Works offline, with a friendly voice built right into the app
 
+MORE THAN EAR TRAINING
+• NoteSpeller: read notes on the staff, treble and bass
+• Single Notes: hear one note, tap it on the keyboard
+• Music Theory: levels from the Basics up
+• Scales with fingering for every key, and Hanon exercises 1–20
+• A Progress page with each player's week and practice reminders
+
+FREE TO START
+Pitch Practice with red, yellow and blue, Explore, Piano, Practice Mode, Music Theory Basics and the sticker book are free. PitchPop Family (monthly or yearly with a free week, or a one-time Lifetime unlock) adds every color, NoteSpeller, Single Notes, every Theory level, Scales & Hanon, the Progress page and a player for every child.
+
 PRIVATE BY DESIGN
 No ads, no tracking, no third-party analytics. A family account keeps each player's progress and syncs your players across devices, and you can delete it anytime from inside the app.
 
 ## Keywords (100, comma-separated, no spaces needed)
-ear training,perfect pitch,chords,music,eguchi,piano,colors,listening,solfege,music game
+perfect pitch,piano,chords,music theory,sight reading,solfege,eguchi,scales,hanon,listening,lessons
 
 ## Copyright
 © 2026 Marika Lam
