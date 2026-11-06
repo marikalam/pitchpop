@@ -53,7 +53,7 @@ import Paywall from './Paywall.jsx';
 import TodayPlan from './TodayPlan.jsx';
 import { countToday, markDoneToday, todayPlan } from './todayPlan.js';
 import { statAppOpened, statRoundDone } from './stats.js';
-import StatsScreen from './StatsScreen.jsx';
+import StatsScreen, { DownloadsCard } from './StatsScreen.jsx';
 import { usesBlackKeys } from './blackKeys.js';
 import { loadPracticeLog } from './practiceLog.js';
 import Icon from './Icon.jsx';
@@ -1882,6 +1882,8 @@ export default function App() {
           <h2 className="screen-title">Players &amp; colors</h2>
           <p className="screen-sub">Each player starts with Red, Yellow and Blue, then adds one color at a time.</p>
           <SyncStatus user={cloudUser} onOpenAccount={openAccount} />
+          {/* Only for the accounts that can see PitchPop's stats (the owner). */}
+          {statsViewer && <DownloadsCard onOpenStats={() => setView('stats')} />}
           <div className="settings-list">
             {draftProfiles.map((p) => (
               <PlayerSettingsCard

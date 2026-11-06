@@ -17,6 +17,44 @@ const ACTIVITY_NAMES = {
   practice: 'Piano practice',
 };
 
+// For Players & colors (only shown to the accounts that can see the
+// stats): all-time downloads and accounts, and a way to the full stats.
+export function DownloadsCard({ onOpenStats }) {
+  const [stats, setStats] = useState(undefined);
+  useEffect(() => {
+    let live = true;
+    loadStats(7).then((s) => live && setStats(s));
+    return () => {
+      live = false;
+    };
+  }, []);
+  if (stats === null) return null;
+  const all = stats?.allTime;
+  // Older database function (before allTime): what it does say.
+  const app = all ? all.appInstalls : stats?.allTimeInstalls;
+  const families = all ? all.families : stats?.families?.length;
+  const dash = stats === undefined ? '…' : '–';
+  return (
+    <section className="stats-card downloads-card">
+      <h3 className="stats-card-title">Downloads</h3>
+      <div className="stats-tiles">
+        <Tile value={app ?? dash} label={all ? 'app downloads (iPhone & iPad)' : 'downloads (app & website)'} />
+        {all && <Tile value={all.webVisitors} label="website visitors" />}
+        {all && <Tile value={all.accounts} label="accounts" />}
+        <Tile value={families ?? dash} label="families with players" />
+      </div>
+      <p className="stats-note">
+        Since stats began (Oct 26). A download is PitchPop opened for the first time on a device, TestFlight included.
+      </p>
+      {onOpenStats && (
+        <button type="button" className="pill-btn-secondary pill-btn-full" onClick={onOpenStats}>
+          See all stats
+        </button>
+      )}
+    </section>
+  );
+}
+
 function shortDay(iso) {
   const [, m, d] = iso.split('-').map(Number);
   return `${m}/${d}`;
