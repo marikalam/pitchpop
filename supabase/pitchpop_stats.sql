@@ -92,6 +92,13 @@ begin
       ) from ev
     ),
     'allTimeInstalls', (select count(*) from pitchpop_events where event = 'open' and new_install),
+    -- All-time totals for the Downloads card in Players & colors.
+    'allTime', jsonb_build_object(
+      'appInstalls', (select count(*) from pitchpop_events where event = 'open' and new_install and platform <> 'web'),
+      'webVisitors', (select count(*) from pitchpop_events where event = 'open' and new_install and platform = 'web'),
+      'accounts', (select count(*) from auth.users),
+      'families', (select count(distinct owner_id) from pitchpop_profiles)
+    ),
     'daily', (
       select jsonb_agg(jsonb_build_object(
         'day', d.day,

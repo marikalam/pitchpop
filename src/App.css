@@ -7998,3 +7998,11 @@ body {
   font-size: 0.9rem;
   opacity: 0.8;
 }
+
+/* Players & colors: the owner's Downloads card. */
+.downloads-card {
+  margin: 12px 0 18px;
+}
+.downloads-card .stats-tiles {
+  margin-bottom: 8px;
+}
