@@ -424,3 +424,15 @@ export async function loadStats(days) {
     return null;
   }
 }
+
+// Downloads and money progress for the owner (MoneyCard.jsx): both apps'
+// downloads, free weeks and paying families (supabase/money_progress.sql
+// in MathPop's repo). null if not allowed or offline.
+export async function loadMoneyProgress() {
+  try {
+    const { data, error } = await supabase.rpc('money_progress');
+    return error ? null : data;
+  } catch {
+    return null;
+  }
+}
