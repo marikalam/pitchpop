@@ -12,6 +12,7 @@ const ACTIVITY_NAMES = {
   'color-test': 'Pitch Practice',
   tots: 'Tiny Tots',
   'single-notes': 'Single Notes',
+  twins: 'Twin practice',
   notespeller: 'NoteSpeller',
   theory: 'Theory quiz',
   practice: 'Piano practice',

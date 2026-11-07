@@ -97,23 +97,26 @@ export function todayPlan({
     });
   } else {
     // The pair mixed up most this week gets extra chords in the round
-    // (smartRound.js).
+    // (smartRound.js), and a Twin practice of its own (TwinPractice.jsx).
     const { worst } = weekProgress(rounds, [], colorNames);
     items.push({
       id: 'color-test',
-      icon: worst ? 'target' : 'rainbow',
-      title: worst
-        ? `${singleNotes ? 'Color Chords' : 'Pitch Practice'}: ${cap(worst.name)} or ${cap(worst.partner)}?`
-        : singleNotes
-          ? 'Color Chords'
-          : 'Pitch Practice',
-      sub: `${pitchCount} of ${PITCH_ROUNDS_A_DAY} today · ${
-        worst
-          ? `missed ${worst.misses} ${worst.misses === 1 ? 'time' : 'times'} this week`
-          : colorNames.map(cap).join(', ')
-      }`,
+      icon: 'rainbow',
+      title: singleNotes ? 'Color Chords' : 'Pitch Practice',
+      sub: `${pitchCount} of ${PITCH_ROUNDS_A_DAY} today · ${colorNames.map(cap).join(', ')}`,
       ...pitch,
     });
+    if (worst) {
+      const twinsToday = timesToday(doneToday, 'twins');
+      items.push({
+        id: 'twins',
+        icon: 'target',
+        title: `Twin practice: ${cap(worst.name)} or ${cap(worst.partner)}?`,
+        sub: `Mixed up ${worst.misses} ${worst.misses === 1 ? 'time' : 'times'} this week · 10 chords, just these two`,
+        pair: [worst.name, worst.partner],
+        done: twinsToday >= 1,
+      });
+    }
     // Single Notes, right after the chords: 20 single notes, as often.
     if (singleNotes) {
       const notesToday = timesToday(doneToday, 'single-notes');
