@@ -3,6 +3,7 @@ import { dayKey } from './streak.js';
 import { weekProgress } from './progress.js';
 import { practiceStats } from './practiceLog.js';
 import { earnSticker } from './stickerStore.js';
+import { colorLabel, noteText, screenLanguage, t } from './i18n.js';
 
 // "Today's practice" on the home page: a short list for each player made
 // from their history (the colors they mix up, the notes they missed in
@@ -67,7 +68,8 @@ function timesToday(entry, id) {
 // this many rounds.
 export const PITCH_ROUNDS_A_DAY = 4;
 
-const cap = (n) => n.charAt(0).toUpperCase() + n.slice(1);
+const cap = (n) => colorLabel(n);
+const list = (xs) => xs.join(screenLanguage() === 'ja' ? '、' : ', ');
 
 // The list for one player: [{ id, icon, title, sub, done }].
 export function todayPlan({
@@ -91,8 +93,8 @@ export function todayPlan({
     items.push({
       id: 'tots',
       icon: 'rainbow',
-      title: 'Tiny Tots',
-      sub: `${pitchCount} of ${PITCH_ROUNDS_A_DAY} today · tap each color and listen`,
+      title: t('Tiny Tots'),
+      sub: t('{count} of {target} today · tap each color and listen', { count: pitchCount, target: PITCH_ROUNDS_A_DAY }),
       ...pitch,
     });
   } else {
@@ -102,8 +104,8 @@ export function todayPlan({
     items.push({
       id: 'color-test',
       icon: 'rainbow',
-      title: singleNotes ? 'Color Chords' : 'Pitch Practice',
-      sub: `${pitchCount} of ${PITCH_ROUNDS_A_DAY} today · ${colorNames.map(cap).join(', ')}`,
+      title: t(singleNotes ? 'Color Chords' : 'Pitch Practice'),
+      sub: t('{count} of {target} today · {colors}', { count: pitchCount, target: PITCH_ROUNDS_A_DAY, colors: list(colorNames.map(cap)) }),
       ...pitch,
     });
     if (worst) {
@@ -111,8 +113,11 @@ export function todayPlan({
       items.push({
         id: 'twins',
         icon: 'target',
-        title: `Twin practice: ${cap(worst.name)} or ${cap(worst.partner)}?`,
-        sub: `Mixed up ${worst.misses} ${worst.misses === 1 ? 'time' : 'times'} this week · get 10 in a row, just these two`,
+        title: t('Twin practice: {a} or {b}?', { a: cap(worst.name), b: cap(worst.partner) }),
+        sub:
+          screenLanguage() === 'ja'
+            ? t('Mixed up {n} times this week · get 10 in a row, just these two', { n: worst.misses })
+            : `Mixed up ${worst.misses} ${worst.misses === 1 ? 'time' : 'times'} this week · get 10 in a row, just these two`,
         pair: [worst.name, worst.partner],
         done: twinsToday >= 1,
       });
@@ -123,8 +128,8 @@ export function todayPlan({
       items.push({
         id: 'single-notes',
         icon: 'keys',
-        title: 'Single Notes',
-        sub: `${notesToday} of ${PITCH_ROUNDS_A_DAY} today · 20 single notes, middle C to high C`,
+        title: t('Single Notes'),
+        sub: t('{count} of {target} today · 20 single notes, middle C to high C', { count: notesToday, target: PITCH_ROUNDS_A_DAY }),
         count: notesToday,
         target: PITCH_ROUNDS_A_DAY,
         done: notesToday >= PITCH_ROUNDS_A_DAY,
@@ -144,12 +149,18 @@ export function todayPlan({
     items.push({
       id: 'notespeller',
       icon: 'staff',
-      title: tricky.length ? `NoteSpeller: ${tricky.map(([l]) => l).join(' and ')}` : 'NoteSpeller',
+      title: tricky.length
+        ? screenLanguage() === 'ja'
+          ? t('NoteSpeller: {notes}', { notes: list(tricky.map(([l]) => noteText(l))) })
+          : `NoteSpeller: ${tricky.map(([l]) => l).join(' and ')}`
+        : t('NoteSpeller'),
       sub: tricky.length
-        ? `Missed ${missed} ${missed === 1 ? 'time' : 'times'} last time · 20 notes`
+        ? screenLanguage() === 'ja'
+          ? t('Missed {n} times last time · 20 notes', { n: missed })
+          : `Missed ${missed} ${missed === 1 ? 'time' : 'times'} last time · 20 notes`
         : last
-          ? 'All right last time! · 20 notes'
-          : 'Read 20 notes on the staff',
+          ? t('All right last time! · 20 notes')
+          : t('Read 20 notes on the staff'),
       done: noteRounds.some((r) => r.day === today),
     });
   }
@@ -158,8 +169,8 @@ export function todayPlan({
     items.push({
       id: 'theory',
       icon: 'book',
-      title: 'Theory quiz',
-      sub: '20 music signs',
+      title: t('Theory quiz'),
+      sub: t('20 music signs'),
       done: !!(read(DONE_KEY)[playerId]?.day === today && read(DONE_KEY)[playerId]?.theory),
     });
   }
@@ -169,12 +180,12 @@ export function todayPlan({
   items.push({
     id: 'practice',
     icon: 'timer',
-    title: 'Piano practice',
+    title: t('Piano practice'),
     sub: todayMinutes
-      ? `${todayMinutes} min today`
+      ? t('{min} min today', { min: todayMinutes })
       : yesterday
-        ? `Yesterday was ${yesterday} min`
-        : 'Start the timer, then play',
+        ? t('Yesterday was {min} min', { min: yesterday })
+        : t('Start the timer, then play'),
     // Any saved practice today (practiceLog.js keeps those of 5+ minutes).
     done: todayMinutes > 0,
   });

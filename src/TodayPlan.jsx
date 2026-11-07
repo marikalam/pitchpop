@@ -3,6 +3,7 @@ import { loadRoundHistory } from './roundHistory.js';
 import { loadPracticeLog } from './practiceLog.js';
 import { bonusGivenToday, giveBonusIfDone, todayPlan } from './todayPlan.js';
 import Icon from './Icon.jsx';
+import { t } from './i18n.js';
 
 // Short names for the chips, and for the big Next button.
 const SHORT = { 'color-test': 'Pitch', tots: 'Tiny Tots', notespeller: 'Notes', theory: 'Theory', practice: 'Piano' };
@@ -58,7 +59,7 @@ export default function TodayPlan({
     return (
       <div className="today-steps-wrap">
         <p className="today-steps-count">
-          {allDone ? 'All done today!' : `${doneCount} of ${items.length} done today`}
+          {allDone ? t('All done today!') : t('{done} of {total} done today', { done: doneCount, total: items.length })}
         </p>
         <div className="today-steps">
           {items.map((item) => (
@@ -70,18 +71,18 @@ export default function TodayPlan({
               onClick={() => onOpen(item.id)}
             >
               <Icon name={item.done ? 'check' : item.icon} size="28px" />
-              <span>{SHORT[item.id] || item.title}</span>
+              <span>{SHORT[item.id] ? t(SHORT[item.id]) : item.title}</span>
             </button>
           ))}
         </div>
         {next ? (
           <button className="today-next" onClick={() => onOpen(next.id)}>
-            <Icon name={next.icon} /> Next: {(singleNotes && next.id === 'color-test' && next.title) || NEXT[next.id] || next.title}
+            <Icon name={next.icon} /> {t('Next')}: {(singleNotes && next.id === 'color-test' && next.title) || (NEXT[next.id] ? t(NEXT[next.id]) : next.title)}
             {lockedIds.includes(next.id) && <Icon name="star" />}
           </button>
         ) : (
           <p className="today-steps-done">
-            <Icon name="party" /> You earned a bonus sticker <Icon name="star" />
+            <Icon name="party" /> {t('You earned a bonus sticker')} <Icon name="star" />
           </p>
         )}
       </div>
@@ -92,7 +93,7 @@ export default function TodayPlan({
     <section className={`today${allDone ? ' today-all-done' : ''}`} aria-labelledby="today-title">
       <div className="today-head">
         <h3 className="today-title" id="today-title">
-          <span aria-hidden="true"><Icon name="clipboard" /></span> Today's practice
+          <span aria-hidden="true"><Icon name="clipboard" /></span> {t("Today's practice")}
         </h3>
         {signedIn && (
           <span className="today-count">
@@ -135,8 +136,8 @@ export default function TodayPlan({
           </div>
           <p className="today-note">
             {allDone || bonusGivenToday(playerId)
-              ? <><Icon name="party" /> All done today! You earned a bonus sticker <Icon name="star" /></>
-              : <>{doneCount} of {items.length} done · finish all {items.length} for a bonus sticker <Icon name="star" /></>}
+              ? <><Icon name="party" /> {t('All done today!')} {t('You earned a bonus sticker')} <Icon name="star" /></>
+              : <>{t('{done} of {total} done · finish all {total} for a bonus sticker', { done: doneCount, total: items.length })} <Icon name="star" /></>}
           </p>
         </>
       ) : (

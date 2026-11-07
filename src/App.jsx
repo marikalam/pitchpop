@@ -57,6 +57,7 @@ import StatsScreen, { AppleCard, DownloadsCard } from './StatsScreen.jsx';
 import MoneyCard from './MoneyCard.jsx';
 import TwinPractice from './TwinPractice.jsx';
 import { usesBlackKeys } from './blackKeys.js';
+import { colorLabel, screenLang, screenLanguage, setScreenLang, setScreenLanguage, t } from './i18n.js';
 import { loadPracticeLog } from './practiceLog.js';
 import Icon from './Icon.jsx';
 
@@ -141,7 +142,7 @@ const PLAYER_DATA_KEYS = [
   'pitchpop-practice-log-v1',
 ];
 
-const capName = (n) => n.charAt(0).toUpperCase() + n.slice(1);
+const capName = (n) => colorLabel(n);
 
 function shuffle(list) {
   const copy = [...list];
@@ -344,7 +345,7 @@ function AppHeader({
       {showBack ? (
         <div className="nav-row">
           <button className="back-link" onClick={onBack}>
-            ← Back
+            ← {t('Back')}
           </button>
           <div className="nav-row-right">
             <SoundNotice />
@@ -364,37 +365,68 @@ function AppHeader({
 
 // The voice's language for the player on screen, on every page: a small
 // EN / 日本語 button in the header (also in Players & colors).
+// Three ways: English; 日本語 (screens and voice); or English screens
+// with the Japanese voice (for bilingual families).
+const LANG_MODES = [
+  { id: 'en', label: 'English', sub: 'English screens and voice' },
+  { id: 'ja', label: '日本語', sub: '画面も声も日本語' },
+  { id: 'en-ja', label: 'English + 日本語の声', sub: 'English screens, Japanese voice' },
+];
+function langMode(profile) {
+  const v = voiceLang(profile);
+  if (v !== 'ja') return 'en';
+  return screenLang(profile) === 'ja' ? 'ja' : 'en-ja';
+}
 function LangButton({ profile }) {
-  const [lang, setLang] = useState(() => voiceLang(profile));
-  useEffect(() => setLang(voiceLang(profile)), [profile]);
+  const [mode, setMode] = useState(() => langMode(profile));
+  const [open, setOpen] = useState(false);
+  useEffect(() => setMode(langMode(profile)), [profile]);
+  useEffect(() => {
+    if (!open) return undefined;
+    const close = () => setOpen(false);
+    document.addEventListener('pointerdown', close);
+    return () => document.removeEventListener('pointerdown', close);
+  }, [open]);
+  function pick(id) {
+    setVoiceLang(profile, id === 'en' ? 'en' : 'ja');
+    setScreenLang(profile, id === 'ja' ? 'ja' : 'en');
+    setSpeechLanguage(id === 'en' ? 'en' : 'ja');
+    setScreenLanguage(id === 'ja' ? 'ja' : 'en');
+    setMode(id);
+    setOpen(false);
+    window.dispatchEvent(new Event('pitchpop-lang-changed'));
+  }
   return (
-    <button
-      className="lang-btn"
-      aria-label={lang === 'ja' ? 'Voice: Japanese. Switch to English' : 'Voice: English. Switch to Japanese'}
-      onClick={() => {
-        const next = lang === 'ja' ? 'en' : 'ja';
-        setVoiceLang(profile, next);
-        setSpeechLanguage(next);
-        setLang(next);
-      }}
-    >
-      {lang === 'ja' ? '日本語' : 'EN'}
-    </button>
+    <span className="lang-wrap" onPointerDown={(e) => e.stopPropagation()}>
+      <button className="lang-btn" aria-haspopup="menu" aria-expanded={open} aria-label="Language" onClick={() => setOpen((o) => !o)}>
+        {mode === 'ja' ? '日本語' : mode === 'en-ja' ? 'EN·あ' : 'EN'}
+      </button>
+      {open && (
+        <div className="lang-menu" role="menu">
+          {LANG_MODES.map((m) => (
+            <button key={m.id} role="menuitemradio" aria-checked={mode === m.id} className={`lang-item${mode === m.id ? ' lang-item-on' : ''}`} onClick={() => pick(m.id)}>
+              <b>{m.label}</b>
+              <span>{m.sub}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </span>
   );
 }
 
 function StreakBadge({ streak }) {
   if (streak.current === 0) {
-    return <div className="streak-badge streak-badge-empty"><Icon name="flame" /> Finish a round to start a streak</div>;
+    return <div className="streak-badge streak-badge-empty"><Icon name="flame" /> {t('Finish a round to start a streak')}</div>;
   }
   return (
     <div className={`streak-badge${streak.doneToday ? '' : ' streak-badge-pending'}`}>
       <span className="streak-flame" aria-hidden="true"><Icon name="flame" /></span>
       <span>
         <strong>
-          {streak.current} {streak.current === 1 ? 'day' : 'days'} in a row
+          {screenLanguage() === 'ja' ? `${streak.current}にち れんぞく` : `${streak.current} ${streak.current === 1 ? 'day' : 'days'} in a row`}
         </strong>
-        {!streak.doneToday && <span className="streak-hint">Finish a round today to keep it going</span>}
+        {!streak.doneToday && <span className="streak-hint">{t('Finish a round today to keep it going')}</span>}
       </span>
     </div>
   );
@@ -404,8 +436,8 @@ function StreakBadge({ streak }) {
 function KindChip({ focus, index, name }) {
   const kind = focus?.kinds?.[index];
   if (kind === 'check' && !checkPairFor(focus, index, name)) return null;
-  if (kind === 'warmup') return <span className="kind-chip kind-chip-warmup"><Icon name="repeat" /> Missed last time</span>;
-  if (kind === 'check') return <span className="kind-chip kind-chip-check"><Icon name="target" /> Mix-up check</span>;
+  if (kind === 'warmup') return <span className="kind-chip kind-chip-warmup"><Icon name="repeat" /> {t('Missed last time')}</span>;
+  if (kind === 'check') return <span className="kind-chip kind-chip-check"><Icon name="target" /> {t('Mix-up check')}</span>;
   return null;
 }
 
@@ -420,16 +452,16 @@ function FocusTag({ focus }) {
     <div className="focus-tag">
       <span className="focus-swatch" style={{ background: color.hex }} aria-hidden="true" />
       <span>
-        <Icon name="target" /> Today's focus: <b>{cap(focus.name)}</b>
+        <Icon name="target" /> {t("Today's focus:")} <b>{colorLabel(focus.name)}</b>
         {focus.partner ? ` (mixed up with ${cap(focus.partner)})` : ''}
         {focus.kinds && (
           <span className="focus-legend">
-            <span><i className="legend-easy" />Easy win</span>
+            <span><i className="legend-easy" />{t('Easy win')}</span>
             {focus.warmup?.length > 0 && (
-              <span><i className="legend-warmup" />Missed last time</span>
+              <span><i className="legend-warmup" />{t('Missed last time')}</span>
             )}
             {focus.checks && (
-              <span><i className="legend-check" />Mix-up check</span>
+              <span><i className="legend-check" />{t('Mix-up check')}</span>
             )}
           </span>
         )}
@@ -455,25 +487,25 @@ function RoundSummary({ playerId, playerName, colorNames = [], correct, wrong, s
     <>
       <div className="complete-wrap complete-wrap-compact">
         <ScoreCelebration tier={tier} />
-        <h2 className="screen-title">{text.title}</h2>
+        <h2 className="screen-title">{t(text.title)}</h2>
         <p className="screen-sub">
-          {correct} of {summary.total} right for {playerName}.{' '}
-          {correct === summary.total ? 'Every chord right!' : text.sub}
+          {t('{right} of {total} right for {name}.', { right: correct, total: summary.total, name: playerName })}{' '}
+          {correct === summary.total ? t('Every chord right!') : t(text.sub)}
         </p>
       </div>
       <StickerPicker playerId={playerId} signedIn={signedIn} from="pitch" onStick={onStick} onSignIn={onSignIn} then={then} />
       <div className="stat-tiles stat-tiles-compact">
         <div className="stat-tile">
           <div className="stat-number">{correct}</div>
-          <div className="stat-label">Correct</div>
+          <div className="stat-label">{t('Correct')}</div>
         </div>
         <div className="stat-tile">
           <div className="stat-number">{wrong}</div>
-          <div className="stat-label">Wrong</div>
+          <div className="stat-label">{t('Wrong')}</div>
         </div>
         <div className="stat-tile">
           <div className="stat-number"><Icon name="flame" /> {streak.current}</div>
-          <div className="stat-label">{streak.current === 1 ? 'Day' : 'Days'} in a row</div>
+          <div className="stat-label">{t(streak.current === 1 ? 'Day in a row' : 'Days in a row')}</div>
         </div>
       </div>
       {(() => {
@@ -500,8 +532,8 @@ function RoundSummary({ playerId, playerName, colorNames = [], correct, wrong, s
         return (
           <div className="colors-card" aria-label="Each color">
             <div className="colors-card-head">
-              <b>Each color</b>
-              <span>this round · last time</span>
+              <b>{t('Each color')}</b>
+              <span>{t('this round · last time')}</span>
             </div>
             {rows.map(({ name, c, now, last }) => {
               const color = COLORS.find((x) => x.name === name);
@@ -509,7 +541,7 @@ function RoundSummary({ playerId, playerName, colorNames = [], correct, wrong, s
               return (
                 <div key={name} className="colors-row">
                   <span className="colors-swatch" style={{ background: color?.hex }} aria-hidden="true" />
-                  <span className="colors-name">{cap(name)}</span>
+                  <span className="colors-name">{colorLabel(name)}</span>
                   <span className="colors-track" aria-hidden="true">
                     <span
                       className={now >= 90 ? 'colors-fill-good' : now < 60 ? 'colors-fill-low' : ''}
@@ -518,7 +550,7 @@ function RoundSummary({ playerId, playerName, colorNames = [], correct, wrong, s
                   </span>
                   <span className="colors-pct">
                     {now == null ? (
-                      <small>not this round</small>
+                      <small>{t('not this round')}</small>
                     ) : (
                       <>
                         {now}%<small>{c.right}/{c.total}</small>
@@ -528,7 +560,7 @@ function RoundSummary({ playerId, playerName, colorNames = [], correct, wrong, s
                   <span
                     className={`colors-change${change > 0 ? ' colors-up' : change < 0 ? ' colors-down' : ''}`}
                   >
-                    {last == null ? (now == null ? '' : 'first time') : `${change > 0 ? '↑ ' : change < 0 ? '↓ ' : ''}was ${last}%`}
+                    {last == null ? (now == null ? '' : t('first time')) : `${change > 0 ? '↑ ' : change < 0 ? '↓ ' : ''}was ${last}%`}
                   </span>
                 </div>
               );
@@ -544,7 +576,7 @@ function RoundSummary({ playerId, playerName, colorNames = [], correct, wrong, s
       {recent.length > 1 && (
         <div className="rounds-card" aria-label="Recent rounds">
           <div className="rounds-head">
-            <span>Recent rounds</span>
+            <span>{t('Recent rounds')}</span>
             {bestRound && (
               <span className="rounds-best">
                 Best: {bestRound.correct}/{bestRound.total}
@@ -619,6 +651,13 @@ export default function App() {
     statAppOpened();
   }, []);
   // The stats page is only for the accounts allowed to see it.
+  // The language menu (LangButton) changes the screens: draw again.
+  const [, setLangTick] = useState(0);
+  useEffect(() => {
+    const bump = () => setLangTick((n) => n + 1);
+    window.addEventListener('pitchpop-lang-changed', bump);
+    return () => window.removeEventListener('pitchpop-lang-changed', bump);
+  }, []);
   const [statsViewer, setStatsViewer] = useState(false);
   useEffect(() => {
     let live = true;
@@ -671,6 +710,8 @@ export default function App() {
   const planOK = hasPlan(cloudUser);
   // The voice speaks in whoever is playing's language.
   setSpeechLanguage(voiceLang(profile));
+  // The screens too (i18n.js): English, or Japanese for this player.
+  setScreenLanguage(screenLang(profile));
   const profileColorNames = planOK ? currentProfile.colors : currentProfile.colors.slice(0, FREE_COLORS);
   const streak = streakFor(streakDays[profile]);
 
@@ -1475,11 +1516,11 @@ export default function App() {
         : plan.find((item) => !item.done && item.id !== doneId);
     return next ? (
       <button className="pill-btn-primary pill-btn-full next-up" onClick={() => openPlanItem(next.id)}>
-        <Icon name={next.icon} /> Next: {(inSingleNotes(profile) && next.id === 'color-test' && next.title) || NEXT_LABELS[next.id] || next.title} →
+        <Icon name={next.icon} /> {t('Next')}: {(inSingleNotes(profile) && next.id === 'color-test' && next.title) || (NEXT_LABELS[next.id] ? t(NEXT_LABELS[next.id]) : next.title)} →
       </button>
     ) : (
       <button className="pill-btn-primary pill-btn-full next-up" onClick={goHome}>
-        <Icon name="home" /> All done today!
+        <Icon name="home" /> {t('All done today!')}
       </button>
     );
   };
@@ -2085,11 +2126,11 @@ export default function App() {
                 <Rainbow colors={COLORS} activeName={null} visible pretty />
               </div>
               <h2 className="home-hello">
-                {cloudUser ? `Hi, ${currentProfile.name}!` : 'Every chord has a color'}
+                {cloudUser ? t('Hi, {name}!', { name: currentProfile.name }) : t('Every chord has a color')}
               </h2>
               <p className="home-tagline">
                 {cloudUser
-                  ? 'What would you like to play today?'
+                  ? t('What would you like to play today?')
                   : 'Hear a chord, pick its color, and train your ear one game at a time.'}
               </p>
               {/* One tap to start the practice timer. (During a practice the
@@ -2113,7 +2154,7 @@ export default function App() {
                     <span className="home-practice-icon" aria-hidden="true">
                       {'▶\uFE0E'}
                     </span>
-                    Start practice
+                    {t('Start practice')}
                   </button>
                 )}
                 <EndPracticeButton
@@ -2130,7 +2171,7 @@ export default function App() {
                     <Icon name="notebook" />
                   </span>
                   {/* Shorter during a practice, to fit beside End practice. */}
-                  {['running', 'paused'].includes(readPracticeTimer().status) ? 'Stickers' : 'Sticker book'}
+                  {t(['running', 'paused'].includes(readPracticeTimer().status) ? 'Stickers' : 'Sticker book')}
                   {cloudUser && pendingStickers(profile) > 0 && (
                     <span className="home-stickers-badge" aria-label={`${pendingStickers(profile)} waiting`}>
                       <Icon name="gift" /> {pendingStickers(profile)}
@@ -2184,7 +2225,7 @@ export default function App() {
                   <span className="home-tile-icon" aria-hidden="true">
                     <Icon name={card.icon} />
                   </span>
-                  <span className="home-tile-title">{card.title}</span>
+                  <span className="home-tile-title">{t(card.title)}</span>
                 </button>
               ))}
             </div>
@@ -2205,8 +2246,8 @@ export default function App() {
               showBack
               onBack={closeExplore}
             />
-            <h2 className="screen-title">Explore</h2>
-            <p className="screen-sub">Tap a pad to play its chord</p>
+            <h2 className="screen-title">{t('Explore')}</h2>
+            <p className="screen-sub">{t('Tap a pad to play its chord')}</p>
             <div className="rainbow-slot">
               <Rainbow colors={COLORS} activeName={celebrate} visible={!!celebrate} />
             </div>
@@ -2223,7 +2264,7 @@ export default function App() {
                   aria-label={`Play ${color.name} chord`}
                   onClick={() => exploreTap(color)}
                 >
-                  <div className="pad-name">{color.name}</div>
+                  <div className="pad-name">{colorLabel(color.name)}</div>
                   <div className="pad-notes">{color.notes.map(noteLabel).join(' ')}</div>
                 </button>
               ))}
@@ -2233,7 +2274,7 @@ export default function App() {
               className="explore-to-game"
               onClick={preExploreView.startsWith('play-') ? closeExplore : startPlay}
             >
-              {preExploreView.startsWith('play-') ? 'Back to Pitch Practice' : 'Ready? Start Pitch Practice'} →
+              {t(preExploreView.startsWith('play-') ? 'Back to Pitch Practice' : 'Ready? Start Pitch Practice')} →
             </button>
           </>
         )}
@@ -2254,8 +2295,8 @@ export default function App() {
             />
             <StreakBadge streak={streak} />
             <ProgressDots current={roundIndex + 1} total={SESSION_ROUNDS} kinds={roundFocus?.kinds} outcomes={roundOutcomes} />
-            <h2 className="screen-title">Listen to the chord</h2>
-            <p className="screen-sub">Tap the rainbow to hear it</p>
+            <h2 className="screen-title">{t('Listen to the chord')}</h2>
+            <p className="screen-sub">{t('Tap the rainbow to hear it')}</p>
             {roundIndex === 0 && roundFocus && <FocusTag focus={roundFocus} />}
             <button className="rainbow-play-wrap" onClick={listenTap} aria-label="Play chord">
               <Rainbow colors={COLORS} activeName={null} visible pretty />
@@ -2263,7 +2304,7 @@ export default function App() {
                 <PlayTriangleIcon />
               </span>
             </button>
-            <div className="tap-pill">Tap to listen</div>
+            <div className="tap-pill">{t('Tap to listen')}</div>
             <button className="hear-colors-link" onClick={() => openTool('explore')}>
               <Icon name="notes" /> Hear the colors
             </button>
@@ -2285,14 +2326,14 @@ export default function App() {
               onBack={goHome}
             />
             <ProgressDots current={roundIndex + 1} total={SESSION_ROUNDS} kinds={roundFocus?.kinds} outcomes={roundOutcomes} />
-            <h2 className="screen-title">Listen to the chord again?</h2>
+            <h2 className="screen-title">{t('Listen to the chord again?')}</h2>
             <button className="rainbow-play-wrap" onClick={relistenTap} aria-label="Replay chord">
               <Rainbow colors={COLORS} activeName={null} visible pretty />
               <span className="rainbow-center-btn">
                 <SpeakerIcon />
               </span>
             </button>
-            <div className="tap-pill">Tap to hear again</div>
+            <div className="tap-pill">{t('Tap to hear again')}</div>
             <button className="back-link back-link-center" onClick={chooseDifferentAnswer}>
               ← Choose a different answer
             </button>
@@ -2315,16 +2356,16 @@ export default function App() {
             />
             {/* "Part 1" when Twin practice (Part 2) follows this round. */}
             {weekProgress(loadRoundHistory()[profile] || [], [], profileColorNames).worst && (
-              <span className="sn-part part1-chip">Part 1 · Pitch practice · then Part 2: Twin practice</span>
+              <span className="sn-part part1-chip">{t("Part 1 · Pitch practice · then Part 2: Twin practice")}</span>
             )}
             <ProgressDots current={roundIndex + 1} total={SESSION_ROUNDS} kinds={roundFocus?.kinds} outcomes={roundOutcomes} />
             <KindChip focus={roundFocus} index={roundIndex} name={currentColor.name} />
             <h2 className={`screen-title${tries.out.length ? ' question-retry' : ''}`} key={`${tries.out.length}${tries.reveal}`}>
               {tries.reveal
-                ? <>This is {capName(currentColor.name)}! Remember it <Icon name="ear" /></>
+                ? <>{t('This is {color}! Remember it', { color: capName(currentColor.name) })} <Icon name="ear" /></>
                 : options.length === 2 && roundFocus?.kinds?.[roundIndex] === 'check'
-                    ? `${capName(options[0].name)} or ${capName(options[1].name)}?`
-                    : 'What chord did you hear?'}
+                    ? t('{a} or {b}?', { a: capName(options[0].name), b: capName(options[1].name) })
+                    : t('What chord did you hear?')}
             </h2>
             <button className="rainbow-play-wrap rainbow-play-wrap-compact" onClick={relistenTap} aria-label="Play chord again">
               <Rainbow colors={COLORS} activeName={null} visible pretty />
@@ -2350,7 +2391,7 @@ export default function App() {
                     disabled={out}
                     aria-label={out ? `${color.name} (not this one)` : color.name}
                   >
-                    {color.name}
+                    {colorLabel(color.name)}
                     {/* The chord's notes under its name (blue: B D G). */}
                     <span className="option-notes">{color.notes.map(noteLabel).join(' ')}</span>
                   </button>
@@ -2393,29 +2434,29 @@ export default function App() {
               <span className="feedback-icon">{answerCorrect ? <CheckIcon /> : <XIcon />}</span>
             </div>
             <h2 className="screen-title">
-              {!answerCorrect ? 'Almost!' : tries.out.length ? `That's ${capName(currentColor.name)}!` : 'Great job!'}
+              {!answerCorrect ? t('Almost!') : tries.out.length ? t("That's {color}!", { color: capName(currentColor.name) }) : t('Great job!')}
             </h2>
             {answerCorrect && !typesNotes(profile) && (
-              <p className="screen-sub">{tries.out.length ? 'Listen to it once more.' : "That's right!"}</p>
+              <p className="screen-sub">{tries.out.length ? t('Listen to it once more.') : t("That's right!")}</p>
             )}
             {/* Players on the notes level type the notes, so the card
                 doesn't give them away. */}
             {answerCorrect && typesNotes(profile) ? (
               <>
                 <div className="answer-card answer-card-compact" style={{ background: currentColor.hex, color: currentColor.text }}>
-                  <div className="answer-name">{currentColor.name}</div>
+                  <div className="answer-name">{colorLabel(currentColor.name)}</div>
                 </div>
                 <TypeNotes
                   key={roundIndex}
                   color={currentColor}
                   engine={engineRef.current}
                   onNext={nextChord}
-                  nextLabel={roundIndex + 1 >= SESSION_ROUNDS ? 'Finish' : 'Next chord'}
+                  nextLabel={t(roundIndex + 1 >= SESSION_ROUNDS ? 'Finish' : 'Next chord')}
                 />
               </>
             ) : (
               <div className="answer-card" style={{ background: currentColor.hex, color: currentColor.text }}>
-                <div className="answer-name">{currentColor.name}</div>
+                <div className="answer-name">{colorLabel(currentColor.name)}</div>
                 <div className="answer-notes">{currentColor.notes.map(noteLabel).join(' · ')}</div>
               </div>
             )}
@@ -2427,7 +2468,7 @@ export default function App() {
                     <Icon name="speaker" /> Hear again
                   </button>
                   <button className="pill-btn-primary" onClick={nextChord}>
-                    {roundIndex + 1 >= SESSION_ROUNDS ? 'Finish' : 'Next chord'} →
+                    {t(roundIndex + 1 >= SESSION_ROUNDS ? 'Finish' : 'Next chord')} →
                   </button>
                 </>
               ) : (

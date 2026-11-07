@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { t } from './i18n.js';
 import { STICKERS, stickerName } from './stickers.js';
 import { addSticker, bookPage, pendingStickers, playerStickers } from './stickerStore.js';
 import Sticker from './Sticker.jsx';
@@ -80,7 +81,7 @@ export default function StickerPicker({ playerId, signedIn, from, onStick, onSig
   return (
     <div className="sticker-pick">
       <p className="workon-title sticker-pick-title">
-        {pending > 1 ? `You have ${pending} stickers! Tap one` : 'You earned a sticker! Tap one'}
+        {pending > 1 ? t('You have {n} stickers! Tap one', { n: pending }) : t('You earned a sticker! Tap one')}
       </p>
       <div className="sticker-pick-grid">
         {free.map((i) => (

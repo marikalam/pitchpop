@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { colorLabel, t } from './i18n.js';
 import { bassOctave, noteLabel, playCorrectChime, playWrongBuzz } from './piano.js';
 import { later, newSound } from './soundBus.js';
 import Icon from './Icon.jsx';
@@ -81,10 +82,10 @@ export default function TypeNotes({ color, engine, onNext, nextLabel }) {
     <div className="type-notes">
       <p className="type-notes-title">
         {result === 'right'
-          ? `Yes! ${color.notes.map(noteLabel).join(', ')}`
+          ? t('Yes! {notes}', { notes: color.notes.map(noteLabel).join(', ') })
           : result === 'wrong'
             ? `${color.name[0].toUpperCase()}${color.name.slice(1)} is ${color.notes.map(noteLabel).join(', ')}`
-            : `Now play ${color.name}'s notes`}
+            : t("Now play {color}'s notes", { color: colorLabel(color.name) })}
       </p>
       <div className={`type-notes-slots${result === 'wrong' ? ' type-notes-slots-fixed' : ''}`}>
         {[0, 1, 2].map((i) => {

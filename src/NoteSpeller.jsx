@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { colorLabel, noteText, t } from './i18n.js';
 import { playCorrectChime, playWrongBuzz } from './piano.js';
 import { speakNoteName, speakResults } from './speech.js';
 import { isCurrent, later, newSound } from './soundBus.js';
@@ -138,14 +139,14 @@ export default function NoteSpeller({ engine, playerId, onComplete, stickerSlot 
           <div className="complete-emoji">
             <Icon name="staff" />
           </div>
-          <h2 className="screen-title">NoteSpeller complete!</h2>
+          <h2 className="screen-title">{t('{part} complete!', { part: t('NoteSpeller') })}</h2>
           <p className="screen-sub">
-            You got {correctCount} out of {SESSION_ROUNDS} right.
+            {t('You got {right} out of {total} right.', { right: correctCount, total: SESSION_ROUNDS })}
           </p>
           {/* Play again only once the sticker is in. */}
           {(stickerSlot || ((then) => then))(
             <button className="pill-btn-primary" onClick={restart}>
-              Play again →
+              {t('Play again')} →
             </button>,
           )}
         </div>
@@ -197,10 +198,10 @@ export default function NoteSpeller({ engine, playerId, onComplete, stickerSlot 
                 <Icon name="party" /> Yes! That's {target.letter}.
               </>
             ) : (
-              `That's ${target.letter}. You tapped ${answered.picked}.`
+              t("That's {right}. You tapped {picked}.", { right: noteText(target.letter), picked: noteText(answered.picked) })
             )
           ) : (
-            'Tap the key'
+            t('Tap the key')
           )}
         </p>
         <div className="tn-piano ns-piano">
@@ -228,7 +229,7 @@ export default function NoteSpeller({ engine, playerId, onComplete, stickerSlot 
         </div>
         {answered && (
           <button className="pill-btn-primary ns-next" onClick={next}>
-            Next →
+            {t('Next')} →
           </button>
         )}
       </div>

@@ -8110,3 +8110,47 @@ body {
   text-decoration: underline;
   cursor: pointer;
 }
+
+/* The language menu in the header: English, 日本語, or English with the
+   Japanese voice. */
+.lang-wrap {
+  position: relative;
+}
+.lang-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 60;
+  width: 250px;
+  background: #fff;
+  border-radius: 18px;
+  padding: 8px;
+  box-shadow: 0 14px 40px rgba(40, 20, 80, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.lang-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font: inherit;
+  color: #2a2140;
+  cursor: pointer;
+}
+.lang-item b {
+  font-size: 15px;
+}
+.lang-item span {
+  font-size: 12.5px;
+  color: #7a6a92;
+}
+.lang-item-on {
+  background: #efeaff;
+}

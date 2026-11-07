@@ -1,3 +1,4 @@
+import { t } from './i18n.js';
 import { useEffect, useRef, useState } from 'react';
 import { plansOn } from './plan.js';
 import Icon from './Icon.jsx';
@@ -76,7 +77,7 @@ export default function MainMenu({ onOpen }) {
         <div className="profile-menu main-menu-panel">
           {MENU_SECTIONS.map((section, i) => (
             <div key={section.id} className={i === 0 ? 'main-menu-section-first' : 'profile-menu-section'}>
-              {section.title && <div className="profile-menu-heading">{section.title}</div>}
+              {section.title && <div className="profile-menu-heading">{t(section.title)}</div>}
               {section.items.map((item) => (
                 <button
                   key={item.id}
@@ -86,7 +87,7 @@ export default function MainMenu({ onOpen }) {
                     setOpen(false);
                   }}
                 >
-                  <Icon name={item.icon} /> <span>{item.label}</span>
+                  <Icon name={item.icon} /> <span>{t(item.label)}</span>
                 </button>
               ))}
             </div>

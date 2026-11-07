@@ -1,3 +1,4 @@
+import { noteText } from './i18n.js';
 import { audioContext, currentSound, isMuted, later, outputFor, playBuffer, soundOutput, wakeContext } from './soundBus.js';
 import { freqMidi, loadPianoSamples, pianoSample } from './pianoSamples.js';
 
@@ -11,9 +12,9 @@ function freq(note, octave) {
   return 440 * Math.pow(2, semitone / 12);
 }
 
-// A note's name for the screen: C# shows as C♯.
+// A note's name for the screen: C# shows as C♯ (in Japanese, ド♯).
 export function noteLabel(note) {
-  return note.replace('#', '♯');
+  return noteText(note.replace('#', '♯'));
 }
 
 export function bassOctave(note) {
