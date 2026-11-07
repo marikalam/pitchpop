@@ -8040,3 +8040,28 @@ body {
 .twin-start {
   margin-top: 8px;
 }
+.twin-color-lit {
+  transform: scale(1.06);
+  box-shadow: 0 0 0 5px #fff, 0 0 0 9px #8b5cf6, 0 12px 28px rgba(80, 40, 120, 0.3);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.twin-again {
+  margin-bottom: 10px;
+}
+.twin-stars {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 4px 0 8px;
+  font-size: 30px;
+}
+.twin-star {
+  opacity: 0.22;
+  filter: grayscale(1);
+  transition: opacity 0.2s, transform 0.2s;
+}
+.twin-star-on {
+  opacity: 1;
+  filter: none;
+  transform: scale(1.15);
+}
