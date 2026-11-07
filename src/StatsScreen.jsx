@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { loadAppleSales, loadStats } from "./cloud.js";
+import { loadAppleSales, loadStats, loadStoreStats } from "./cloud.js";
 
 // PitchPop stats (Account -> PitchPop stats, for the accounts listed in
 // supabase/pitchpop_stats.sql): how much the app is used, added up from
@@ -168,9 +168,9 @@ function shortDay(iso) {
   return `${m}/${d}`;
 }
 
-function Tile({ value, label }) {
+function Tile({ value, label, wide = false }) {
   return (
-    <div className="stats-tile">
+    <div className={`stats-tile${wide ? " stats-tile-wide" : ""}`}>
       <span className="stats-tile-value">{value}</span>
       <span className="stats-tile-label">{label}</span>
     </div>
@@ -205,6 +205,74 @@ function BarList({ title, rows }) {
         </ul>
       )}
     </section>
+  );
+}
+
+const REGION_NAMES =
+  typeof Intl !== "undefined" && Intl.DisplayNames
+    ? new Intl.DisplayNames(["en"], { type: "region" })
+    : null;
+const countryName = (code) => {
+  try {
+    return REGION_NAMES?.of(code) || code;
+  } catch {
+    return code;
+  }
+};
+const longDay = (iso) =>
+  iso
+    ? new Date(`${iso}T12:00:00`).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      })
+    : "–";
+
+// "App Store (from Apple)" for the chosen range, laid out like MathPop's:
+// downloads, re-downloads, the store page (not connected yet), money
+// earned, then downloads by country.
+function StoreCard({ days }) {
+  const [store, setStore] = useState(undefined);
+  useEffect(() => {
+    let live = true;
+    setStore(undefined);
+    loadStoreStats(days).then((s) => live && setStore(s));
+    return () => {
+      live = false;
+    };
+  }, [days]);
+  if (store === null) return null;
+  const t = store?.totals;
+  const dash = store === undefined ? "…" : "–";
+  return (
+    <>
+      <section className="stats-card apple-card">
+        <h3 className="stats-card-title">App Store (from Apple)</h3>
+        <div className="stats-tiles">
+          <Tile value={t?.download ?? dash} label="downloads" />
+          <Tile value={t?.redownload ?? dash} label="redownloads" />
+          <Tile value="–" label="saw it in the App Store" />
+          <Tile value="–" label="opened its page" />
+          <Tile value={store ? money(store.proceeds) : dash} label="earned" />
+          <Tile value={t?.purchase ?? dash} label="purchases" />
+          <Tile value="–" label="page → download" wide />
+        </div>
+        <p className="stats-note">
+          Last {days} days, up to {longDay(store?.through)}.{" "}
+          {store?.allTime?.download ?? 0} downloads and{" "}
+          {store ? money(store.proceedsAllTime) : "$0"} earned in all. Apple’s
+          numbers run a day or two behind. Money is what Apple pays you, after
+          its cut.
+        </p>
+      </section>
+      <BarList
+        title="Downloads by country"
+        rows={(store?.countries || []).map((c) => ({
+          label: countryName(c.territory),
+          value: c.downloads,
+        }))}
+      />
+    </>
   );
 }
 
@@ -249,7 +317,7 @@ function sortedRows(obj, names = {}) {
 }
 
 export default function StatsScreen() {
-  const [days, setDays] = useState(30);
+  const [days, setDays] = useState(7);
   const [stats, setStats] = useState(undefined);
   const [hover, setHover] = useState(null);
 
@@ -292,8 +360,6 @@ export default function StatsScreen() {
         </p>
       )}
 
-      <AppleCard full />
-
       {t && (
         <>
           <div className="stats-tiles">
@@ -306,6 +372,14 @@ export default function StatsScreen() {
               label="devices a day (average)"
             />
             <Tile value={t.newInstalls} label="new devices" />
+            <Tile
+              value={
+                (stats.families || []).filter(
+                  (f) => f.joined && f.joined.slice(0, 10) >= stats.since,
+                ).length
+              }
+              label="new sign-ups"
+            />
             <Tile value={t.rounds} label="rounds played" />
             <Tile
               value={
@@ -314,13 +388,17 @@ export default function StatsScreen() {
                   : "–"
               }
               label="answered right"
+              wide
             />
           </div>
           <p className="stats-note">
             {stats.allTimeInstalls}{" "}
             {stats.allTimeInstalls === 1 ? "device" : "devices"} since stats
-            began. The numbers don’t say who anyone is.
+            began. The usage counts are anonymous; only the family accounts list
+            below shows emails.
           </p>
+
+          <StoreCard days={days} />
 
           <section className="stats-card">
             <h3 className="stats-card-title">

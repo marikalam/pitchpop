@@ -130,3 +130,45 @@ end;
 $$;
 revoke all on function public.apple_sales_summary() from public, anon;
 grant execute on function public.apple_sales_summary() to authenticated;
+
+-- PitchPop's App Store numbers for the stats page's time range (7, 30 or
+-- 90 days), shaped like MathPop's mathpop_store_stats.
+create or replace function public.pitchpop_store_stats(days int default 30)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+declare
+  since date := current_date - greatest(1, least(days, 365)) + 1;
+  result jsonb;
+begin
+  if not pitchpop_can_view_stats() then
+    raise exception 'not allowed';
+  end if;
+  with a as (select * from apple_sales_daily where title ilike 'pitch%'),
+       s as (select * from a where day >= since)
+  select jsonb_build_object(
+    'since', since,
+    'through', (select max(day) from a),
+    'totals', jsonb_build_object(
+      'download', (select coalesce(sum(downloads), 0) from s),
+      'redownload', (select coalesce(sum(redownloads), 0) from s),
+      'purchase', (select coalesce(sum(purchases), 0) from s)),
+    'allTime', jsonb_build_object(
+      'download', (select coalesce(sum(downloads), 0) from a),
+      'purchase', (select coalesce(sum(purchases), 0) from a)),
+    'proceeds', (select coalesce(jsonb_object_agg(cur, amt), '{}') from (
+      select m.key cur, round(sum(m.value::numeric), 2) amt from s, jsonb_each_text(s.proceeds) m group by m.key) t),
+    'proceedsAllTime', (select coalesce(jsonb_object_agg(cur, amt), '{}') from (
+      select m.key cur, round(sum(m.value::numeric), 2) amt from a, jsonb_each_text(a.proceeds) m group by m.key) t),
+    'daily', (select coalesce(jsonb_agg(jsonb_build_object('day', day, 'downloads', downloads) order by day), '[]') from s),
+    'countries', (select coalesce(jsonb_agg(jsonb_build_object('territory', k, 'downloads', n) order by n desc), '[]') from (
+      select c.key k, sum(c.value::int) n from s, jsonb_each_text(s.countries) c group by c.key order by n desc limit 12) t)
+  ) into result;
+  return result;
+end;
+$$;
+revoke all on function public.pitchpop_store_stats(int) from public, anon;
+grant execute on function public.pitchpop_store_stats(int) to authenticated;

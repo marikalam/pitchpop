@@ -8087,3 +8087,6 @@ body {
 .apple-chart {
   margin-top: 12px;
 }
+.stats-tile-wide {
+  grid-column: 1 / -1;
+}
