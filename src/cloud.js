@@ -448,3 +448,14 @@ export async function loadAppleSales() {
     return null;
   }
 }
+
+// PitchPop's App Store numbers for the stats page's range (7, 30 or 90
+// days; supabase/apple_sales.sql). null if not allowed or offline.
+export async function loadStoreStats(days) {
+  try {
+    const { data, error } = await supabase.rpc('pitchpop_store_stats', { days });
+    return error ? null : data;
+  } catch {
+    return null;
+  }
+}
