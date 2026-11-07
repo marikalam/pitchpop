@@ -157,13 +157,11 @@ export default function TwinPractice({ engine, pair, rainbowColors = [], onCompl
           {cap(a.name)} or {cap(b.name)}?
         </h2>
         <p className="screen-sub twin-sub">
-          {twin
-            ? `These two sound alike: the same shape, one step apart. ${cap(a.name)} is the lower one, ${cap(b.name)} the higher one. Tap each and listen.`
-            : `These two get mixed up most this week. Tap each and listen to the difference.`}
+          These two get mixed up most this week. Tap each one and listen to the difference.
         </p>
         <div className="sn-colors sn-colors-2 twin-meet">
-          {button(a, () => hear(a), ' twin-meet-btn', false, twin ? 'lower' : null)}
-          {button(b, () => hear(b), ' twin-meet-btn', false, twin ? 'higher' : null)}
+          {button(a, () => hear(a), ' twin-meet-btn')}
+          {button(b, () => hear(b), ' twin-meet-btn')}
         </div>
         <button className="pill-btn-primary pill-btn-full twin-start" onClick={() => setStage('play')}>
           Start: {ROUNDS} chords →
