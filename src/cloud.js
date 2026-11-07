@@ -436,3 +436,15 @@ export async function loadMoneyProgress() {
     return null;
   }
 }
+
+// Apple's own numbers for the owner (supabase/apple_sales.sql): per app,
+// downloads and money earned, from App Store Connect's daily reports.
+// [] before the first report is in; null if not allowed or offline.
+export async function loadAppleSales() {
+  try {
+    const { data, error } = await supabase.rpc('apple_sales_summary');
+    return error ? null : data;
+  } catch {
+    return null;
+  }
+}
