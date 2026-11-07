@@ -82,6 +82,13 @@ async function pickVoice() {
   return samantha || [...voices].sort((a, b) => scoreVoice(b) - scoreVoice(a))[0];
 }
 
+// About how long the voice takes to say `text` (a moment to start, then
+// `perChar` ms a letter), never more than 4 seconds: how long a spoken
+// line holds up whatever is chained after it.
+function spokenMs(text, perChar) {
+  return Math.min(4000, 450 + String(text).length * perChar);
+}
+
 async function speakWithWebSpeechAPI(text) {
   if (!('speechSynthesis' in window)) return;
   window.speechSynthesis.cancel();
@@ -94,8 +101,11 @@ async function speakWithWebSpeechAPI(text) {
   await new Promise((resolve) => {
     utterance.onend = resolve;
     utterance.onerror = resolve;
-    // Never wait forever if the voice doesn't answer.
-    setTimeout(resolve, 4000);
+    // On iPhones the "finished speaking" signal often comes late or not at
+    // all, so don't wait for it: carry on once the words have had time to
+    // be said (whichever comes first). Before, the chord after a color
+    // name could wait up to 4 seconds.
+    setTimeout(resolve, spokenMs(text, 75));
     window.speechSynthesis.speak(utterance);
   });
 }
@@ -172,8 +182,8 @@ async function speakJapanese(text) {
   await new Promise((resolve) => {
     utterance.onend = resolve;
     utterance.onerror = resolve;
-    // Never wait forever if the voice doesn't answer.
-    setTimeout(resolve, 4000);
+    // As for English: don't wait on a late "finished" signal.
+    setTimeout(resolve, spokenMs(text, 170));
     window.speechSynthesis.speak(utterance);
   });
 }
