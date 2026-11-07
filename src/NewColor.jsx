@@ -53,7 +53,7 @@ export default function NewColor({ playerName, color, engine, noteLabel, onDone 
     if (!heard) {
       setHeard(true);
       // The name once the chord has rung, never on top of it.
-      setTimeout(() => speakColorName(color.name), 1800);
+      setTimeout(() => speakColorName(color.name), 1100);
     }
   }
 

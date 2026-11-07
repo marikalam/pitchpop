@@ -8090,3 +8090,23 @@ body {
 .stats-tile-wide {
   grid-column: 1 / -1;
 }
+
+/* Pitch Practice in two parts: the "Part 1" chip on the question screen,
+   and the way out of Part 2 (Twin practice) straight to the results. */
+.part1-chip {
+  display: block;
+  width: fit-content;
+  margin: 0 auto 6px;
+  font-size: 12px;
+}
+.part2-skip {
+  appearance: none;
+  display: block;
+  margin: 14px auto 0;
+  border: 0;
+  background: none;
+  color: #8a90a8;
+  font: 600 14px 'IBM Plex Sans', sans-serif;
+  text-decoration: underline;
+  cursor: pointer;
+}

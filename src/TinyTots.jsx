@@ -10,7 +10,7 @@ import Icon from './Icon.jsx';
 // over the sound and silence a chord still playing.) No right or wrong, no score.
 // A round is TAPS taps (so it doesn't go on forever), then "All done!".
 // The name comes this long after the chord starts.
-const NAME_AFTER_MS = 1800;
+const NAME_AFTER_MS = 1000;
 const SPARKS = ['notes', 'star', 'scales', 'sparkle', 'notes', 'star'];
 const TAPS = 20;
 
