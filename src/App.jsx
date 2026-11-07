@@ -53,7 +53,7 @@ import Paywall from './Paywall.jsx';
 import TodayPlan from './TodayPlan.jsx';
 import { countToday, markDoneToday, todayPlan } from './todayPlan.js';
 import { statAppOpened, statRoundDone } from './stats.js';
-import StatsScreen, { DownloadsCard } from './StatsScreen.jsx';
+import StatsScreen, { AppleCard, DownloadsCard } from './StatsScreen.jsx';
 import MoneyCard from './MoneyCard.jsx';
 import TwinPractice from './TwinPractice.jsx';
 import { usesBlackKeys } from './blackKeys.js';
@@ -1913,6 +1913,7 @@ export default function App() {
           <SyncStatus user={cloudUser} onOpenAccount={openAccount} />
           {/* Only for the accounts that can see PitchPop's stats (the owner). */}
           {statsViewer && <DownloadsCard onOpenStats={() => setView('stats')} />}
+          {statsViewer && <AppleCard />}
           {statsViewer && <MoneyCard app="pitchpop" />}
           <div className="settings-list">
             {draftProfiles.map((p) => (
