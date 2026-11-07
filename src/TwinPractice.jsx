@@ -43,6 +43,11 @@ export default function TwinPractice({
   rainbowColors = [],
   onComplete,
   stickerSlot,
+  // Part 2 of Pitch Practice (App.jsx): `part` labels the screens, and
+  // `onFinish` gets the result instead of this screen's own "done" page
+  // (the round's results show both parts).
+  part = null,
+  onFinish = null,
 }) {
   const twin = TWINS.find(
     ([one, two]) =>
@@ -180,6 +185,7 @@ export default function TwinPractice({
           : "Great work! Try again tomorrow.",
       );
       onComplete?.(correctCount, history.length);
+      onFinish?.({ correct: correctCount, total: history.length, best, won, pair: [a.name, b.name] });
       return;
     }
     setHistory((h) => [...h, nextName(h, a.name, b.name)]);
@@ -229,7 +235,7 @@ export default function TwinPractice({
   if (stage === "meet") {
     return (
       <div className="ns-screen sn-screen twin-screen">
-        <span className="sn-part">Twin practice</span>
+        <span className="sn-part">{part ? `${part} · Twin practice` : "Twin practice"}</span>
         <h2 className="screen-title ns-title">
           {cap(a.name)} or {cap(b.name)}?
         </h2>
@@ -290,7 +296,9 @@ export default function TwinPractice({
   return (
     <div className="ns-screen sn-screen twin-screen">
       {stars}
-      <span className="sn-part">Twin practice · get {GOAL} in a row</span>
+      <span className="sn-part">
+        {part ? `${part} · ` : ""}Twin practice · get {GOAL} in a row
+      </span>
       <h2 className="screen-title ns-title">Which color is this chord?</h2>
       <button
         className={`rainbow-play-wrap rainbow-play-wrap-compact sn-rainbow${

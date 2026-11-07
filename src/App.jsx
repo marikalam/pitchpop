@@ -692,8 +692,9 @@ export default function App() {
   // PitchPop always opens on the home page, which shows every part of the
   // app. (A first visit also gets the welcome card on top of it.)
   const [view, setView] = useState('home');
-  // Single notes players: Part 2's score ({ correct, total }), shown with
-  // the round's results.
+  // Part 2 of Pitch Practice: Twin practice, straight after the round
+  // (the two colors mixed up most this week). Its result ({ correct,
+  // total, best, won, pair }) shows with the round's results.
   const [part2, setPart2] = useState(null);
   // Twin practice's two colors (color objects), set when it opens.
   const [twinPair, setTwinPair] = useState(null);
@@ -1017,6 +1018,8 @@ export default function App() {
   // `soundId` ties the steps together: if anything else starts playing
   // meanwhile, the notes don't follow.
   async function announceColor(color, soundId) {
+    // Get the notes ready while the name is said, so they follow at once.
+    engineRef.current.getNoteSequenceBuffer(color.notes);
     await speakColorName(color.name);
     if (!isCurrent(soundId)) return;
     engineRef.current.playNoteSequence(color.notes);
@@ -1246,6 +1249,15 @@ export default function App() {
         correct: Object.values(roundOutcomes).filter(Boolean).length,
         total: SESSION_ROUNDS,
       });
+      // Part 2: Twin practice with this week's most mixed-up pair, right
+      // away (when there is one). The results come after it.
+      const { worst } = weekProgress(loadRoundHistory()[profile] || [], [], profileColorNames);
+      const pair = worst && [worst.name, worst.partner].map((n) => COLORS.find((c) => c.name === n));
+      if (pair && pair.every(Boolean)) {
+        setTwinPair(pair);
+        setView('play-twins');
+        return;
+      }
       setView('play-complete');
       return;
     }
@@ -2301,6 +2313,10 @@ export default function App() {
               showBack
               onBack={goHome}
             />
+            {/* "Part 1" when Twin practice (Part 2) follows this round. */}
+            {weekProgress(loadRoundHistory()[profile] || [], [], profileColorNames).worst && (
+              <span className="sn-part part1-chip">Part 1 · Pitch practice · then Part 2: Twin practice</span>
+            )}
             <ProgressDots current={roundIndex + 1} total={SESSION_ROUNDS} kinds={roundFocus?.kinds} outcomes={roundOutcomes} />
             <KindChip focus={roundFocus} index={roundIndex} name={currentColor.name} />
             <h2 className={`screen-title${tries.out.length ? ' question-retry' : ''}`} key={`${tries.out.length}${tries.reveal}`}>
@@ -2426,6 +2442,41 @@ export default function App() {
           </>
         )}
 
+        {view === 'play-twins' && twinPair && (
+          <>
+            <AppHeader
+              profile={profile}
+              profiles={profiles}
+              onChangeProfile={changeProfile}
+              onOpenSettings={openSettings}
+              user={cloudUser}
+              onOpenAccount={openAccount}
+              onOpenTool={openTool}
+              onOpenPractice={openPracticeFromBadge}
+              showBack
+              onBack={goHome}
+            />
+            <TwinPractice
+              key={`${profile}-part2-${twinPair.map((c) => c.name).join('-')}`}
+              engine={engineRef.current}
+              pair={twinPair}
+              rainbowColors={COLORS}
+              part="Part 2"
+              onComplete={(correct, total) => {
+                countToday(profile, 'twins');
+                statRoundDone({ activity: 'twins', lang: speechLanguage(), correct, total });
+              }}
+              onFinish={(result) => {
+                setPart2(result);
+                setView('play-complete');
+              }}
+            />
+            <button className="part2-skip" onClick={() => setView('play-complete')}>
+              Skip Part 2: see my results
+            </button>
+          </>
+        )}
+
         {view === 'play-complete' && roundFinished && (
           <>
             <AppHeader
@@ -2442,7 +2493,8 @@ export default function App() {
             />
             {part2 && (
               <p className="part2-result">
-                <Icon name="keys" /> Part 2 · Single notes: {part2.correct} of {part2.total} right
+                <Icon name="target" /> Part 2 · Twin practice ({capName(part2.pair[0])} or {capName(part2.pair[1])}):{' '}
+                {part2.won ? `10 in a row!` : `best ${part2.best} in a row`} · {part2.correct} of {part2.total} right
               </p>
             )}
             <RoundSummary
