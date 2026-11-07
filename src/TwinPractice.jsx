@@ -3,6 +3,7 @@ import { playCorrectChime, playWrongBuzz } from "./piano.js";
 import { prewarmVoices, speakColorName, speakWords } from "./speech.js";
 import { isCurrent, later, newSound } from "./soundBus.js";
 import Icon from "./Icon.jsx";
+import { colorLabel, t } from "./i18n.js";
 import Rainbow from "./Rainbow.jsx";
 import { SpeakerIcon } from "./icons.jsx";
 
@@ -27,7 +28,7 @@ const TWINS = [
 const CHORD_MS = 2200;
 const LISTEN_TIMES = 3;
 
-const cap = (n) => n.charAt(0).toUpperCase() + n.slice(1);
+const cap = (n) => colorLabel(n);
 
 // The next chord: either one, but never three of the same in a row.
 function nextName(history, a, b) {
@@ -235,14 +236,14 @@ export default function TwinPractice({
   if (stage === "meet") {
     return (
       <div className="ns-screen sn-screen twin-screen">
-        <span className="sn-part">{part ? `${part} · Twin practice` : "Twin practice"}</span>
+        <span className="sn-part">{part ? `${t(part)} · ${t("Twin practice")}` : t("Twin practice")}</span>
         <h2 className="screen-title ns-title">
           {cap(a.name)} or {cap(b.name)}?
         </h2>
         <p className="screen-sub twin-sub">
           {listening
-            ? "Listen to both, one after the other…"
-            : "These two get mixed up most this week. Tap each one to hear it again."}
+            ? t("Listen to both, one after the other…")
+            : t("These two get mixed up most this week. Tap each one to hear it again.")}
         </p>
         <div className="sn-colors sn-colors-2 twin-meet">
           {button(a, () => hear(a))}
@@ -253,7 +254,7 @@ export default function TwinPractice({
           onClick={listenBoth}
           disabled={listening}
         >
-          <Icon name="speaker" /> Hear both again
+          <Icon name="speaker" /> {t("Hear both again")}
         </button>
         <button
           className="pill-btn-primary pill-btn-full twin-start"
@@ -264,7 +265,7 @@ export default function TwinPractice({
             setStage("play");
           }}
         >
-          Start: get {GOAL} in a row →
+          {t("Start: get {n} in a row", { n: GOAL })} →
         </button>
       </div>
     );
@@ -277,16 +278,16 @@ export default function TwinPractice({
           <Icon name={won ? "star" : "target"} />
         </div>
         <h2 className="screen-title">
-          {won ? `${GOAL} in a row!` : "Twin practice done!"}
+          {won ? t("{n} in a row!", { n: GOAL }) : t("Twin practice done!")}
         </h2>
         <p className="screen-sub">
           {won
-            ? `${cap(a.name)} and ${cap(b.name)}: ${correctCount} of ${history.length} right.`
-            : `Best: ${best} in a row. ${cap(a.name)} and ${cap(b.name)} again tomorrow!`}
+            ? t("{a} and {b}: {right} of {total} right.", { a: cap(a.name), b: cap(b.name), right: correctCount, total: history.length })
+            : t("Best: {best} in a row. {a} and {b} again tomorrow!", { best, a: cap(a.name), b: cap(b.name) })}
         </p>
         {(stickerSlot || ((then) => then))(
           <button className="pill-btn-primary" onClick={restart}>
-            Play again →
+            {t("Play again")} →
           </button>,
         )}
       </div>
@@ -297,9 +298,9 @@ export default function TwinPractice({
     <div className="ns-screen sn-screen twin-screen">
       {stars}
       <span className="sn-part">
-        {part ? `${part} · ` : ""}Twin practice · get {GOAL} in a row
+        {part ? `${t(part)} · ` : ""}{t("Twin practice · get {n} in a row", { n: GOAL })}
       </span>
-      <h2 className="screen-title ns-title">Which color is this chord?</h2>
+      <h2 className="screen-title ns-title">{t("Which color is this chord?")}</h2>
       <button
         className={`rainbow-play-wrap rainbow-play-wrap-compact sn-rainbow${
           answered
@@ -327,10 +328,10 @@ export default function TwinPractice({
           {answered
             ? answered.correct
               ? won
-                ? `${GOAL} in a row! That's ${cap(color.name)}.`
-                : `Yes! That's ${cap(color.name)}.`
-              : `That's ${cap(color.name)}. Now hear ${cap(other.name)}…`
-            : "Listen, count 1, 2, then pick"}
+                ? t("{n} in a row! That's {color}.", { n: GOAL, color: cap(color.name) })
+                : t("Yes! That's {name}.", { name: cap(color.name) })
+              : t("That's {right}. Now hear {other}…", { right: cap(color.name), other: cap(other.name) })
+            : t("Listen, count 1, 2, then pick")}
         </p>
         <div className="sn-colors sn-colors-2">
           {[a, b].map((c) => {
@@ -347,7 +348,7 @@ export default function TwinPractice({
         </div>
         {answered && (
           <button className="pill-btn-primary ns-next" onClick={next}>
-            {won ? "Finish" : "Next"} →
+            {t(won ? "Finish" : "Next")} →
           </button>
         )}
       </div>

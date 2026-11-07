@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { colorLabel, noteText, t } from './i18n.js';
 import { playCorrectChime, playWrongBuzz } from './piano.js';
 import { speakColorName, speakNoteName, speakResults } from './speech.js';
 import { isCurrent, later, newSound } from './soundBus.js';
@@ -187,30 +188,30 @@ export default function SingleNotes({
         <div className="complete-emoji">
           <Icon name="keys" />
         </div>
-        <h2 className="screen-title">{part || 'Single notes'} complete!</h2>
+        <h2 className="screen-title">{t('{part} complete!', { part: t(part || 'Single Notes') })}</h2>
         <p className="screen-sub">
-          You got {correctCount} out of {rounds} right.
+          {t('You got {right} out of {total} right.', { right: correctCount, total: rounds })}
         </p>
         {/* Play again only once the sticker is in. */}
         {(stickerSlot || ((then) => then))(
           <button className="pill-btn-primary" onClick={restart}>
-            Play again →
+            {t('Play again')} →
           </button>,
         )}
       </div>
     );
   }
 
-  const name = (k) => (k === 0 ? 'middle C' : k === KEYS.length - 1 ? 'high C' : KEYS[k].letter);
-  const cap = (n) => n.charAt(0).toUpperCase() + n.slice(1);
+  const name = (k) => (k === 0 ? t('middle C') : k === KEYS.length - 1 ? t('high C') : noteText(KEYS[k].letter));
+  const cap = (n) => colorLabel(n);
   const rightName = isChord ? cap(item.color.name) : name(target);
   const pickedName = answered && (isChord ? cap(answered.key) : name(answered.key));
 
   return (
     <div className="ns-screen sn-screen">
       <ProgressDots current={roundIndex + 1} total={rounds} outcomes={outcomes} />
-      {part && <span className="sn-part">{part}</span>}
-      <h2 className="screen-title ns-title">{isChord ? 'Which color is this chord?' : 'What note did you hear?'}</h2>
+      {part && <span className="sn-part">{t(part)}</span>}
+      <h2 className="screen-title ns-title">{t(isChord ? 'Which color is this chord?' : 'What note did you hear?')}</h2>
       {/* Like Pitch Practice: tap the rainbow to hear it again. */}
       <button
         className={`rainbow-play-wrap rainbow-play-wrap-compact sn-rainbow${
@@ -233,15 +234,15 @@ export default function SingleNotes({
           {answered ? (
             answered.correct ? (
               <>
-                <Icon name="party" /> Yes! That's {rightName}.
+                <Icon name="party" /> {t("Yes! That's {name}.", { name: rightName })}
               </>
             ) : (
-              `That's ${rightName}. You ${isChord ? 'picked' : 'tapped'} ${pickedName}.`
+              t(isChord ? "That's {right}. You picked {picked}." : "That's {right}. You tapped {picked}.", { right: rightName, picked: pickedName })
             )
           ) : isChord ? (
-            'Pick the color you hear'
+            t('Pick the color you hear')
           ) : (
-            'Tap the key you hear'
+            t('Tap the key you hear')
           )}
         </p>
         {isChord ? (
@@ -295,7 +296,7 @@ export default function SingleNotes({
         )}
         {answered && (
           <button className="pill-btn-primary ns-next" onClick={next}>
-            Next →
+            {t('Next')} →
           </button>
         )}
       </div>

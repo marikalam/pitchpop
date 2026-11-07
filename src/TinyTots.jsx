@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { colorLabel, noteText, t } from './i18n.js';
 import { prewarmVoices, speakColorName } from './speech.js';
 import { isCurrent, later, newSound } from './soundBus.js';
 import Icon from './Icon.jsx';
@@ -68,7 +69,7 @@ export default function TinyTots({ colors, engine, onComplete, stickerSlot }) {
               setDone(false);
             }}
           >
-            Play again →
+            {t('Play again')} →
           </button>,
         )}
       </div>
@@ -96,7 +97,7 @@ export default function TinyTots({ colors, engine, onComplete, stickerSlot }) {
               onClick={() => tap(color)}
               aria-label={color.name}
             >
-              <span className="tots-name">{color.name}</span>
+              <span className="tots-name">{colorLabel(color.name)}</span>
               {now && (
                 <span className="tots-sparks" aria-hidden="true">
                   {SPARKS.map((s, i) => (
