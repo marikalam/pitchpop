@@ -8051,9 +8051,10 @@ body {
 .twin-stars {
   display: flex;
   justify-content: center;
-  gap: 10px;
+  flex-wrap: wrap;
+  gap: 6px;
   margin: 4px 0 8px;
-  font-size: 30px;
+  font-size: 24px;
 }
 .twin-star {
   opacity: 0.22;
