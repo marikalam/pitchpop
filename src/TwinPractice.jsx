@@ -16,8 +16,8 @@ import { SpeakerIcon } from "./icons.jsx";
 //     Eguchi way (chord first, then color), until GOAL right in a row. A
 //     miss starts the row again and plays both, one after the other, so
 //     the difference is heard. It stops after MAX_CHORDS at most.
-const GOAL = 5;
-const MAX_CHORDS = 30;
+const GOAL = 10;
+const MAX_CHORDS = 40;
 // Twins (same shape, one step apart), in this order.
 const TWINS = [
   ["black", "blue"],

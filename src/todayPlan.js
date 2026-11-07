@@ -112,7 +112,7 @@ export function todayPlan({
         id: 'twins',
         icon: 'target',
         title: `Twin practice: ${cap(worst.name)} or ${cap(worst.partner)}?`,
-        sub: `Mixed up ${worst.misses} ${worst.misses === 1 ? 'time' : 'times'} this week · 10 chords, just these two`,
+        sub: `Mixed up ${worst.misses} ${worst.misses === 1 ? 'time' : 'times'} this week · get 10 in a row, just these two`,
         pair: [worst.name, worst.partner],
         done: twinsToday >= 1,
       });
