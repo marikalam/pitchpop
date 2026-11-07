@@ -54,6 +54,7 @@ import TodayPlan from './TodayPlan.jsx';
 import { countToday, markDoneToday, todayPlan } from './todayPlan.js';
 import { statAppOpened, statRoundDone } from './stats.js';
 import StatsScreen, { DownloadsCard } from './StatsScreen.jsx';
+import TwinPractice from './TwinPractice.jsx';
 import { usesBlackKeys } from './blackKeys.js';
 import { loadPracticeLog } from './practiceLog.js';
 import Icon from './Icon.jsx';
@@ -693,6 +694,8 @@ export default function App() {
   // Single notes players: Part 2's score ({ correct, total }), shown with
   // the round's results.
   const [part2, setPart2] = useState(null);
+  // Twin practice's two colors (color objects), set when it opens.
+  const [twinPair, setTwinPair] = useState(null);
   // A color this player hasn't met yet (just added in Players & colors):
   // on the home page, it's introduced chord first (NewColor.jsx).
   const [newColorName, setNewColorName] = useState(null);
@@ -1029,7 +1032,7 @@ export default function App() {
     return 'play-listen';
   }
   function inPitchPractice(v) {
-    return v.startsWith('play-') || v === 'tinytots' || v === 'singlenotes';
+    return v.startsWith('play-') || v === 'tinytots' || v === 'singlenotes' || v === 'twins';
   }
 
   // Whatever way a Tiny Tots player reaches the color game (Back, a link,
@@ -1292,7 +1295,7 @@ export default function App() {
   // Piano, Practice Mode and Music Theory are side trips like Explore:
   // closing one goes back to wherever the player was (a quiz in progress
   // included) instead of restarting the color game.
-  const TOOL_VIEWS = ['piano', 'practice', 'theory', 'method', 'scales', 'hanon', 'tinytots', 'singlenotes', 'progress', 'stickers', 'plan'];
+  const TOOL_VIEWS = ['piano', 'practice', 'theory', 'method', 'scales', 'hanon', 'tinytots', 'singlenotes', 'twins', 'progress', 'stickers', 'plan'];
 
   // The header's practice pill, on every screen: back to the timer (in
   // Practice Mode itself, to its Timer tab).
@@ -1413,6 +1416,16 @@ export default function App() {
       openTool('singlenotes');
       return;
     }
+    // Twin practice: this week's most mixed-up pair, on its own.
+    if (id === 'twins') {
+      const { worst } = weekProgress(loadRoundHistory()[profile] || [], [], profileColorNames);
+      const pair = worst && [worst.name, worst.partner].map((n) => COLORS.find((c) => c.name === n));
+      if (!pair || pair.some((c) => !c)) return startPlay();
+      prewarmVoices();
+      setTwinPair(pair);
+      openTool('twins');
+      return;
+    }
     if (id === 'color-test' || id === 'tots') return startPlay();
     openTool(id);
     // From the plan, Music Theory opens on its quiz.
@@ -1426,6 +1439,7 @@ export default function App() {
     tots: 'Tiny Tots',
     notespeller: 'NoteSpeller',
     'single-notes': 'Single Notes',
+    twins: 'Twin practice',
     theory: 'Theory quiz',
     practice: 'Piano practice',
   };
@@ -1751,7 +1765,7 @@ export default function App() {
     return <Piano engine={engineRef.current} onClose={closeTool} />;
   }
 
-  if (view === 'practice' || view === 'theory' || view === 'method' || view === 'scales' || view === 'hanon' || view === 'tinytots' || view === 'singlenotes' || view === 'progress' || view === 'stickers' || view === 'plan') {
+  if (view === 'practice' || view === 'theory' || view === 'method' || view === 'scales' || view === 'hanon' || view === 'tinytots' || view === 'singlenotes' || view === 'twins' || view === 'progress' || view === 'stickers' || view === 'plan') {
     // Practice Mode fits on one screen (its tools are tabs); the Music
     // Theory glossary and the method explanation are reading pages and
     // scroll.
@@ -1814,6 +1828,20 @@ export default function App() {
               placing={placingSticker}
               onPlaced={() => setPlacingSticker(null)}
               next={nextUpButton()}
+            />
+          ) : view === 'twins' && twinPair ? (
+            <TwinPractice
+              key={`${profile}-twins-${twinPair.map((c) => c.name).join('-')}`}
+              engine={engineRef.current}
+              pair={twinPair}
+              rainbowColors={COLORS}
+              onComplete={(correct, total) => {
+                setStreakDays(recordStreakDay(streakDays, profile));
+                earnSticker(profile);
+                countToday(profile, 'twins');
+                statRoundDone({ activity: 'twins', lang: speechLanguage(), correct, total });
+              }}
+              stickerSlot={stickerPicker('pitch')}
             />
           ) : view === 'singlenotes' ? (
             // Single Notes: 20 single notes, after the chords.
