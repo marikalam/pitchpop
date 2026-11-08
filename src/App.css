@@ -8511,3 +8511,14 @@ body {
   padding: 2px 7px;
   border-radius: 999px;
 }
+/* Melo tucked right under the rainbow, in the flow (the rule above makes
+   the hero's children relative, so no empty gap is left behind). */
+.home-hero > .home-melo {
+  position: relative;
+  right: auto;
+  bottom: auto;
+  margin: -34px 0 -6px;
+}
+.home-fit .home-hero > .home-melo {
+  margin: -26px 0 -8px;
+}
