@@ -1,7 +1,7 @@
 import { settingsChangedAt, touchSettings } from './settingsClock.js';
 
 // A player's settings that follow them to every phone in the family
-// account: Tiny Tots, Single notes, typing the notes, and NoteSpeller's clef, staff part
+// account: Melo's Closet (what Melo wears and has tried on), Tiny Tots, Single notes, typing the notes, and NoteSpeller's clef, staff part
 // and notes. Each lives in its own per-player map on the phone; this
 // gathers them up for syncing and puts synced ones back.
 const MAPS = {
@@ -15,6 +15,7 @@ const MAPS = {
   letters: 'pitchpop-notespeller-my-notes-v1',
   voice: 'pitchpop-voice-lang-v1',
   screens: 'pitchpop-screen-lang-v1',
+  closet: 'pitchpop-melo-closet-v1',
 };
 // Never changed on this phone: any phone's settings win over these.
 const NEVER = '1970-01-01T00:00:00.000Z';
@@ -38,6 +39,9 @@ export function collectSettings(profileId) {
 export function applySettings(profileId, settings) {
   if (!settings?.values || !(settings.updatedAt > (settingsChangedAt(profileId) || NEVER))) return false;
   for (const [name, key] of Object.entries(MAPS)) {
+    // Sent by an older version of the app that doesn't have this one yet:
+    // keep this phone's.
+    if (!(name in settings.values)) continue;
     const map = loadMap(key);
     const value = settings.values[name];
     if (value == null || value === false) delete map[profileId];
