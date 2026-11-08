@@ -133,7 +133,7 @@ export default function Piano({ engine, onClose }) {
             disabled={startOctave <= MIN_OCTAVE}
             aria-label="Lower octave"
           >
-            ◀
+            {'◀\uFE0E'}
           </button>
           <span className="piano-range">
             C{startOctave} – C{startOctave + 2}
@@ -144,7 +144,7 @@ export default function Piano({ engine, onClose }) {
             disabled={startOctave >= MAX_OCTAVE}
             aria-label="Higher octave"
           >
-            ▶
+            {'▶\uFE0E'}
           </button>
         </div>
         <button className="piano-tool-btn piano-labels-btn" onClick={toggleLabels} aria-pressed={showLabels}>
