@@ -78,12 +78,27 @@ export default function SingleNotes({
   rainbowColors = [],
   onComplete,
   stickerSlot,
+  // Where to keep a round left part way (localStorage), so opening it
+  // again carries on at the next question with the same score.
+  saveKey = null,
 }) {
-  const [queue, setQueue] = useState(() => buildQueue(chordColors, rounds));
-  const [roundIndex, setRoundIndex] = useState(0);
+  const [saved] = useState(() => {
+    if (!saveKey) return null;
+    try {
+      const s = JSON.parse(localStorage.getItem(saveKey));
+      return s && Array.isArray(s.queue) && s.queue.length === rounds ? s : null;
+    } catch {
+      return null;
+    }
+  });
+  const [queue, setQueue] = useState(() => saved?.queue || buildQueue(chordColors, rounds));
+  // The first question not answered yet.
+  const [roundIndex, setRoundIndex] = useState(() =>
+    saved ? Math.min(rounds - 1, saved.roundIndex + (saved.roundIndex in (saved.outcomes || {}) ? 1 : 0)) : 0,
+  );
   const [answered, setAnswered] = useState(null); // { key or color, correct }
-  const [correctCount, setCorrectCount] = useState(0);
-  const [outcomes, setOutcomes] = useState({});
+  const [correctCount, setCorrectCount] = useState(saved?.correctCount || 0);
+  const [outcomes, setOutcomes] = useState(saved?.outcomes || {});
   const [done, setDone] = useState(false);
   const item = queue[roundIndex];
   const isChord = item.type === 'chord';
@@ -113,6 +128,17 @@ export default function SingleNotes({
   }, [roundIndex, queue, done]);
 
   useEffect(() => () => newSound(), []);
+
+  // Keep the round's place (cleared when it's finished or started over).
+  useEffect(() => {
+    if (!saveKey) return;
+    try {
+      if (done) localStorage.removeItem(saveKey);
+      else if (Object.keys(outcomes).length) localStorage.setItem(saveKey, JSON.stringify({ queue, roundIndex, correctCount, outcomes }));
+    } catch {
+      /* private mode */
+    }
+  }, [saveKey, queue, roundIndex, correctCount, outcomes, done]);
 
   // k: the key tapped (a note), or the color picked (a chord).
   function answer(k) {
@@ -174,6 +200,13 @@ export default function SingleNotes({
 
   function restart() {
     finishedRef.current = false;
+    if (saveKey) {
+      try {
+        localStorage.removeItem(saveKey);
+      } catch {
+        /* private mode */
+      }
+    }
     setQueue(buildQueue(chordColors, rounds));
     setRoundIndex(0);
     setAnswered(null);

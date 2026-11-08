@@ -1155,6 +1155,17 @@ export default function App() {
       openTool('tinytots');
       return;
     }
+    // A round left part way (Back, another screen, closing the app: the
+    // round is saved, see saveSession) carries on at the first chord not
+    // answered yet, with the same score.
+    const answered = Object.keys(roundOutcomes).length;
+    if (answered > 0 && answered < SESSION_ROUNDS && sessionQueue.length === SESSION_ROUNDS) {
+      const at = roundIndex in roundOutcomes ? Math.min(roundIndex + 1, SESSION_ROUNDS - 1) : roundIndex;
+      setRoundIndex(at);
+      setTries(NO_TRIES);
+      setView('play-listen');
+      return;
+    }
     newRound(profile, profileColorNames);
     setPart2(null);
     setRoundIndex(0);
@@ -1904,6 +1915,7 @@ export default function App() {
               engine={engineRef.current}
               rounds={20}
               part="Single Notes"
+              saveKey={`pitchpop-singlenotes-round-v1-${profile}`}
               rainbowColors={COLORS}
               onComplete={(correct, total) => {
                 setStreakDays(recordStreakDay(streakDays, profile));
