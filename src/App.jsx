@@ -56,6 +56,9 @@ import { statAppOpened, statRoundDone } from './stats.js';
 import StatsScreen, { AppleCard, DownloadsCard } from './StatsScreen.jsx';
 import MoneyCard from './MoneyCard.jsx';
 import TwinPractice from './TwinPractice.jsx';
+import Melo from './Melo.jsx';
+import MeloCloset from './MeloCloset.jsx';
+import { closetFor, newItems as newClosetItems } from './meloCloset.js';
 import { usesBlackKeys } from './blackKeys.js';
 import { colorLabel, screenLang, screenLanguage, setScreenLang, setScreenLanguage, t } from './i18n.js';
 import { loadPracticeLog } from './practiceLog.js';
@@ -1360,7 +1363,7 @@ export default function App() {
   // Piano, Practice Mode and Music Theory are side trips like Explore:
   // closing one goes back to wherever the player was (a quiz in progress
   // included) instead of restarting the color game.
-  const TOOL_VIEWS = ['piano', 'practice', 'theory', 'method', 'scales', 'hanon', 'tinytots', 'singlenotes', 'twins', 'progress', 'stickers', 'plan'];
+  const TOOL_VIEWS = ['piano', 'practice', 'theory', 'method', 'scales', 'hanon', 'tinytots', 'singlenotes', 'twins', 'progress', 'stickers', 'plan', 'closet'];
 
   // The header's practice pill, on every screen: back to the timer (in
   // Practice Mode itself, to its Timer tab).
@@ -1830,7 +1833,7 @@ export default function App() {
     return <Piano engine={engineRef.current} onClose={closeTool} />;
   }
 
-  if (view === 'practice' || view === 'theory' || view === 'method' || view === 'scales' || view === 'hanon' || view === 'tinytots' || view === 'singlenotes' || view === 'twins' || view === 'progress' || view === 'stickers' || view === 'plan') {
+  if (view === 'practice' || view === 'theory' || view === 'method' || view === 'scales' || view === 'hanon' || view === 'tinytots' || view === 'singlenotes' || view === 'twins' || view === 'progress' || view === 'stickers' || view === 'plan' || view === 'closet') {
     // Practice Mode fits on one screen (its tools are tabs); the Music
     // Theory glossary and the method explanation are reading pages and
     // scroll.
@@ -1884,6 +1887,14 @@ export default function App() {
             />
           ) : view === 'plan' ? (
             <Paywall user={cloudUser} reason={planReason} onSignIn={openAccount} onDone={closeTool} />
+          ) : view === 'closet' ? (
+            <MeloCloset
+              key={profile}
+              playerId={profile}
+              playerColors={currentProfile.colors}
+              colors={COLORS}
+              engine={engineRef.current}
+            />
           ) : view === 'stickers' ? (
             <StickerBook
               key={profile}
@@ -2137,6 +2148,11 @@ export default function App() {
               <div className="home-hero-rainbow">
                 <Rainbow colors={COLORS} activeName={null} visible pretty />
               </div>
+              {/* Melo, dressed from the closet: tap to open Melo's Closet. */}
+              <button className="home-melo" onClick={() => openTool('closet')} aria-label={t("Melo's Closet")}>
+                <Melo size={64} wear={closetFor(profile).wear} />
+                {newClosetItems(profile).length > 0 && <span className="home-melo-new">NEW</span>}
+              </button>
               <h2 className="home-hello">
                 {cloudUser ? t('Hi, {name}!', { name: currentProfile.name }) : t('Every chord has a color')}
               </h2>

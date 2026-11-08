@@ -19,6 +19,7 @@ const MENU_SECTIONS = [
       { id: 'color-test', icon: 'rainbow', label: 'Pitch Practice' },
       { id: 'explore', icon: 'notes', label: 'Explore sounds' },
       { id: 'stickers', icon: 'notebook', label: 'Sticker book' },
+      { id: 'closet', icon: 'star', label: "Melo's Closet" },
       { id: 'progress', icon: 'chart', label: 'Progress' },
       { id: 'method', icon: 'cap', label: 'The Eguchi method' },
     ],

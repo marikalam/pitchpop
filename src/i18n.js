@@ -170,6 +170,18 @@ const JA = {
   'You have {n} stickers! Tap one': 'シールが {n}まい あるよ！ ひとつ えらんでね',
   'Play again': 'もういちど',
   'All done!': 'おわり！',
+  // Melo's Closet
+  "Melo's Closet": 'メロの クローゼット',
+  Hats: 'ぼうし',
+  Glasses: 'メガネ',
+  Ribbons: 'リボン',
+  'Ta-da! My new {item}!': 'じゃーん！ あたらしい {item}！',
+  'Do you like my {item}?': '{item}、にあう？',
+  '{n} more stickers for the {item}. Finish a round to get a sticker!': 'あと {n}まいの シールで {item}！ 1かい やると シールが もらえるよ！',
+  '{n} more stickers for the {item}. Every round you finish gets a sticker!': 'あと {n}まいの シールで {item}！ 1かい やるごとに シールが もらえるよ！',
+  'Get {color} right 9 times out of 10 for its ribbon! Lately: {right} of {total}.': '{color}を 10かいちゅう 9かい あてると リボンが もらえるよ！ さいきん：{total}かいちゅう {right}かい',
+  '{color} is a chord you haven’t learned yet. Its ribbon comes later!': '{color}は まだ ならっていない わおんだよ。リボンは もうすこし あとで！',
+  'Each color’s ribbon unlocks when you hear that color right 9 times out of 10.': 'いろの リボンは、その いろを 10かいちゅう 9かい あてると もらえるよ。',
   // Explore
   Back: 'もどる',
   'Back to Pitch Practice': 'おんかんれんしゅうに もどる',

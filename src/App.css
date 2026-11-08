@@ -8261,3 +8261,253 @@ body {
 .stats-more[open] > summary::after {
   content: ' ▴';
 }
+
+/* Melo's Closet (MeloCloset.jsx), styled like MathPop's Pip's Closet. */
+.closet {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto 24px;
+  position: relative;
+}
+.closet-star {
+  color: #f5b301;
+}
+.closet-stars {
+  position: absolute;
+  top: -46px;
+  right: 0;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: #fff3c4;
+  color: #8a5a00;
+  font: 700 17px 'Fredoka', ui-rounded, system-ui, sans-serif;
+}
+.closet-stage {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  height: 250px;
+  padding-bottom: 14px;
+  border-radius: 26px;
+  background: linear-gradient(#fff7d6, #ffe9f0);
+}
+.closet-bubble {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  max-width: 58%;
+  padding: 8px 12px;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  color: var(--ink);
+  font: 700 14px/1.25 'Fredoka', ui-rounded, system-ui, sans-serif;
+  text-align: left;
+}
+.closet-melo-pop {
+  animation: closet-pop 0.6s ease-out;
+}
+.closet-tabs {
+  display: flex;
+  gap: 8px;
+}
+.closet-tab {
+  appearance: none;
+  flex: 1;
+  padding: 9px 0;
+  border: 0;
+  border-radius: 14px;
+  background: #fff;
+  color: #8a90a8;
+  font: 700 16px 'Fredoka', ui-rounded, system-ui, sans-serif;
+  cursor: pointer;
+}
+.closet-tab-on {
+  background: #3b6fef;
+  color: #fff;
+}
+.closet-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.closet-item {
+  appearance: none;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 104px;
+  padding: 4px;
+  border: 3px solid transparent;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+}
+.closet-item:active {
+  transform: scale(0.95);
+}
+.closet-item-on {
+  border-color: #3b6fef;
+  background: #eef4ff;
+}
+.closet-item-locked .pip {
+  opacity: 0.4;
+  filter: grayscale(0.7);
+}
+.closet-item-ready {
+  border-color: #ffd23f;
+  animation: closet-glow 1.6s ease-in-out infinite;
+}
+.closet-price {
+  position: absolute;
+  bottom: 6px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: #173a66;
+  color: #fff;
+  font: 700 13px 'Fredoka', ui-rounded, system-ui, sans-serif;
+}
+.closet-goal {
+  padding: 12px;
+  border-radius: 16px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 14px;
+  text-align: left;
+}
+.closet-bar {
+  height: 12px;
+  margin-bottom: 8px;
+  border-radius: 999px;
+  background: #eef1f8;
+  overflow: hidden;
+}
+.closet-bar i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #ffd23f, #ff8fb1);
+}
+.closet-card {
+  appearance: none;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin: 0 0 12px;
+  padding: 10px 14px;
+  border: 3px solid #ffe066;
+  border-radius: 20px;
+  background: #fffbea;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+.closet-card > span:last-child {
+  display: flex;
+  flex-direction: column;
+  font-size: 13.5px;
+  color: #5b6077;
+}
+.closet-card strong {
+  font: 700 17px 'Fredoka', ui-rounded, system-ui, sans-serif;
+  color: var(--ink);
+}
+.closet-card-new {
+  position: absolute;
+  top: -10px;
+  left: 10px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: #e5484d;
+  color: #fff;
+  font: 700 11px 'Fredoka', ui-rounded, system-ui, sans-serif;
+}
+.closet-earned {
+  appearance: none;
+  align-self: center;
+  padding: 6px 14px;
+  border: 0;
+  border-radius: 999px;
+  background: #fff3c4;
+  color: #8a5a00;
+  font: 700 16px 'Fredoka', ui-rounded, system-ui, sans-serif;
+  cursor: pointer;
+}
+.closet-new {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: #e5484d;
+  color: #fff;
+  font: 700 10.5px 'Fredoka', ui-rounded, system-ui, sans-serif;
+}
+.closet-stars .sticker,
+.closet-price svg {
+  vertical-align: -3px;
+}
+@keyframes closet-pop {
+  40% {
+    transform: scale(1.12) translateY(-8px);
+  }
+}
+@keyframes closet-glow {
+  50% {
+    box-shadow: 0 0 0 5px rgba(255, 210, 63, 0.35);
+  }
+}.closet .closet-stars {
+  top: 6px;
+}
+.closet-hint {
+  margin: 0;
+  text-align: center;
+  font-size: 14px;
+  color: #6b5c86;
+}
+.closet-item {
+  position: relative;
+}
+.closet-color-name {
+  display: block;
+  font: 600 12px 'Fredoka', ui-rounded, system-ui, sans-serif;
+  color: #5b4a7a;
+  margin-top: -4px;
+}
+.melo-cheer {
+  animation: melo-bounce 0.6s ease;
+}
+@keyframes melo-bounce {
+  0%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-12px) rotate(-4deg); }
+}
+
+/* Melo on the home page: tap to open the closet. */
+.home-melo {
+  position: absolute;
+  right: 6px;
+  bottom: 64px;
+  z-index: 2;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+}
+.home-melo-new {
+  position: absolute;
+  top: 2px;
+  left: -6px;
+  background: #ff5e7e;
+  color: #fff;
+  font: 700 11px 'Fredoka', ui-rounded, system-ui, sans-serif;
+  padding: 2px 7px;
+  border-radius: 999px;
+}
