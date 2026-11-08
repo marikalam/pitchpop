@@ -1,5 +1,6 @@
 import { pendingStickers, playerStickers } from './stickerStore.js';
 import { loadRoundHistory } from './roundHistory.js';
+import { touchSettings } from './settingsClock.js';
 
 // Melo's Closet: hats, glasses and ribbons for Melo, PitchPop's mascot
 // (Melo.jsx). Like MathPop's Pip's Closet, hats, glasses and two special
@@ -7,7 +8,9 @@ import { loadRoundHistory } from './roundHistory.js';
 // finished round); nothing is spent. And each chord color has a ribbon of
 // its own color that unlocks when the player has mastered that color by
 // ear (MASTERED: 90% right over their recent rounds), so the best things
-// to wear come from listening. Kept on this device, per player:
+// to wear come from listening. Kept per player, and synced to the family
+// account with the player's settings (playerSettings.js), so it's the same
+// on every phone signed in:
 // { seen: [item ids already tried on], wear: { hat, glasses, ribbon } }.
 const KEY = 'pitchpop-melo-closet-v1';
 
@@ -88,6 +91,8 @@ function save(playerId, closet) {
     /* private mode */
   }
   window.dispatchEvent(new Event('pitchpop-closet-changed'));
+  // historySync.js sends it to the family account.
+  setTimeout(() => touchSettings(playerId), 0);
 }
 
 export function closetFor(playerId) {

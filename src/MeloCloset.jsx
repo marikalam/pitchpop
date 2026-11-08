@@ -45,8 +45,17 @@ export default function MeloCloset({ playerId, playerColors = [], colors = [], e
   const [cheer, setCheer] = useState(0);
   useEffect(() => {
     const reload = () => setCount(stickerCount(playerId));
+    // Dressed up on another phone in the family account.
+    const synced = () => {
+      reload();
+      setCloset(closetFor(playerId));
+    };
     window.addEventListener('pitchpop-stickers-changed', reload);
-    return () => window.removeEventListener('pitchpop-stickers-changed', reload);
+    window.addEventListener('pitchpop-history-synced', synced);
+    return () => {
+      window.removeEventListener('pitchpop-stickers-changed', reload);
+      window.removeEventListener('pitchpop-history-synced', synced);
+    };
   }, [playerId]);
 
   // Said out loud only in English (the Japanese voice is for colors and
