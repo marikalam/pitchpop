@@ -8154,3 +8154,110 @@ body {
 .lang-item-on {
   background: #efeaff;
 }
+
+/* Stats: the one number to watch, at the top (StatsScreen.jsx). */
+.progress-card {
+  border: 3px solid #c9d8ff;
+}
+.progress-big {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 4px;
+}
+.progress-num {
+  font: 700 56px/1 'Fredoka', ui-rounded, system-ui, sans-serif;
+  color: #1f2340;
+}
+.progress-change {
+  padding: 3px 10px;
+  border-radius: 999px;
+  font: 700 15px 'Fredoka', ui-rounded, system-ui, sans-serif;
+}
+.progress-up {
+  background: #d3f9d8;
+  color: #2b8a3e;
+}
+.progress-down {
+  background: #ffe3e3;
+  color: #c92a2a;
+}
+.progress-sub {
+  margin: 4px 0 12px;
+  font-size: 14px;
+  color: #5b6077;
+}
+.progress-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  height: 120px;
+}
+.progress-bar {
+  appearance: none;
+  flex: 1;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+.progress-bar span {
+  display: block;
+  width: 100%;
+  border-radius: 6px 6px 2px 2px;
+  background: #c9d8ff;
+}
+.progress-bar-on span,
+.progress-bar:last-child span {
+  background: #3b6fef;
+}
+.progress-funnel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 14px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: #f3f5fb;
+  font-size: 14px;
+  color: #5b6077;
+}
+.progress-funnel-title {
+  width: 100%;
+  font: 700 13px 'Fredoka', ui-rounded, system-ui, sans-serif;
+  color: #8a90a8;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.progress-step strong {
+  font: 700 20px 'Fredoka', ui-rounded, system-ui, sans-serif;
+  color: #1f2340;
+}
+.progress-arrow {
+  color: #b0b5c8;
+}
+.stats-more {
+  margin-top: 6px;
+}
+.stats-more > summary {
+  padding: 12px 0;
+  color: #3b6fef;
+  font: 700 17px 'Fredoka', ui-rounded, system-ui, sans-serif;
+  text-align: center;
+  cursor: pointer;
+  list-style: none;
+}
+.stats-more > summary::-webkit-details-marker {
+  display: none;
+}
+.stats-more > summary::after {
+  content: ' ▾';
+}
+.stats-more[open] > summary::after {
+  content: ' ▴';
+}
