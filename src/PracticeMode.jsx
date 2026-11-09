@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useState } from 'react';
 import {
   MIN_PRACTICE_MINUTES,
   formatMinutes,
@@ -10,17 +10,14 @@ import Metronome from './Metronome.jsx';
 import CoffeeBreak from './CoffeeBreak.jsx';
 import { showPracticeOnLockScreen } from './liveActivity.js';
 import { newPracticeId, practiceElsewhere, takePracticeHere } from './livePractice.js';
-import { playStickerPick } from './piano.js';
 import Icon from './Icon.jsx';
 
-// A practice companion: a timer for the whole session, a tap counter for
-// repetitions ("5 times scales, then 5 times Hanon"), and each player's
-// practice history. The timer and counter are saved as they change, and
+// A practice companion: a timer for the whole session, a metronome, and
+// each player's practice history. The timer is saved as it changes, and
 // the timer is kept as timestamps rather than ticks, so locking the phone
 // or switching apps doesn't lose time. A practice is only saved to the
-// history if it lasted at least MIN_PRACTICE_MINUTES. The timer and
-// counter belong to one player (profileId); picking another player starts
-// them over.
+// history if it lasted at least MIN_PRACTICE_MINUTES. The timer belongs
+// to one player (profileId); picking another player starts it over.
 //
 // The timer keeps running until the player pauses or ends it - in another
 // app or with the screen off too. In the iPhone app it also shows on the
@@ -33,7 +30,6 @@ const TAB_KEY = 'pitchpop-practice-tab-v1';
 const TABS = [
   { id: 'timer', icon: 'timer', label: 'Timer' },
   { id: 'metronome', icon: 'notes', label: 'Metronome' },
-  { id: 'counter', icon: 'repeat', label: 'Counter' },
   { id: 'history', icon: 'calendar', label: 'History' },
 ];
 
@@ -139,8 +135,8 @@ export function readPracticeTimer(now = Date.now()) {
 
 // Stops a practice that's on, from outside Practice Mode: signing out,
 // deleting the account, or switching player. Like End practice, it's
-// saved to the player's history if it was long enough; then the timer,
-// the counter and the Lock Screen timer are cleared.
+// saved to the player’s history if it was long enough; then the timer and
+// the Lock Screen timer is cleared.
 export function stopPractice() {
   const p = loadPractice();
   const t = Date.now();
@@ -197,88 +193,6 @@ function formatDay(key) {
   return DAY_FORMAT.format(new Date(y, m - 1, d));
 }
 
-// The counter as a rainbow abacus (like the wooden toy): one rainbow arch
-// with ten rainbow beads waiting on the left. Every tap slides the next
-// bead up and over the arch to the right. Past ten it starts over from the
-// left, with the round shown.
-const PER_ROUND = 10;
-const BEADS = ['#E5473C', '#EF8B3D', '#F0C93D', '#9CCC65', '#4FAE5C', '#2fb3c4', '#3B7FD9', '#5B4FCF', '#9A4FCF', '#D8688C'];
-const BANDS = ['#E5473C', '#EF8B3D', '#F0C93D', '#4FAE5C', '#3B7FD9', '#5B4FCF', '#9A4FCF'];
-// The arch is a half circle (center cx, cy); the beads rest on it, left
-// ones climbing up from the bottom left, the ones moved over from the
-// bottom right.
-const AB = { cx: 170, cy: 168, r: 132, bead: 10.5 };
-const STEP = 0.158; // radians between resting beads
-const restLeft = (p) => Math.PI - 0.1 - p * STEP;
-const restRight = (q) => 0.1 + q * STEP;
-const onArch = (angle) => [AB.cx + AB.r * Math.cos(angle), AB.cy - AB.r * Math.sin(angle)];
-
-function CounterBeads({ count }) {
-  const round = Math.floor((count - 1) / PER_ROUND);
-  const inRound = count === 0 ? 0 : count - round * PER_ROUND;
-  const [moving, setMoving] = useState(null); // { slot, t }
-  const prev = useRef(count);
-
-  useEffect(() => {
-    const was = prev.current;
-    prev.current = count;
-    if (count !== was + 1 || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
-      setMoving(null);
-      return undefined;
-    }
-    const slot = inRound - 1;
-    const start = performance.now();
-    let frame;
-    const step = (now) => {
-      const x = Math.min(1, (now - start) / 700);
-      setMoving(x < 1 ? { slot, t: 0.5 - Math.cos(Math.PI * x) / 2 } : null);
-      if (x < 1) frame = requestAnimationFrame(step);
-    };
-    frame = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(frame);
-  }, [count]);
-
-  const { cx, cy, r } = AB;
-  return (
-    <div className="abacus" aria-hidden="true">
-      <svg viewBox="0 0 340 200">
-        {/* The arch: rainbow stripes, outside red to inside violet; the
-            beads ride the middle. */}
-        {BANDS.map((color, k) => {
-          const rr = r + (3 - k) * 3.6;
-          return (
-            <path
-              key={color}
-              d={`M ${cx - rr} ${cy + 8} V ${cy} A ${rr} ${rr} 0 0 1 ${cx + rr} ${cy} V ${cy + 8}`}
-              stroke={color}
-              strokeWidth="3.8"
-              fill="none"
-            />
-          );
-        })}
-        <rect className="abacus-base" x="14" y={cy + 6} width="312" height="18" rx="6" />
-        {Array.from({ length: PER_ROUND }, (_, i) => {
-          // Beads 0..inRound-1 have gone right; the rest wait on the left.
-          // Bead 0 waits highest on the left, so each one that goes over
-          // never has to pass another.
-          const from = restLeft(PER_ROUND - 1 - i);
-          const to = restRight(i);
-          let angle;
-          if (moving && moving.slot === i) angle = from + (to - from) * moving.t;
-          else angle = i < inRound ? to : from;
-          const [x, y] = onArch(angle);
-          return (
-            <g key={i}>
-              <circle cx={x} cy={y} r={AB.bead} fill={BEADS[i]} stroke="#fff" strokeWidth="1.5" />
-              <circle cx={x - 3} cy={y - 3.5} r={3} fill="#fff" opacity="0.55" />
-            </g>
-          );
-        })}
-      </svg>
-      {round > 0 && <span className="abacus-round">Round {round + 1}</span>}
-    </div>
-  );
-}
 
 // The timer as a ring that fills up over the first MIN_PRACTICE_MINUTES
 // (when the practice is long enough to be saved, with a sticker), then
@@ -451,7 +365,7 @@ export default function PracticeMode({ engine, profileId, profileName, ready = t
 
   const update = (changes) => setPractice((p) => ({ ...p, ...changes }));
 
-  // A different player: start their timer and counter from zero. If the
+  // A different player: start their timer from zero. If the
   // previous player had practiced long enough, that practice goes into
   // their history first, as if they'd tapped End practice. (Layout effect,
   // so the previous player's numbers never flash on screen.)
@@ -646,39 +560,6 @@ export default function PracticeMode({ engine, profileId, profileName, ready = t
 
       <Metronome engine={engine} hidden={tab !== 'metronome'} />
 
-      <section className="practice-card practice-card-counter" aria-label="Repetition counter" hidden={tab !== 'counter'}>
-        <div className="practice-card-title"><Icon name="repeat" /> Repetition counter</div>
-        <p className="practice-counter-desc">Tap each time you finish one, like 5 times through your scales.</p>
-        {/* Every tap sends a rainbow bead sliding into the row, in fives
-            like tally marks. */}
-        <CounterBeads count={practice.count} />
-        <div className="practice-counter">
-          <button
-            className="practice-step"
-            onClick={() => update({ count: Math.max(0, practice.count - 1) })}
-            disabled={practice.count === 0}
-            aria-label="Take one away"
-          >
-            −
-          </button>
-          <button
-            className="practice-count"
-            onClick={() => {
-              playStickerPick();
-              update({ count: practice.count + 1 });
-            }}
-            aria-label={`Count ${practice.count}. Tap to add one.`}
-          >
-            <span key={practice.count} className="practice-count-num" aria-live="polite">
-              {practice.count}
-            </span>
-            <span className="practice-count-hint">tap +1</span>
-          </button>
-          <button className="practice-reset" onClick={() => update({ count: 0 })} disabled={practice.count === 0}>
-            ↺
-          </button>
-        </div>
-      </section>
 
       {/* Built only when open: it's the slowest part of Practice Mode. */}
       {tab === 'history' && (
