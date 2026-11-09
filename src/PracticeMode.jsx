@@ -317,6 +317,19 @@ function PracticeRing({ ms, status }) {
           transform="rotate(-90 110 110)"
         />
       </svg>
+      {status === 'running' && (
+        // Light movement while practicing: a few music notes drift up
+        // around the ring (App.css).
+        <span className="pring-notes" aria-hidden="true">
+          {[0, 1, 2, 3].map((i) => (
+            <svg key={i} className={`pring-note pring-note-${i}`} viewBox="0 0 24 24">
+              <path d="M9 17.5V5l11-2.5v12" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinejoin="round" />
+              <ellipse cx="6" cy="17.5" rx="3.6" ry="2.8" fill="currentColor" />
+              <ellipse cx="17" cy="14.5" rx="3.6" ry="2.8" fill="currentColor" />
+            </svg>
+          ))}
+        </span>
+      )}
       <div className="pring-middle">
         {status === 'paused' ? <CoffeeBreak /> : <span className="pring-top"><Icon name={done ? 'star' : 'keys'} /></span>}
         <span className="pring-time">

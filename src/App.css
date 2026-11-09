@@ -8522,3 +8522,63 @@ body {
 .home-fit .home-hero > .home-melo {
   margin: -26px 0 -8px;
 }
+
+/* Practice timer, while practicing: a very light bit of movement. The
+   ring breathes with a soft glow, the star in the middle bobs, and a few
+   faint music notes drift up around the ring. */
+.pring-running::before {
+  content: '';
+  position: absolute;
+  inset: -6%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 179, 71, 0.28) 0, rgba(255, 107, 154, 0.12) 55%, transparent 70%);
+  animation: pring-breathe 4s ease-in-out infinite;
+  pointer-events: none;
+}
+.pring-running > svg {
+  animation: pring-breathe-ring 4s ease-in-out infinite;
+}
+.pring-running .pring-top {
+  display: inline-block;
+  animation: pring-bob 2.6s ease-in-out infinite;
+}
+@keyframes pring-breathe {
+  0%, 100% { transform: scale(0.94); opacity: 0.55; }
+  50% { transform: scale(1.04); opacity: 1; }
+}
+@keyframes pring-breathe-ring {
+  50% { transform: scale(1.015); }
+}
+@keyframes pring-bob {
+  0%, 100% { transform: translateY(0) rotate(-4deg); }
+  50% { transform: translateY(-4px) rotate(4deg); }
+}
+.pring-notes {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.pring-note {
+  position: absolute;
+  bottom: 18%;
+  width: 18px;
+  height: 18px;
+  opacity: 0;
+  animation: pring-float 7s ease-in-out infinite;
+}
+.pring-note-0 { left: -8%; color: #ffb347; animation-delay: 0s; }
+.pring-note-1 { right: -8%; color: #ff6b9a; animation-delay: 1.75s; width: 15px; height: 15px; }
+.pring-note-2 { left: 2%; color: #b197fc; animation-delay: 3.5s; width: 14px; height: 14px; }
+.pring-note-3 { right: 0; color: #4dabf7; animation-delay: 5.25s; }
+@keyframes pring-float {
+  0% { transform: translateY(0) rotate(-8deg); opacity: 0; }
+  15% { opacity: 0.7; }
+  70% { opacity: 0.45; }
+  100% { transform: translate(8px, -120px) rotate(10deg); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pring-running::before,
+  .pring-running > svg,
+  .pring-running .pring-top { animation: none; }
+  .pring-notes { display: none; }
+}
