@@ -208,6 +208,14 @@ export function speakWords(text) {
   return speak(text);
 }
 
+// Says hi to a player when they're picked ("Hi, Melody!"), in the voice
+// language of that player: Japanese players hear こんにちは.
+export function speakHello(name, language = lang) {
+  const who = (name || '').trim();
+  if (language === 'ja') return speakJapanese(who ? `こんにちは、${who}!` : 'こんにちは!');
+  return speak(who ? `Hi, ${who}!` : 'Hi!');
+}
+
 // Resolves once the voice is ready to talk, or after `ms` at most.
 export function voiceReady(ms = 6000) {
   return Promise.race([loadVoices(), new Promise((resolve) => setTimeout(resolve, ms))]);
