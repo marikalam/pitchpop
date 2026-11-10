@@ -316,26 +316,11 @@ function sortedRows(obj, names = {}) {
     .sort((a, b) => b.value - a.value);
 }
 
-// The one number to watch, at the top: how many kids play PitchPop on an
-// average day this week (devices that opened it), with the change from
-// last week and the last 12 weeks as bars. Below it, this week's path:
-// new downloads -> family sign-ups -> paying families.
-const WEEKS = 12;
-
-function weeksOf(daily) {
-  // Groups of 7 days ending today (the last one is this week so far).
-  const out = [];
-  for (let end = daily.length; end > 0 && out.length < WEEKS; end -= 7) {
-    const days = daily.slice(Math.max(0, end - 7), end);
-    const devices = days.reduce((n, d) => n + d.devices, 0);
-    out.unshift({
-      from: days[0].day,
-      perDay: days.length ? devices / days.length : 0,
-      newInstalls: days.reduce((n, d) => n + d.newInstalls, 0),
-    });
-  }
-  return out;
-}
+// The one number to watch, at the top: how many kids play PitchPop each
+// day (devices that opened it): today so far, compared with yesterday,
+// and the last DAYS days as bars (tap one for its number). Below it, this
+// week's path: new downloads -> family sign-ups -> paying families.
+const DAYS = 30;
 
 function ProgressCard() {
   const [stats, setStats] = useState(undefined);
@@ -343,7 +328,7 @@ function ProgressCard() {
   const [pick, setPick] = useState(null);
   useEffect(() => {
     let live = true;
-    loadStats(WEEKS * 7).then((s) => live && setStats(s));
+    loadStats(DAYS).then((s) => live && setStats(s));
     loadMoneyProgress().then((m) => live && setMoney(m));
     return () => {
       live = false;
@@ -351,51 +336,57 @@ function ProgressCard() {
   }, []);
   if (stats === null) return null;
   if (stats === undefined) return <section className="stats-card progress-card"><p className="stats-empty">Loading…</p></section>;
-  const weeks = weeksOf(stats.daily || []);
-  const now = weeks[weeks.length - 1];
-  const before = weeks[weeks.length - 2];
-  const round1 = (n) => Math.round(n * 10) / 10;
-  const change = before && before.perDay ? Math.round(((now.perDay - before.perDay) / before.perDay) * 100) : null;
-  const max = Math.max(1, ...weeks.map((w) => w.perDay));
-  const shown = weeks[pick ?? weeks.length - 1];
-  const weekStart = now.from;
+  const daily = (stats.daily || []).slice(-DAYS);
+  if (!daily.length) return null;
+  const today = daily[daily.length - 1];
+  const yesterday = daily[daily.length - 2];
+  const weekAgo = daily[daily.length - 8];
+  const max = Math.max(1, ...daily.map((d) => d.devices));
+  const shown = daily[pick ?? daily.length - 1];
+  const week = daily.slice(-7);
+  const weekStart = week[0].day;
+  const weekInstalls = week.reduce((n, d) => n + d.newInstalls, 0);
   const signups = (stats.families || []).filter((f) => f.joined && f.joined.slice(0, 10) >= weekStart).length;
   const paying = money?.paying?.pitchpop;
   return (
     <section className="stats-card progress-card">
       <h3 className="stats-card-title">Kids playing each day</h3>
       <div className="progress-big">
-        <span className="progress-num">{round1(now.perDay)}</span>
-        {change !== null && (
-          <span className={`progress-change ${change >= 0 ? "progress-up" : "progress-down"}`}>
-            {change >= 0 ? "▲" : "▼"} {Math.abs(change)}% vs last week
-          </span>
-        )}
+        <span className="progress-num">{today.devices}</span>
+        <span className="progress-today">today so far</span>
       </div>
-      <p className="progress-sub">Average a day this week. Growing week after week is the goal.</p>
-      <div className="progress-chart" onMouseLeave={() => setPick(null)}>
-        {weeks.map((w, i) => (
+      <p className="progress-sub">
+        Yesterday: <strong>{yesterday ? yesterday.devices : "–"}</strong>
+        {weekAgo && (
+          <>
+            {" · "}Same day last week: <strong>{weekAgo.devices}</strong>
+          </>
+        )}
+      </p>
+      <div className="progress-chart progress-chart-days" onMouseLeave={() => setPick(null)}>
+        {daily.map((d, i) => (
           <button
-            key={w.from}
+            key={d.day}
             type="button"
-            className={`progress-bar${shown === w ? " progress-bar-on" : ""}`}
+            className={`progress-bar${shown === d ? " progress-bar-on" : ""}`}
             onClick={() => setPick(i)}
             onMouseEnter={() => setPick(i)}
-            aria-label={`Week of ${shortDay(w.from)}: ${round1(w.perDay)} a day`}
+            aria-label={`${shortDay(d.day)}: ${d.devices} playing`}
           >
-            <span style={{ height: `${Math.max(3, (w.perDay / max) * 100)}%` }} />
+            <span style={{ height: `${Math.max(3, (d.devices / max) * 100)}%` }} />
           </button>
         ))}
       </div>
       <div className="stats-axis">
-        <span>{WEEKS} weeks ago</span>
+        <span>{shortDay(daily[0].day)}</span>
         <span>
-          {shown === now ? "This week" : `Week of ${shortDay(shown.from)}`}: <strong>{round1(shown.perDay)}</strong> a day
+          {shown === today ? "Today" : shortDay(shown.day)}: <strong>{shown.devices}</strong> playing
+          {shown.newInstalls > 0 && ` · ${shown.newInstalls} new`}
         </span>
       </div>
       <div className="progress-funnel">
-        <span className="progress-funnel-title">This week</span>
-        <span className="progress-step"><strong>{now.newInstalls}</strong> new downloads</span>
+        <span className="progress-funnel-title">Last 7 days</span>
+        <span className="progress-step"><strong>{weekInstalls}</strong> new downloads</span>
         <span className="progress-arrow">→</span>
         <span className="progress-step"><strong>{signups}</strong> signed up</span>
         <span className="progress-arrow">→</span>
