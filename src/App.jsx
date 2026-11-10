@@ -2,7 +2,7 @@ import { Capacitor } from '@capacitor/core';
 import { App as CapacitorApp } from '@capacitor/app';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { PianoEngine, noteLabel, playCorrectChime, playLogoPop, playWrongBuzz } from './piano.js';
-import { prewarmVoices, setSpeechLanguage, speakColorName, speakResults, speechLanguage, unlockAudio } from './speech.js';
+import { prewarmVoices, setSpeechLanguage, speakColorName, speakHello, speakResults, speechLanguage, unlockAudio } from './speech.js';
 import { setVoiceLang, voiceLang } from './voiceLang.js';
 import { isCurrent, later, newSound } from './soundBus.js';
 import Rainbow from './Rainbow.jsx';
@@ -1109,9 +1109,21 @@ export default function App() {
     if (Math.abs(dx) < 70 || Math.abs(dx) < Math.abs(dy) * 1.8) return;
     const i = profiles.findIndex((p) => p.id === profile);
     const next = profiles[(i + (dx < 0 ? 1 : -1) + profiles.length) % profiles.length];
-    changeProfile(next.id);
+    pickProfile(next.id);
     setSwipeHint({ name: next.name, at: Date.now() });
     setTimeout(() => setSwipeHint(null), 1100);
+  }
+
+  // Picking a player (the dropdown or a swipe on the home page) says hi to
+  // them, in their own voice language.
+  function pickProfile(next) {
+    const changed = next !== profile;
+    changeProfile(next);
+    if (!changed) return;
+    const player = profiles.find((p) => p.id === next);
+    if (!player) return;
+    newSound();
+    setTimeout(() => speakHello(player.name, voiceLang(next)), 150);
   }
 
   function changeProfile(next, keepPractice = false) {
@@ -1735,7 +1747,7 @@ export default function App() {
           <AppHeader
             profile={profile}
             profiles={profiles}
-            onChangeProfile={changeProfile}
+            onChangeProfile={pickProfile}
             onOpenSettings={openSettings}
             user={cloudUser}
             onOpenAccount={openAccount}
@@ -1772,7 +1784,7 @@ export default function App() {
           <AppHeader
             profile={profile}
             profiles={profiles}
-            onChangeProfile={changeProfile}
+            onChangeProfile={pickProfile}
             onOpenSettings={openSettings}
             user={cloudUser}
             onOpenAccount={openAccount}
@@ -1804,7 +1816,7 @@ export default function App() {
           <AppHeader
             profile={profile}
             profiles={profiles}
-            onChangeProfile={changeProfile}
+            onChangeProfile={pickProfile}
             onOpenSettings={openSettings}
             user={cloudUser}
             onOpenAccount={openAccount}
@@ -1844,7 +1856,7 @@ export default function App() {
           <AppHeader
             profile={profile}
             profiles={profiles}
-            onChangeProfile={changeProfile}
+            onChangeProfile={pickProfile}
             onOpenSettings={openSettings}
             user={cloudUser}
             onOpenAccount={openAccount}
@@ -1975,7 +1987,7 @@ export default function App() {
           <AppHeader
             profile={profile}
             profiles={profiles}
-            onChangeProfile={changeProfile}
+            onChangeProfile={pickProfile}
             onOpenSettings={openSettings}
             user={cloudUser}
             onOpenAccount={openAccount}
@@ -2045,7 +2057,7 @@ export default function App() {
           <AppHeader
             profile={profile}
             profiles={profiles}
-            onChangeProfile={changeProfile}
+            onChangeProfile={pickProfile}
             onOpenSettings={openSettings}
             user={cloudUser}
             onOpenAccount={openAccount}
@@ -2125,7 +2137,7 @@ export default function App() {
             <AppHeader
               profile={profile}
               profiles={profiles}
-              onChangeProfile={changeProfile}
+              onChangeProfile={pickProfile}
               onOpenSettings={openSettings}
               user={cloudUser}
               onOpenAccount={openAccount}
@@ -2265,7 +2277,7 @@ export default function App() {
             <AppHeader
               profile={profile}
               profiles={profiles}
-              onChangeProfile={changeProfile}
+              onChangeProfile={pickProfile}
               onOpenSettings={openSettings}
               user={cloudUser}
               onOpenAccount={openAccount}
@@ -2312,7 +2324,7 @@ export default function App() {
             <AppHeader
               profile={profile}
               profiles={profiles}
-              onChangeProfile={changeProfile}
+              onChangeProfile={pickProfile}
               onOpenSettings={openSettings}
               user={cloudUser}
               onOpenAccount={openAccount}
@@ -2344,7 +2356,7 @@ export default function App() {
             <AppHeader
               profile={profile}
               profiles={profiles}
-              onChangeProfile={changeProfile}
+              onChangeProfile={pickProfile}
               onOpenSettings={openSettings}
               user={cloudUser}
               onOpenAccount={openAccount}
@@ -2373,7 +2385,7 @@ export default function App() {
             <AppHeader
               profile={profile}
               profiles={profiles}
-              onChangeProfile={changeProfile}
+              onChangeProfile={pickProfile}
               onOpenSettings={openSettings}
               user={cloudUser}
               onOpenAccount={openAccount}
@@ -2434,7 +2446,7 @@ export default function App() {
             <AppHeader
               profile={profile}
               profiles={profiles}
-              onChangeProfile={changeProfile}
+              onChangeProfile={pickProfile}
               onOpenSettings={openSettings}
               user={cloudUser}
               onOpenAccount={openAccount}
@@ -2516,7 +2528,7 @@ export default function App() {
             <AppHeader
               profile={profile}
               profiles={profiles}
-              onChangeProfile={changeProfile}
+              onChangeProfile={pickProfile}
               onOpenSettings={openSettings}
               user={cloudUser}
               onOpenAccount={openAccount}
@@ -2551,7 +2563,7 @@ export default function App() {
             <AppHeader
               profile={profile}
               profiles={profiles}
-              onChangeProfile={changeProfile}
+              onChangeProfile={pickProfile}
               onOpenSettings={openSettings}
               user={cloudUser}
               onOpenAccount={openAccount}
