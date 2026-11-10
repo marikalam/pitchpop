@@ -8582,3 +8582,16 @@ body {
   .pring-running .pring-top { animation: none; }
   .pring-notes { display: none; }
 }
+
+/* Kids playing each day: one bar a day for the last 30 days. */
+.progress-chart.progress-chart-days {
+  gap: 2px;
+}
+.progress-chart-days .progress-bar span {
+  border-radius: 3px 3px 1px 1px;
+}
+.progress-today {
+  color: var(--ink-dim, #6b6880);
+  font-weight: 600;
+  font-size: 15px;
+}
