@@ -48,6 +48,9 @@ let played = false;
 export function playOpeningSound() {
   if (played) return;
   played = true;
+  // Other music is playing (Spotify, the car over CarPlay): no jingle, so
+  // opening the app leaves it playing (set by ios/App/App/ViewController.swift).
+  if (window.__otherAudioAtLaunch) return;
   const AudioCtx = window.AudioContext || window.webkitAudioContext;
   if (!AudioCtx) return;
   let ctx;

@@ -1,5 +1,6 @@
 import UIKit
 import WebKit
+import AVFoundation
 import Capacitor
 
 // Capacitor's bridge script (native-bridge.js) asks the native side whether
@@ -52,6 +53,17 @@ class ViewController: CAPBridgeViewController {
         """
         let script = WKUserScript(source: source, injectionTime: .atDocumentStart, forMainFrameOnly: true)
         configuration.userContentController.addUserScript(script)
+        // Whether something else (Spotify, the car's music over CarPlay) is
+        // already playing when PitchPop opens. If so, its little opening jingle
+        // is skipped (src/openingSound.js), so just opening PitchPop doesn't
+        // stop the music or take over the car's screen.
+        let otherAudio = AVAudioSession.sharedInstance().isOtherAudioPlaying
+        let audioScript = WKUserScript(
+            source: "window.__otherAudioAtLaunch = \(otherAudio ? "true" : "false");",
+            injectionTime: .atDocumentStart,
+            forMainFrameOnly: true
+        )
+        configuration.userContentController.addUserScript(audioScript)
         return super.webView(with: frame, configuration: configuration)
     }
 }
