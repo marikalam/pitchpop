@@ -89,7 +89,7 @@ function spokenMs(text, perChar) {
   return Math.min(4000, 450 + String(text).length * perChar);
 }
 
-async function speakWithWebSpeechAPI(text) {
+async function speakWithWebSpeechAPI(text, minMs = 0) {
   if (!('speechSynthesis' in window)) return;
   window.speechSynthesis.cancel();
   const utterance = new SpeechSynthesisUtterance(text);
@@ -105,7 +105,7 @@ async function speakWithWebSpeechAPI(text) {
     // all, so don't wait for it: carry on once the words have had time to
     // be said (whichever comes first). Before, the chord after a color
     // name could wait up to 4 seconds.
-    setTimeout(resolve, spokenMs(text, 75));
+    setTimeout(resolve, Math.max(minMs, spokenMs(text, 75)));
     window.speechSynthesis.speak(utterance);
   });
 }
@@ -126,13 +126,13 @@ export function prewarmVoices() {
 // right after the color name). If something newer started meanwhile
 // (soundBus), they aren't said at all. `fallbackText` is kept for callers
 // that spell some words out for the built-in voice (see speakNoteName).
-async function speak(text, fallbackText = text) {
+async function speak(text, fallbackText = text, minMs = 0) {
   // Muted with the speaker button: no voice either.
   if (isMuted()) return;
   const soundId = currentSound();
   await loadVoices();
   if (!isCurrent(soundId)) return;
-  await speakWithWebSpeechAPI(fallbackText);
+  await speakWithWebSpeechAPI(fallbackText, minMs);
 }
 
 // The language PitchPop speaks in for whoever is playing: 'en', or 'ja'
@@ -168,7 +168,7 @@ function japaneseVoice(voices) {
 }
 
 // The phone's Japanese voice (on iPhones: Kyoko).
-async function speakJapanese(text) {
+async function speakJapanese(text, minMs = 0) {
   if (isMuted() || !('speechSynthesis' in window)) return;
   const soundId = currentSound();
   const voices = await loadVoices();
@@ -183,7 +183,7 @@ async function speakJapanese(text) {
     utterance.onend = resolve;
     utterance.onerror = resolve;
     // As for English: don't wait on a late "finished" signal.
-    setTimeout(resolve, spokenMs(text, 170));
+    setTimeout(resolve, Math.max(minMs, spokenMs(text, 170)));
     window.speechSynthesis.speak(utterance);
   });
 }
@@ -198,9 +198,15 @@ export async function speakColorName(name) {
 // letter on its own, ending the sentence ("A."), is read as the letter.
 const LETTER_SOUNDS = { A: 'A', B: 'Bee', C: 'See', D: 'Dee', E: 'Ee', F: 'Eff', G: 'Gee' };
 
+// A note's name is short, so the note played after it waited too little:
+// it started while the phone was still saying the letter, and the iPhone
+// then said the letter again ("F... F"). Its note now waits for the name
+// to be said in full (NOTE_NAME_MS at least).
+const NOTE_NAME_MS = 1300;
+
 export async function speakNoteName(letter) {
-  if (lang === 'ja') return speakJapanese(JA_NOTES[letter] || letter);
-  await speak(`${letter}.`, `${LETTER_SOUNDS[letter] || letter}.`);
+  if (lang === 'ja') return speakJapanese(JA_NOTES[letter] || letter, NOTE_NAME_MS);
+  await speak(`${letter}.`, `${LETTER_SOUNDS[letter] || letter}.`, NOTE_NAME_MS);
 }
 
 // Any English words, e.g. the Theory quiz reading its question out loud.
