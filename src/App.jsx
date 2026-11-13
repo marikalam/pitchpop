@@ -91,11 +91,6 @@ const SHORT_WEEKDAY = new Intl.DateTimeFormat(undefined, { weekday: 'short' });
 
 const DEFAULT_PROFILES = [{ id: 'player-1', name: 'Guest Player', colors: ['red', 'yellow', 'blue'] }];
 const GUEST_NAME = 'Guest Player';
-// Older versions shipped with these built-in players, and devices that ran
-// them still have them saved under PROFILES_KEY. They're sample players,
-// not the family's, so they never carry over into a new account. (Players
-// someone added themselves get a timestamped id, so a real "Maddie" stays.)
-const OLD_SAMPLE_PROFILE_IDS = new Set(['maddie', 'marcus', 'melody']);
 
 // Chords in a round of Pitch Practice (about one Eguchi session).
 const SESSION_ROUNDS = 20;
@@ -185,11 +180,13 @@ function loadSavedProfiles(key) {
   return null;
 }
 
-// The players this device kept for the family before accounts, minus the
-// old built-in sample players; null if that leaves none.
-function loadPreAccountProfiles() {
-  const kept = (loadSavedProfiles(PROFILES_KEY) || []).filter((p) => !OLD_SAMPLE_PROFILE_IDS.has(p.id));
-  return kept.length ? kept : null;
+// The family account's players as last saved on this device, shown when
+// the app opens signed in (and with no internet). Not filtered: a family's
+// own players can have the ids the old sample players used ('maddie',
+// 'marcus'...), and filtering them out left only some of the family's
+// players with no internet. null if none are saved.
+function loadCachedAccountProfiles() {
+  return loadSavedProfiles(PROFILES_KEY);
 }
 
 // Signed out, there's exactly one player, always called "Guest Player" -
@@ -849,7 +846,7 @@ export default function App() {
     // Show the family signed in at once, from this device (works with no
     // internet); the server check below can take a while offline.
     const remembered = rememberedAccount();
-    const cachedAtStart = remembered && loadPreAccountProfiles();
+    const cachedAtStart = remembered && loadCachedAccountProfiles();
     if (remembered) {
       setCloudUser(remembered);
       if (cachedAtStart) showProfiles(cachedAtStart, 'account');
@@ -870,7 +867,7 @@ export default function App() {
           showProfiles(cloudProfiles, 'account');
           setCloudConnected(true);
         } else {
-          const cached = loadPreAccountProfiles();
+          const cached = loadCachedAccountProfiles();
           if (cached) showProfiles(cached, 'account');
         }
       })
