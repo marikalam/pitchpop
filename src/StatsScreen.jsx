@@ -322,6 +322,66 @@ function sortedRows(obj, names = {}) {
 // week's path: new downloads -> family sign-ups -> paying families.
 const DAYS = 30;
 
+// The few numbers that matter, since the start, in plain words:
+// downloads (Apple's App Store reports), users (devices that played, on
+// the app or the website), family accounts and paying families.
+function TotalsCard() {
+  const [apple, setApple] = useState(undefined);
+  const [stats, setStats] = useState(undefined);
+  const [money, setMoney] = useState(undefined);
+  useEffect(() => {
+    let live = true;
+    loadAppleSales().then((a) => live && setApple(a));
+    loadStats(7).then((s) => live && setStats(s));
+    loadMoneyProgress().then((m) => live && setMoney(m));
+    return () => {
+      live = false;
+    };
+  }, []);
+  const dash = (v) => (v === undefined ? "…" : "–");
+  const mine = Array.isArray(apple) ? apple.find((a) => /pitchpop/i.test(a.title || "")) : null;
+  const all = stats?.allTime;
+  const appUsers = all?.appInstalls;
+  const webUsers = all?.webVisitors;
+  const users = appUsers != null ? appUsers + (webUsers || 0) : stats?.allTimeInstalls;
+  const families = all ? all.families : undefined;
+  const paying = money?.paying?.pitchpop;
+  return (
+    <section className="stats-card totals-card">
+      <h3 className="stats-card-title">All time</h3>
+      <div className="totals-grid">
+        <div className="totals-item">
+          <span className="totals-num">{mine?.allTime?.downloads ?? dash(apple)}</span>
+          <span className="totals-label">Downloads</span>
+          <span className="totals-sub">
+            from the App Store{mine?.allTime?.redownloads ? ` (+${mine.allTime.redownloads} re-downloads)` : ""}
+          </span>
+        </div>
+        <div className="totals-item">
+          <span className="totals-num">{users ?? dash(stats)}</span>
+          <span className="totals-label">Users</span>
+          <span className="totals-sub">
+            {appUsers != null ? `${appUsers} on iPhone & iPad, ${webUsers || 0} on the website` : "devices that played"}
+          </span>
+        </div>
+        <div className="totals-item">
+          <span className="totals-num">{families ?? dash(stats)}</span>
+          <span className="totals-label">Family accounts</span>
+          <span className="totals-sub">signed up, with PitchPop players</span>
+        </div>
+        <div className="totals-item">
+          <span className="totals-num">{paying ?? dash(money)}</span>
+          <span className="totals-label">Paying</span>
+          <span className="totals-sub">families with PitchPop Plus</span>
+        </div>
+      </div>
+      <p className="stats-note">
+        Apple’s download numbers run a day or two behind. A user is a phone, tablet or computer that opened PitchPop.
+      </p>
+    </section>
+  );
+}
+
 function ProgressCard() {
   const [stats, setStats] = useState(undefined);
   const [money, setMoney] = useState(undefined);
@@ -417,6 +477,7 @@ export default function StatsScreen() {
 
   return (
     <div className="stats-screen">
+      <TotalsCard />
       <ProgressCard />
       {/* Everything else, folded away. */}
       <details className="stats-more">
