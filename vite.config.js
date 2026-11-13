@@ -6,4 +6,7 @@ import react from '@vitejs/plugin-react';
 export default defineConfig(({ mode }) => ({
   base: mode === 'ios' ? '/' : '/apps/pitchpop/',
   plugins: [react()],
+  // Also runs in older Safari, on iPhones that can't update past iOS 12
+  // (the iPhone 6); src/oldPhones.js fills in what that Safari lacks.
+  build: { target: ['es2017', 'safari12'] },
 }));
