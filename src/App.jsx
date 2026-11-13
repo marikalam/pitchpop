@@ -801,6 +801,10 @@ export default function App() {
     // ready the tap that triggered it may no longer count — priming a
     // silent clip on the very first tap anywhere unlocks audio for the
     // rest of the session.
+    // Not in the iPhone app: it may play without a tap, and starting the
+    // sound on any tap (opening the account, say) stopped other music, like
+    // Spotify over CarPlay. There it starts with the first sound played.
+    if (Capacitor.isNativePlatform()) return undefined;
     const unlock = () => {
       unlockAudio();
       document.removeEventListener('pointerdown', unlock);
