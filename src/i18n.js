@@ -220,6 +220,27 @@ const JA = {
   // Notes on the piano (Type notes)
   'Yes! {notes}': 'せいかい！ {notes}',
   "Now play {color}'s notes": '{color}の おとを ひいてみよう',
+  // NoteSpeller: Melo's Climb and the results.
+  'What note is this?': 'これは なんの おと？',
+  "Melo's Climb": 'メロの かいだん',
+  '{n} more to the crown': 'おうかんまで あと{n}',
+  '{n} in a row': '{n}れんぞく',
+  '{n} in a row = crown': '{n}れんぞくで おうかん',
+  'Up Melo goes!': 'メロが のぼるよ！',
+  'Melo got the crown': 'メロが おうかんを ゲット！',
+  '+{n} bonus': 'ボーナス +{n}',
+  'Keep climbing': 'まだまだ のぼろう',
+  '{right} of {total} right!': '{total}もんちゅう {right}もん せいかい！',
+  'Score {score}': 'スコア {score}',
+  'New best!': 'さいこう きろく！',
+  'Best: {best}': 'さいこう {best}',
+  'Crown climber': 'おうかん クライマー',
+  'Speedy Reader': 'はやよみ めいじん',
+  '{n} notes read in under 3 seconds': '3びょういないで {n}こ よめたね',
+  'Perfect round': 'ぜんもん せいかい',
+  'Every note right!': 'ぜんぶ せいかい！',
+  'Your notes': 'よんだ おんぷ',
+  'Keep practicing: {notes}': 'つぎも れんしゅう: {notes}',
 };
 
 // The text in the screens' language, with {name}-style blanks filled in.
