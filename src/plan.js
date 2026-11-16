@@ -1,4 +1,5 @@
 import { Capacitor } from '@capacitor/core';
+import { loadMyGifts } from './cloud.js';
 
 // PitchPop Family: the paid plan, sold in the iPhone app through Apple and
 // RevenueCat - a monthly or yearly subscription (with a free week) or a
@@ -112,9 +113,35 @@ export function freeForever(user) {
   return phoneGrandfathered() || accountGrandfathered(user);
 }
 
+// PitchPop Family given free by the owner to this family account
+// (plus_gifts), as last checked (kept so it works offline).
+const GIFT_KEY = 'pitchpop-gift-v1';
+export function giftedPlan(user) {
+  if (!user?.id) return false;
+  try {
+    const g = JSON.parse(localStorage.getItem(GIFT_KEY));
+    return !!(g && g.id === user.id && g.pitchpop);
+  } catch {
+    return false;
+  }
+}
+async function checkGift(user) {
+  if (!user?.id) return;
+  const gifts = await loadMyGifts();
+  if (!gifts) return;
+  const before = giftedPlan(user);
+  try {
+    localStorage.setItem(GIFT_KEY, JSON.stringify({ id: user.id, pitchpop: !!gifts.pitchpop }));
+  } catch {
+    /* ignore */
+  }
+  if (before !== !!gifts.pitchpop) window.dispatchEvent(new Event('pitchpop-plan-changed'));
+}
+
 export function hasPlan(user) {
   if (!plansOn()) return true;
   if (freeForever(user)) return true;
+  if (giftedPlan(user)) return true;
   const plan = savedPlan();
   if (plan.active) return true;
   if (!TEST_STORE && !tryingPayments() && FIRST_PAID_BUILD && plan.original && Number(plan.original) < FIRST_PAID_BUILD) return true;
@@ -153,6 +180,7 @@ let currentUserId = null;
 // and keeps the plan up to date as RevenueCat reports changes (a renewal,
 // a cancellation, a purchase on another phone).
 export async function startPlans(user) {
+  checkGift(user);
   if (!plansOn()) return;
   try {
     const { Purchases } = await sdk();
