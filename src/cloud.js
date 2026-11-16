@@ -407,6 +407,34 @@ export async function sendStatEvents(events) {
   }
 }
 
+// Free gifts from the owner (supabase/plus_gifts.sql).
+export async function loadMyGifts() {
+  try {
+    const { data, error } = await supabase.rpc('my_gifts');
+    return error ? null : data;
+  } catch {
+    return null;
+  }
+}
+// For the owner (stats viewers): every family account with its gifts,
+// and giving or taking one back.
+export async function loadFamilyAccounts() {
+  try {
+    const { data, error } = await supabase.rpc('owner_family_accounts');
+    return error ? null : data;
+  } catch {
+    return null;
+  }
+}
+export async function setPlusGift(target, app, give) {
+  try {
+    const { error } = await supabase.rpc('owner_set_gift', { target, for_app: app, give });
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
 export async function canViewStats() {
   try {
     const { data, error } = await supabase.rpc('pitchpop_can_view_stats');

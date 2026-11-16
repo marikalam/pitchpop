@@ -55,6 +55,7 @@ import { countToday, markDoneToday, todayPlan } from './todayPlan.js';
 import { statAppOpened, statRoundDone } from './stats.js';
 import StatsScreen, { AppleCard, DownloadsCard } from './StatsScreen.jsx';
 import MoneyCard from './MoneyCard.jsx';
+import GiftsCard from './GiftsCard.jsx';
 import TwinPractice from './TwinPractice.jsx';
 import Melo from './Melo.jsx';
 import MeloCloset from './MeloCloset.jsx';
@@ -2004,6 +2005,7 @@ export default function App() {
           {statsViewer && <DownloadsCard onOpenStats={() => setView('stats')} />}
           {statsViewer && <AppleCard />}
           {statsViewer && <MoneyCard app="pitchpop" />}
+          {statsViewer && <GiftsCard />}
           <div className="settings-list">
             {draftProfiles.map((p) => (
               <PlayerSettingsCard

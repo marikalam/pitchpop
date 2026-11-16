@@ -8918,3 +8918,102 @@ body {
   .climb-melo { transition: none; }
   .climb-crown, .climb-combo, .ns-gain, .ns-stars .ns-star-on, .ns-crown-card { animation: none; }
 }
+
+/* Players & colors (owner): give Plus free (GiftsCard.jsx). */
+.gift-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 12px 0;
+  padding: 14px 16px;
+  border-radius: 22px;
+  background: #fff;
+  color: #173a66;
+  box-shadow: 0 4px 14px rgba(23, 58, 102, 0.08);
+}
+.gift-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.gift-head h3 {
+  margin: 0;
+  font: 700 18px 'Fredoka', ui-rounded, system-ui, sans-serif;
+}
+.gift-head small {
+  display: block;
+  margin-top: 2px;
+  font: 500 13px 'IBM Plex Sans', sans-serif;
+  color: #4d5b72;
+}
+.gift-head b {
+  font: 700 26px 'Fredoka', ui-rounded, system-ui, sans-serif;
+}
+.gift-find {
+  height: 44px;
+  padding: 0 12px;
+  border: 2px solid #dbe4f0;
+  border-radius: 12px;
+  font: 500 16px 'IBM Plex Sans', sans-serif;
+}
+.gift-note {
+  margin: 0;
+  font: 500 13px 'IBM Plex Sans', sans-serif;
+  color: #4d5b72;
+}
+.gift-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 420px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+.gift-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+  border-radius: 14px;
+  background: #f4f7fb;
+}
+.gift-email {
+  display: flex;
+  flex-direction: column;
+  font: 600 15px 'IBM Plex Sans', sans-serif;
+  word-break: break-all;
+}
+.gift-email small {
+  font-weight: 500;
+  font-size: 12px;
+  color: #4d5b72;
+}
+.gift-btns {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.gift-btn {
+  min-height: 40px;
+  padding: 6px 12px;
+  border: 2px solid #c7d2e3;
+  border-radius: 99px;
+  background: #fff;
+  color: #173a66;
+  font: 600 14px 'Fredoka', ui-rounded, system-ui, sans-serif;
+  cursor: pointer;
+}
+.gift-on {
+  border-color: #2fae6b;
+  background: #2fae6b;
+  color: #fff;
+}
