@@ -73,7 +73,6 @@ export default function NoteSpeller({ engine, playerId, onComplete, stickerSlot 
   const misses = useRef({});
   // Melo's Climb: right in a row, the round's best run, points, the crown.
   const [streak, setStreak] = useState(0);
-  const [bestStreak, setBestStreak] = useState(0);
   const [score, setScore] = useState(0);
   const [gained, setGained] = useState(0);
   const [crowned, setCrowned] = useState(false);
@@ -114,7 +113,6 @@ export default function NoteSpeller({ engine, playerId, onComplete, stickerSlot 
     setDone(false);
     misses.current = {};
     setStreak(0);
-    setBestStreak(0);
     setScore(0);
     setGained(0);
     setCrowned(false);
@@ -151,12 +149,12 @@ export default function NoteSpeller({ engine, playerId, onComplete, stickerSlot 
     if (correct) {
       playCorrectChime();
       setCorrectCount((c) => c + 1);
-      // Melo goes up a step; ten in a row wins the crown (once a round).
+      // Melo goes up a step for every right note (a miss doesn't send Melo
+      // back down); the tenth wins the crown. In a row, the points grow.
       const run = streak + 1;
-      const crownNow = run === CROWN_AT && !crowned;
+      const crownNow = correctCount + 1 === CROWN_AT && !crowned;
       const points = pointsFor(run) + (crownNow ? CROWN_BONUS : 0);
       setStreak(run);
-      setBestStreak((b) => Math.max(b, run));
       setScore((x) => x + points);
       setGained(points);
       if (crownNow) {
@@ -167,7 +165,7 @@ export default function NoteSpeller({ engine, playerId, onComplete, stickerSlot 
     } else {
       playWrongBuzz();
       misses.current[target.letter] = (misses.current[target.letter] || 0) + 1;
-      // Back to the bottom step; the points stay.
+      // The points' streak starts again; Melo stays on the step.
       setStreak(0);
       setGained(0);
     }
@@ -229,7 +227,7 @@ export default function NoteSpeller({ engine, playerId, onComplete, stickerSlot 
     const letters = ['C', 'D', 'E', 'F', 'G', 'A', 'B'].filter((l) => byLetter[l]);
     const practice = letters.filter((l) => byLetter[l].right < byLetter[l].total);
     const badges = [
-      crowned && { id: 'crown', icon: <CrownIcon size={34} />, title: t('Crown climber'), sub: t('{n} in a row', { n: bestStreak }) },
+      crowned && { id: 'crown', icon: <CrownIcon size={34} />, title: t('Crown climber'), sub: t('{n} notes right', { n: CROWN_AT }) },
       speedy >= SPEEDY_BADGE && { id: 'speedy', icon: (
           <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true">
             <path d="M13 2 4 14h7l-1 8 9-12h-7z" fill="#fff" />
@@ -294,7 +292,7 @@ export default function NoteSpeller({ engine, playerId, onComplete, stickerSlot 
   return (
     <div className="ns-screen">
       <ProgressDots current={roundIndex + 1} total={SESSION_ROUNDS} outcomes={outcomes} />
-      <MeloClimb streak={streak} crowned={crowned} wear={wear} />
+      <MeloClimb steps={correctCount} streak={streak} crowned={crowned} wear={wear} />
       <div className="ns-title-row">
         <h2 className="screen-title ns-title">
           {t('What note is this?')} <Icon name="notes" />
@@ -340,7 +338,7 @@ export default function NoteSpeller({ engine, playerId, onComplete, stickerSlot 
           {answered ? (
             answered.correct ? (
               <>
-                <Icon name="party" /> Yes! That's {target.letter}.{streak > 0 && streak <= CROWN_AT ? ` ${t('Up Melo goes!')}` : ''}
+                <Icon name="party" /> Yes! That's {target.letter}.{correctCount <= CROWN_AT ? ` ${t('Up Melo goes!')}` : ''}
               </>
             ) : (
               t("That's {right}. You tapped {picked}.", { right: noteText(target.letter), picked: noteText(answered.picked) })
@@ -379,12 +377,12 @@ export default function NoteSpeller({ engine, playerId, onComplete, stickerSlot 
         )}
       </div>
       {crownShow && (
-        <div className="ns-crown" role="dialog" aria-label={t('{n} in a row!', { n: CROWN_AT })} onClick={() => setCrownShow(false)}>
+        <div className="ns-crown" role="dialog" aria-label={t('{n} notes right!', { n: CROWN_AT })} onClick={() => setCrownShow(false)}>
           <div className="ns-crown-card" onClick={(e) => e.stopPropagation()}>
             <div className="ns-crown-melo">
               <Melo size={92} mood="cheer" wear={{ ...wear, hat: 'crown' }} />
             </div>
-            <strong>{t('{n} in a row!', { n: CROWN_AT })}</strong>
+            <strong>{t('{n} notes right!', { n: CROWN_AT })}</strong>
             <span>{t('Melo got the crown')}</span>
             <em>{t('+{n} bonus', { n: CROWN_BONUS })}</em>
             <button className="pill-btn-primary" onClick={() => setCrownShow(false)}>

@@ -114,8 +114,14 @@ function notesIn([low, high], clef) {
   return notes;
 }
 
-// The level's notes, only the picked letters (all by default).
+// The level's notes, only the picked letters (all by default). A player
+// given only some letters (a beginner on C D E F G) reads each of them once,
+// in the octave next to middle C: the same letter an octave higher (high C
+// to G on the treble staff) is a different note to read, and came up too.
 export function notesFor(clef, level = 'medium', letters = LETTERS) {
+  if (letters.length < LETTERS.length) {
+    return notesIn(NEAR_MIDDLE_C[clef], clef).filter((n) => letters.includes(n.letter));
+  }
   const notes = notesIn(RANGES[level][clef], clef).filter((n) => letters.includes(n.letter));
   const missing = letters.filter((l) => !notes.some((n) => n.letter === l));
   notes.push(...notesIn(NEAR_MIDDLE_C[clef], clef).filter((n) => missing.includes(n.letter)));

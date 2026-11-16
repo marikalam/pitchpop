@@ -2,9 +2,9 @@ import Melo from './Melo.jsx';
 import { t } from './i18n.js';
 
 // Melo's Climb (NoteSpeller): ten rainbow steps rising to a crown. Each
-// note read right in a row takes Melo up one step; a miss sends Melo back
-// down to the start (the points stay). Ten in a row wins the crown, which
-// Melo wears for the rest of the round.
+// note read right takes Melo up one step, and a miss never sends Melo back
+// down. The tenth right note wins the crown, which Melo wears for the rest
+// of the round. Right answers in a row (the streak) earn more points.
 export const CROWN_AT = 10;
 const STEP_COLORS = ['#ff6b6b', '#ff922b', '#fcc419', '#94d82d', '#51cf66', '#22b8cf', '#4dabf7', '#748ffc', '#9775fa', '#e599f7'];
 
@@ -34,20 +34,21 @@ export function CrownIcon({ size = 30 }) {
   );
 }
 
-// streak: right in a row now. crowned: the crown has been won this round.
+// steps: notes read right this round (Melo's step). streak: right in a
+// row now (the points' multiplier). crowned: the crown has been won.
 // wear: Melo's outfit from the closet.
-export default function MeloClimb({ streak, crowned, wear = {} }) {
-  const at = Math.min(streak, CROWN_AT);
+export default function MeloClimb({ steps, streak, crowned, wear = {} }) {
+  const at = Math.min(steps, CROWN_AT);
   const left = CROWN_AT - at;
   // The steps' heights, as a share of the stairs' height.
   const height = (i) => 12 + i * 8.8;
   const melo = { ...wear, ...(crowned ? { hat: 'crown' } : {}) };
   return (
-    <div className="climb" aria-label={t('{n} in a row', { n: streak })}>
+    <div className="climb" aria-label={t('{n} more to the crown', { n: left })}>
       <div className="climb-head">
         <span className="climb-title">
           {t("Melo's Climb")}
-          {left > 0 && streak > 0 && <small>{t('{n} more to the crown', { n: left })}</small>}
+          {left > 0 && at > 0 && <small>{t('{n} more to the crown', { n: left })}</small>}
         </span>
         {streak >= 2 ? (
           <span className="climb-combo" key={streak}>
@@ -55,7 +56,7 @@ export default function MeloClimb({ streak, crowned, wear = {} }) {
             {multiplierFor(streak) > 1 && <b>x{multiplierFor(streak)}</b>}
           </span>
         ) : (
-          <span className="climb-goal">{t('{n} in a row = crown', { n: CROWN_AT })}</span>
+          <span className="climb-goal">{t('{n} right = crown', { n: CROWN_AT })}</span>
         )}
       </div>
       <div className="climb-stairs">
@@ -77,7 +78,7 @@ export default function MeloClimb({ streak, crowned, wear = {} }) {
           className="climb-melo"
           style={{ left: `${((at + 0.5) * 100) / (CROWN_AT + 1)}%`, bottom: at ? `${height(at - 1)}%` : '0%' }}
         >
-          <Melo size={34} mood={streak > 0 ? 'cheer' : 'wave'} wear={melo} />
+          <Melo size={34} mood={at > 0 ? 'cheer' : 'wave'} wear={melo} />
         </span>
       </div>
     </div>
