@@ -9,7 +9,7 @@ import Rainbow from './Rainbow.jsx';
 import NewColor, { markColorMet, newColorFor } from './NewColor.jsx';
 import LogoMark from './LogoMark.jsx';
 import ProfileSwitcher from './ProfileSwitcher.jsx';
-import MainMenu from './MainMenu.jsx';
+import MainMenu, { setStatsInMenu } from './MainMenu.jsx';
 import { PlayerSettingsCard, AddPlayerForm, AccountButton, AccountScreen, SyncStatus, LearningGuide } from './Settings.jsx';
 import NoteSpeller from './NoteSpeller.jsx';
 import TinyTots from './TinyTots.jsx';
@@ -127,6 +127,7 @@ const SESSION_KEY = 'pitchpop-session-v1';
 const PROFILES_KEY = 'pitchpop-profiles-v1';
 const GUEST_PROFILES_KEY = 'pitchpop-guest-profiles-v1';
 const WELCOME_KEY = 'pitchpop-welcome-seen-v1';
+const STATS_VIEWER_KEY = 'pitchpop-stats-viewer-v1';
 // Screens only a signed-in family can open.
 // Everything this device keeps about players: their lists, progress,
 // streaks and practice. Cleared when the account is deleted. (App-wide
@@ -659,15 +660,45 @@ export default function App() {
     window.addEventListener('pitchpop-lang-changed', bump);
     return () => window.removeEventListener('pitchpop-lang-changed', bump);
   }, []);
+  // Whether this account may see the owner's stats. Remembered on the
+  // phone (so it shows at once, offline too), and checked again whenever
+  // the app comes back or the internet does: a check made with no
+  // internet (in the car, say) used to hide the stats until a restart.
   const [statsViewer, setStatsViewer] = useState(false);
   useEffect(() => {
+    const id = cloudUser?.id;
+    if (!id) {
+      setStatsViewer(false);
+      return undefined;
+    }
     let live = true;
-    if (cloudUser?.id) canViewStats().then((ok) => live && setStatsViewer(ok));
-    else setStatsViewer(false);
+    try {
+      if (localStorage.getItem(STATS_VIEWER_KEY) === id) setStatsViewer(true);
+    } catch {
+      /* ignore */
+    }
+    const check = () =>
+      canViewStats().then((ok) => {
+        if (!live || ok === null) return;
+        setStatsViewer(ok);
+        try {
+          if (ok) localStorage.setItem(STATS_VIEWER_KEY, id);
+          else if (localStorage.getItem(STATS_VIEWER_KEY) === id) localStorage.removeItem(STATS_VIEWER_KEY);
+        } catch {
+          /* ignore */
+        }
+      });
+    check();
+    const onVisible = () => document.visibilityState === 'visible' && check();
+    window.addEventListener('online', check);
+    document.addEventListener('visibilitychange', onVisible);
     return () => {
       live = false;
+      window.removeEventListener('online', check);
+      document.removeEventListener('visibilitychange', onVisible);
     };
   }, [cloudUser?.id]);
+  setStatsInMenu(statsViewer);
   const [showWelcome, setShowWelcome] = useState(() => localStorage.getItem(WELCOME_KEY) !== '1');
 
   const [profile, setProfile] = useState(profiles[0].id);
@@ -1468,6 +1499,7 @@ export default function App() {
     if (id === 'explore') return openExplore();
     if (id === 'notespeller') return openNoteSpeller();
     if (id === 'plan') return openPlan();
+    if (id === 'stats') return setView('stats');
     if (id === 'theory') setTheoryMode('glossary');
     if (PAID_VIEWS.includes(id) && !hasPlan(cloudUser)) return openPlan();
     if (!TOOL_VIEWS.includes(view)) setPreToolView(view);

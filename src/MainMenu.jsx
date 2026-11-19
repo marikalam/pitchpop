@@ -44,6 +44,14 @@ const MENU_SECTIONS = [
   },
 ];
 
+// The owner's stats (only for accounts allowed to see them; App sets this
+// on every render).
+let statsInMenu = false;
+export function setStatsInMenu(on) {
+  statsInMenu = !!on;
+}
+const OWNER_SECTION = { id: 'owner', title: 'Owner', items: [{ id: 'stats', icon: 'chart', label: 'PitchPop stats' }] };
+
 export default function MainMenu({ onOpen }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
@@ -76,7 +84,7 @@ export default function MainMenu({ onOpen }) {
       </button>
       {open && (
         <div className="profile-menu main-menu-panel">
-          {MENU_SECTIONS.map((section, i) => (
+          {(statsInMenu ? [...MENU_SECTIONS, OWNER_SECTION] : MENU_SECTIONS).map((section, i) => (
             <div key={section.id} className={i === 0 ? 'main-menu-section-first' : 'profile-menu-section'}>
               {section.title && <div className="profile-menu-heading">{t(section.title)}</div>}
               {section.items.map((item) => (

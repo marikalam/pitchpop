@@ -9017,3 +9017,16 @@ body {
   background: #2fae6b;
   color: #fff;
 }
+
+/* Home page: the tool tiles keep a comfortable size, with room under
+   them (above the iPhone's home bar); with a long Today's practice the
+   page scrolls a little instead of squeezing them. */
+.home-fit .home-tile {
+  min-height: 64px;
+}
+.home-fit .home-tiles {
+  gap: 10px;
+}
+.page-fit.page-home {
+  padding-bottom: calc(22px + env(safe-area-inset-bottom));
+}

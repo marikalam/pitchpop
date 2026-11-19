@@ -435,12 +435,15 @@ export async function setPlusGift(target, app, give) {
   }
 }
 
+// true or false; null when it couldn't be checked (no internet), so the
+// last answer is kept.
 export async function canViewStats() {
   try {
     const { data, error } = await supabase.rpc('pitchpop_can_view_stats');
-    return !error && data === true;
-  } catch {
-    return false;
+    if (error) return isOffline(error) ? null : false;
+    return data === true;
+  } catch (err) {
+    return isOffline(err) ? null : false;
   }
 }
 
